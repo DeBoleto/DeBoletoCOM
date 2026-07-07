@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+[x-cloak] {
+    display: none;
+}
+
+:root {
+  --green:       #2ba17c;
+  --green-dark:  #1e7a5c;
+  --green-light: #3dc994;
+  --green-pale:  #e8f7f2;
+}

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["resources/js/*"]
+    },
+    "skipLibCheck": true
+  },
+  "include": [
+    "resources/js/**/*.ts",
+    "resources/js/**/*.vue",
+    "resources/js/**/*.d.ts"
+  ],
+  "exclude": ["node_modules", "public"]
+}
