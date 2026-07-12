@@ -314,7 +314,24 @@ onBeforeUnmount(() => {
 
 @media (max-width: 768px) {
   .search-autocomplete {
-    display: none;
+    max-width: none;
+  }
+
+  .search-dropdown {
+    position: fixed;
+    top: calc(var(--header-height) + 4px);
+    left: 0;
+    right: 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    transform: none;
+    border-radius: 0;
+  }
+
+  .search-input {
+    height: 36px;
+    font-size: var(--text-sm);
   }
 }
 </style>
