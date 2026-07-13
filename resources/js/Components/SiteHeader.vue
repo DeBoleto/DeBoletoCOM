@@ -8,16 +8,21 @@
         </picture>
       </a>
 
-      <nav class="primary-nav" aria-label="Navegación principal">
-        <ul role="list" class="nav-list">
-          <li><a href="#events" class="nav-link">Eventos</a></li>
-          <li><a href="#categories" class="nav-link">Categorías</a></li>
-          <li><a href="#venues" class="nav-link">Recintos</a></li>
-          <li><a href="#promoters" class="nav-link">Promotores</a></li>
-        </ul>
-      </nav>
+      <div class="search-col">
+        <SearchAutocomplete />
+      </div>
 
-      <div class="header-actions">
+      <div class="header-right">
+        <nav class="primary-nav" aria-label="Navegación principal">
+          <ul role="list" class="nav-list">
+            <li><a href="#events" class="nav-link">Eventos</a></li>
+            <li><a href="#categories" class="nav-link">Categorías</a></li>
+            <li><a href="#venues" class="nav-link">Recintos</a></li>
+            <li><a href="#promoters" class="nav-link">Promotores</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
         <template v-if="user">
           <a :href="route('dashboard')" class="btn-ghost">Dashboard</a>
           <span class="user-name">{{ user.name }}</span>
@@ -39,6 +44,7 @@
           <span class="bar"></span>
           <span class="bar"></span>
         </button>
+      </div>
       </div>
     </div>
 
@@ -71,6 +77,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import SearchAutocomplete from '@/components/SearchAutocomplete.vue'
 
 const user = computed(() => usePage().props.auth?.user ?? null)
 
@@ -108,11 +115,24 @@ onBeforeUnmount(() => window.removeEventListener('resize', handleResize))
 }
 
 .header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  height: 100%;
+  gap: var(--space-4);
+}
+
+.search-col {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-right {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  gap: var(--space-6);
+  gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 .brand {
@@ -134,6 +154,9 @@ onBeforeUnmount(() => window.removeEventListener('resize', handleResize))
 @media (min-width: 768px) {
   .primary-nav { display: flex; }
 }
+
+
+
 
 .nav-list {
   display: flex;

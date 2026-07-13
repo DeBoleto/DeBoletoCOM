@@ -19,8 +19,6 @@
     <main id="main-content">
       <HeroSlider :events="featuredEvents" />
 
-      <HeroSearch />
-
       <EventSection
         title="Próximos Eventos"
         subtitle="No te pierdas lo que viene esta temporada"
@@ -120,7 +118,6 @@
 <script setup>
 import { Head } from '@inertiajs/vue3'
 import SiteHeader from '@/components/SiteHeader.vue'
-import HeroSearch from '@/components/HeroSearch.vue'
 import HeroSlider from '@/components/HeroSlider.vue'
 import EventSection from '@/components/EventSection.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
