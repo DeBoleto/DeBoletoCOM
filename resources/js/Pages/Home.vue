@@ -26,7 +26,7 @@
         icon="📅"
         accent-color="brand"
         view-all-link="/eventos?filtro=proximos"
-        :events="nextEvents"
+        :events="resolvedNextEvents"
         layout="grid"
       />
 
@@ -116,6 +116,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import SiteHeader from '@/components/SiteHeader.vue'
 import HeroSlider from '@/components/HeroSlider.vue'
@@ -125,9 +126,19 @@ import MobileBottomNav from '@/components/MobileBottomNav.vue'
 import { useEvents } from '@/composables/useEvents.js'
 import { useStructuredData } from '@/composables/useStructuredData.js'
 
+const props = defineProps({
+  nextEvents: {
+    type: Array,
+    default: () => [],
+  },
+})
+
 const { organizationSchema, webSiteSchema } = useStructuredData()
 
-const { nextEvents, popularEvents, featuredEvents } = useEvents()
+const { nextEvents: mockNextEvents, popularEvents, featuredEvents } = useEvents()
+const resolvedNextEvents = computed(() =>
+  props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents
+)
 
 const categories = [
   { name: 'Conciertos',    slug: 'conciertos',    icon: '🎵', color: 'concert',    count: '+1,200 eventos' },
