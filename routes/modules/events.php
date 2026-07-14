@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\SearchController;
 use Illuminate\Support\Facades\Route;
 
-// Rutas del módulo events
+Route::get('/api/search', [SearchController::class, 'search'])->name('api.search');

@@ -1,144 +1,15 @@
-const BASE_EVENTS = [
-  {
-    id: 1,
-    slug: 'bad-bunny-cdmx-2025',
-    title: 'Bad Bunny — Most Wanted Tour',
-    artist: 'Bad Bunny',
-    category: 'Concierto',
-    categoryColor: 'concert',
-    date: '15 Jul 2025',
-    dateISO: '2025-07-15',
-    venue: 'Foro Sol',
-    city: 'CDMX',
-    image: '/events/concert-01.png',
-    priceFormatted: '$950',
-    availability: 'low',
-    tags: ['next', 'popular'],
-  },
-  {
-    id: 2,
-    slug: 'vive-latino-2025',
-    title: 'Vive Latino 2025',
-    artist: 'Múltiples artistas',
-    category: 'Festival',
-    categoryColor: 'festival',
-    date: '8–9 Mar 2025',
-    dateISO: '2025-03-08',
-    venue: 'Foro Deportivo Magdalena Mixhuca',
-    city: 'CDMX',
-    image: '/events/festival-01.png',
-    priceFormatted: '$1,200',
-    availability: 'available',
-    tags: ['next', 'featured'],
-  },
-  {
-    id: 3,
-    slug: 'talent-land-2025',
-    title: 'Talent Land México 2025',
-    artist: 'Jalisco Talent Land',
-    category: 'Conferencia',
-    categoryColor: 'conference',
-    date: '22–25 Abr 2025',
-    dateISO: '2025-04-22',
-    venue: 'Expo Guadalajara',
-    city: 'Guadalajara',
-    image: '/events/conference-01.png',
-    priceFormatted: '$450',
-    availability: 'available',
-    tags: ['next', 'featured'],
-  },
-  {
-    id: 4,
-    slug: 'el-fantasma-monterrey',
-    title: 'El Fantasma en Concierto',
-    artist: 'El Fantasma',
-    category: 'Concierto',
-    categoryColor: 'concert',
-    date: '20 Jul 2025',
-    dateISO: '2025-07-20',
-    venue: 'Arena Monterrey',
-    city: 'Monterrey',
-    image: '/events/concert-01.png',
-    priceFormatted: '$600',
-    availability: 'available',
-    tags: ['next'],
-  },
-  {
-    id: 5,
-    slug: 'romeo-santos-gdl',
-    title: 'Romeo Santos — Formula Vol. 3',
-    artist: 'Romeo Santos',
-    category: 'Concierto',
-    categoryColor: 'concert',
-    date: '2 Ago 2025',
-    dateISO: '2025-08-02',
-    venue: 'Estadio Akron',
-    city: 'Guadalajara',
-    image: '/events/festival-01.png',
-    priceFormatted: '$780',
-    availability: 'available',
-    tags: ['popular', 'featured'],
-  },
-  {
-    id: 6,
-    slug: 'hamlet-teatro-nacional',
-    title: 'Hamlet — Compañía Nacional de Teatro',
-    artist: 'Compañía Nacional de Teatro',
-    category: 'Teatro',
-    categoryColor: 'theater',
-    date: '10 Ago 2025',
-    dateISO: '2025-08-10',
-    venue: 'Teatro Julio Castillo',
-    city: 'CDMX',
-    image: '/events/theater-01.png',
-    priceFormatted: '$320',
-    availability: 'available',
-    tags: ['popular'],
-  },
-  {
-    id: 7,
-    slug: 'edc-mexico-2026',
-    title: 'EDC México 2026',
-    artist: 'Insomniac Events',
-    category: 'Electrónica',
-    categoryColor: 'edm',
-    date: '14–15 Feb 2026',
-    dateISO: '2026-02-14',
-    venue: 'Autódromo Hermanos Rodríguez',
-    city: 'CDMX',
-    image: '/events/edm-01.png',
-    priceFormatted: '$1,800',
-    availability: 'available',
-    tags: ['popular', 'featured'],
-  },
-  {
-    id: 8,
-    slug: 'clasico-america-chivas',
-    title: 'Clásico Nacional — América vs Chivas',
-    artist: 'Liga MX',
-    category: 'Deportes',
-    categoryColor: 'sports',
-    date: '27 Jul 2025',
-    dateISO: '2025-07-27',
-    venue: 'Estadio Azteca',
-    city: 'CDMX',
-    image: '/events/sports-01.png',
-    priceFormatted: '$350',
-    availability: 'sold-out',
-    tags: ['popular', 'featured'],
-  },
-]
-
 export function useSearch() {
-  function search(query) {
+  async function search(query) {
     if (!query || query.trim().length < 2) return []
-    const q = query.toLowerCase().trim()
-    return BASE_EVENTS.filter(e =>
-      e.title.toLowerCase().includes(q) ||
-      e.artist.toLowerCase().includes(q) ||
-      e.venue.toLowerCase().includes(q) ||
-      e.city.toLowerCase().includes(q)
-    ).slice(0, 6)
+    const q = query.trim()
+
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+      if (!response.ok) return []
+      return await response.json()
+    } catch {
+      return []
+    }
   }
 
   return { search }

@@ -32,8 +32,22 @@
       />
     </div>
 
+    <div
+      v-if="open && loading"
+      class="search-dropdown search-dropdown--loading"
+    >
+      <span class="search-loading">Buscando…</span>
+    </div>
+
+    <div
+      v-if="open && !loading && !results.length && query.trim().length >= 2"
+      class="search-dropdown search-dropdown--empty"
+    >
+      <span class="search-empty">Sin resultados</span>
+    </div>
+
     <ul
-      v-if="open && results.length"
+      v-if="open && !loading && results.length"
       id="search-results-listbox"
       ref="listboxRef"
       class="search-dropdown"
@@ -79,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useSearch } from '@/composables/useSearch.js'
 
 const { search } = useSearch()
@@ -91,8 +105,10 @@ const query = ref('')
 const results = ref([])
 const open = ref(false)
 const activeIndex = ref(-1)
+const loading = ref(false)
 
 let debounceTimer = null
+let latestQuery = ''
 
 function onInput() {
   clearTimeout(debounceTimer)
@@ -101,16 +117,36 @@ function onInput() {
   }, 300)
 }
 
-function performSearch() {
+async function performSearch() {
   if (query.value.trim().length < 2) {
     results.value = []
     open.value = false
     activeIndex.value = -1
+    loading.value = false
     return
   }
-  results.value = search(query.value)
-  open.value = true
+
+  const q = query.value
+  latestQuery = q
+  results.value = []
   activeIndex.value = -1
+  loading.value = true
+  open.value = true
+
+  try {
+    const data = await search(q)
+    if (latestQuery === query.value) {
+      results.value = data
+    }
+  } catch {
+    if (latestQuery === query.value) {
+      results.value = []
+    }
+  } finally {
+    if (latestQuery === query.value) {
+      loading.value = false
+    }
+  }
 }
 
 function onArrowDown() {
@@ -310,6 +346,30 @@ onBeforeUnmount(() => {
 
 .result-meta svg {
   flex-shrink: 0;
+}
+
+.search-dropdown--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.search-loading {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.search-dropdown--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.search-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 768px) {
