@@ -15,7 +15,7 @@ Route::get('/', function () {
         'id' => $e['id'] ?? 0,
         'slug' => $e['url'] ?? '',
         'title' => $e['evento'] ?? '',
-        'image' => !empty($e['imagen']) ? '/events/' . $e['imagen'] . '.png' : '',
+        'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
         'date' => $e['fecha'] ?? '',
         'dateISO' => '',
         'venue' => $e['escenario'] ?? '',
@@ -25,7 +25,7 @@ Route::get('/', function () {
         'category' => null,
         'categoryColor' => null,
         'availability' => 'available',
-    ], array_slice($events, 0, 16));
+    ], array_slice($events, 0, 8));
 
     return Inertia::render('Home', [
         'nextEvents' => $nextEvents,

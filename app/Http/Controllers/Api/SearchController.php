@@ -94,8 +94,7 @@ class SearchController extends Controller
 
         $path = $imagen;
         if (!str_contains($path, '/')) {
-            $ext = str_contains($path, '.') ? '' : '.png';
-            $path = '/events/' . $path . $ext;
+            $path = 'https://deboleto.com/images/eventos/' . $path;
         }
 
         return $path;
