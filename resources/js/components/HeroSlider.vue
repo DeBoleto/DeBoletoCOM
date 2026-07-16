@@ -1,38 +1,37 @@
 <template>
   <section class="hero-slider-section">
-    <div class="container">
-      <div
-        class="hero-slider"
-        aria-label="Eventos destacados"
-        @mouseenter="pause"
-        @mouseleave="resume"
-        @focusin="pause"
-        @focusout="resume"
-        @touchstart.passive="onTouchStart"
-        @touchend.passive="onTouchEnd"
-      >
-        <div class="slides-wrapper" aria-live="polite">
-          <article
-            v-for="(event, index) in events"
-            :key="event.id"
-            class="slide"
-            :class="{
-              'slide--active': index === currentIndex,
-              'slide--leaving': index === previousIndex,
-            }"
-            :aria-hidden="index !== currentIndex && index !== previousIndex"
-          >
-            <picture>
-              <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
-              <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
-              <img
-                :src="event.image"
-                :alt="`Fondo: ${event.title}`"
-                class="slide-bg"
-                fetchpriority="high"
-              />
-            </picture>
-            <div class="slide-overlay"></div>
+    <div
+      class="hero-slider"
+      aria-label="Eventos destacados"
+      @mouseenter="pause"
+      @mouseleave="resume"
+      @focusin="pause"
+      @focusout="resume"
+      @touchstart.passive="onTouchStart"
+      @touchend.passive="onTouchEnd"
+    >
+      <div class="slides-wrapper" aria-live="polite">
+        <article
+          v-for="(event, index) in events"
+          :key="event.id"
+          class="slide"
+          :class="{
+            'slide--active': index === currentIndex,
+            'slide--leaving': index === previousIndex,
+          }"
+          :aria-hidden="index !== currentIndex && index !== previousIndex"
+        >
+          <picture>
+            <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
+            <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
+            <img
+              :src="event.image"
+              :alt="`Fondo: ${event.title}`"
+              class="slide-bg"
+              fetchpriority="high"
+            />
+          </picture>
+          <div class="slide-overlay"></div>
 
             <div class="slide-content">
               <div class="slide-text">
@@ -44,15 +43,13 @@
                 </span>
                 <h2 class="slide-title">{{ event.title }}</h2>
                 <p v-if="event.artist" class="slide-artist">{{ event.artist }}</p>
+              </div>
 
-                <div class="slide-footer">
-                  <span class="slide-price">{{ event.priceFormatted }}</span>
-                  <a :href="`/evento/${event.slug}`" class="slide-cta">Comprar boletos</a>
-                </div>
+              <div class="slide-footer">
+                <a :href="`/evento/${event.slug}`" class="slide-cta">Comprar boletos</a>
               </div>
             </div>
-          </article>
-        </div>
+        </article>
       </div>
     </div>
   </section>
@@ -212,6 +209,9 @@ onUnmounted(() => {
   z-index: 1;
   width: 100%;
   padding-inline: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 @media (max-width: 768px) {
@@ -283,16 +283,7 @@ onUnmounted(() => {
 
 .slide-footer {
   display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  padding-top: var(--space-4);
-}
-
-.slide-price {
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  justify-content: center;
 }
 
 .slide-cta {
@@ -310,6 +301,16 @@ onUnmounted(() => {
 .slide-cta:hover {
   opacity: 0.88;
   transform: translateY(-2px);
+}
+
+@media (min-width: 769px) {
+  .hero-slider-section {
+    padding-block: 0;
+  }
+
+  .hero-slider {
+    border-radius: 0;
+  }
 }
 
 @media (max-width: 768px) {
@@ -336,14 +337,7 @@ onUnmounted(() => {
   }
 
   .slide-footer {
-    flex-direction: column;
-    align-items: flex-start;
     gap: var(--space-3);
-    padding-top: var(--space-3);
-  }
-
-  .slide-price {
-    font-size: var(--text-xl);
   }
 
 }
