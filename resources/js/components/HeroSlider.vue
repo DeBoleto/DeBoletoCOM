@@ -30,13 +30,9 @@
             />
             <div class="slide-overlay"></div>
 
-            <div class="slide-content">
-              <div class="slide-text">
-                <h2 class="slide-title">Oferta especial</h2>
-                <div class="slide-footer">
-                  <span v-if="banner.price" class="slide-price">{{ banner.price }}</span>
-                  <a :href="banner.url" class="slide-cta">Ver más</a>
-                </div>
+            <div class="slide-content slide-content--banner">
+              <div class="slide-footer">
+                <a :href="banner.url" class="slide-cta">Ver más</a>
               </div>
             </div>
           </div>
@@ -254,6 +250,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.slide-content--banner {
+  height: 100%;
+  justify-content: flex-end;
+  padding-bottom: var(--space-12);
 }
 
 @media (max-width: 768px) {

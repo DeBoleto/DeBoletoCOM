@@ -32,8 +32,8 @@ Route::get('/', function () {
 
     $banners = array_map(fn($b) => [
         'url'   => $b['url'] ?? '#',
-        'image' => !empty($b['banner']) ? 'https://deboleto.com/images/banners/' . $b['banner'] : '',
-        'price' => ($b['price'] ?? 0) > 0 ? '$' . number_format((float)$b['price'], 0) : '',
+        'image' => !empty($b['imagen']) ? 'https://deboleto.com/images/eventos/' . $b['imagen'] : '',
+        'price' => ($b['desde'] ?? 0) > 0 ? '$' . number_format((float)$b['desde'], 0) : '',
     ], $rawBanners);
 
     return Inertia::render('Home', [
