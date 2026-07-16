@@ -77,14 +77,7 @@
           <span class="price-from">Desde</span>
           <strong class="price-amount">{{ event.priceFormatted }}</strong>
         </div>
-        <a
-          :href="`/evento/${event.slug}`"
-          class="card-cta"
-          :class="event.availability === 'sold-out' ? 'card-cta--disabled' : ''"
-          :aria-disabled="event.availability === 'sold-out'"
-        >
-          {{ event.availability === 'sold-out' ? 'Agotado' : 'Comprar' }}
-        </a>
+
       </div>
     </div>
   </article>
@@ -275,7 +268,7 @@ const eventSchema = computed(() => {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
@@ -302,14 +295,14 @@ const eventSchema = computed(() => {
 
 .card-artist {
   font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
 .card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--space-3);
   margin-top: auto;
   padding-top: var(--space-4);
@@ -335,28 +328,6 @@ const eventSchema = computed(() => {
   font-weight: 800;
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
-}
-
-.card-cta {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
-  color: #fff;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  position: relative;
-  z-index: 1;
-}
-
-.card-cta:hover { opacity: 0.88; transform: translateY(-1px); }
-
-.card-cta--disabled {
-  background: var(--color-surface-3);
-  color: var(--color-text-muted);
-  pointer-events: none;
 }
 
 .event-card--featured {
