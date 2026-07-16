@@ -255,7 +255,7 @@ onUnmounted(() => {
 .slide-content--banner {
   height: 100%;
   justify-content: flex-end;
-  padding-bottom: var(--space-12);
+  padding-bottom: var(--space-3);
 }
 
 @media (max-width: 768px) {
