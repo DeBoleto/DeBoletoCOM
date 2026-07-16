@@ -2,7 +2,7 @@
   <section class="hero-slider-section">
     <div
       class="hero-slider"
-      aria-label="Eventos destacados"
+      :aria-label="type === 'banners' ? 'Banners promocionales' : 'Eventos destacados'"
       @mouseenter="pause"
       @mouseleave="resume"
       @focusin="pause"
@@ -11,27 +11,59 @@
       @touchend.passive="onTouchEnd"
     >
       <div class="slides-wrapper" aria-live="polite">
-        <article
-          v-for="(event, index) in events"
-          :key="event.id"
-          class="slide"
-          :class="{
-            'slide--active': index === currentIndex,
-            'slide--leaving': index === previousIndex,
-          }"
-          :aria-hidden="index !== currentIndex && index !== previousIndex"
-        >
-          <picture>
-            <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
-            <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
+        <template v-if="type === 'banners'">
+          <div
+            v-for="(banner, index) in banners"
+            :key="index"
+            class="slide"
+            :class="{
+              'slide--active': index === currentIndex,
+              'slide--leaving': index === previousIndex,
+            }"
+            :aria-hidden="index !== currentIndex && index !== previousIndex"
+          >
             <img
-              :src="event.image"
-              :alt="`Fondo: ${event.title}`"
+              :src="banner.image"
+              alt="Banner promocional"
               class="slide-bg"
               fetchpriority="high"
             />
-          </picture>
-          <div class="slide-overlay"></div>
+            <div class="slide-overlay"></div>
+
+            <div class="slide-content">
+              <div class="slide-text">
+                <h2 class="slide-title">Oferta especial</h2>
+                <div class="slide-footer">
+                  <span v-if="banner.price" class="slide-price">{{ banner.price }}</span>
+                  <a :href="banner.url" class="slide-cta">Ver más</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <article
+            v-for="(event, index) in events"
+            :key="event.id"
+            class="slide"
+            :class="{
+              'slide--active': index === currentIndex,
+              'slide--leaving': index === previousIndex,
+            }"
+            :aria-hidden="index !== currentIndex && index !== previousIndex"
+          >
+            <picture>
+              <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
+              <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
+              <img
+                :src="event.image"
+                :alt="`Fondo: ${event.title}`"
+                class="slide-bg"
+                fetchpriority="high"
+              />
+            </picture>
+            <div class="slide-overlay"></div>
 
             <div class="slide-content">
               <div class="slide-text">
@@ -49,7 +81,8 @@
                 <a :href="`/evento/${event.slug}`" class="slide-cta">Comprar boletos</a>
               </div>
             </div>
-        </article>
+          </article>
+        </template>
       </div>
     </div>
   </section>
@@ -61,14 +94,23 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 const props = defineProps({
   events: {
     type: Array,
-    required: true,
+    default: () => [],
+  },
+  banners: {
+    type: Array,
+    default: () => [],
+  },
+  type: {
+    type: String,
+    default: 'events',
   },
 })
 
 const currentIndex = ref(0)
 const previousIndex = ref(-1)
 const isTransitioning = ref(false)
-const totalSlides = computed(() => props.events.length)
+const slides = computed(() => props.type === 'banners' ? props.banners : props.events)
+const totalSlides = computed(() => slides.value.length)
 
 let intervalId = null
 let isPaused = false

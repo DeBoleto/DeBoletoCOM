@@ -17,7 +17,7 @@
     <SiteHeader />
 
     <main id="main-content">
-      <HeroSlider :events="featuredEvents" />
+      <HeroSlider :events="featuredEvents" :banners="banners" type="banners" />
 
       <EventSection
         title="Próximos Eventos"
@@ -128,6 +128,10 @@ import { useStructuredData } from '@/composables/useStructuredData.js'
 
 const props = defineProps({
   nextEvents: {
+    type: Array,
+    default: () => [],
+  },
+  banners: {
     type: Array,
     default: () => [],
   },
