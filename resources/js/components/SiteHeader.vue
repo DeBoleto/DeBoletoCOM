@@ -29,8 +29,8 @@
           <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">Salir</a>
         </template>
         <template v-else>
-          <a href="/login" class="btn-ghost">Iniciar sesión</a>
-          <a href="/register" class="btn-brand">Crear cuenta</a>
+          <a href="#" class="btn-ghost" @click.prevent="emit('open-login')">Iniciar sesión</a>
+          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">Crear cuenta</a>
         </template>
         <button
           class="hamburger"
@@ -65,8 +65,8 @@
             <a href="/logout" class="btn-ghost w-full" @click.prevent="logout">Salir</a>
           </template>
           <template v-else>
-            <a href="/login" class="btn-ghost w-full">Iniciar sesión</a>
-            <a href="/register" class="btn-brand w-full">Crear cuenta</a>
+            <a href="#" class="btn-ghost w-full" @click.prevent="emit('open-login')">Iniciar sesión</a>
+            <a href="#" class="btn-brand w-full" @click.prevent="emit('open-register')">Crear cuenta</a>
           </template>
         </li>
       </ul>
@@ -78,6 +78,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import SearchAutocomplete from '@/components/SearchAutocomplete.vue'
+
+const emit = defineEmits(['open-login', 'open-register'])
 
 const user = computed(() => usePage().props.auth?.user ?? null)
 

@@ -14,7 +14,7 @@
   </Head>
 
   <div class="page-layout">
-    <SiteHeader />
+    <SiteHeader @open-login="openLogin" @open-register="openRegister" />
 
     <main id="main-content">
       <HeroSlider :events="featuredEvents" :banners="banners" type="banners" />
@@ -112,17 +112,22 @@
 
     <SiteFooter />
     <MobileBottomNav />
+
+    <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
+    <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import SiteHeader from '@/components/SiteHeader.vue'
 import HeroSlider from '@/components/HeroSlider.vue'
 import EventSection from '@/components/EventSection.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import MobileBottomNav from '@/components/MobileBottomNav.vue'
+import LoginModal from '@/components/LoginModal.vue'
+import RegisterModal from '@/components/RegisterModal.vue'
 import { useEvents } from '@/composables/useEvents.js'
 import { useStructuredData } from '@/composables/useStructuredData.js'
 
@@ -136,6 +141,16 @@ const props = defineProps({
     default: () => [],
   },
 })
+
+const showLoginModal = ref(false)
+const showRegisterModal = ref(false)
+
+function openLogin() { showRegisterModal.value = false; showLoginModal.value = true }
+function openRegister() { showLoginModal.value = false; showRegisterModal.value = true }
+function closeLogin() { showLoginModal.value = false }
+function closeRegister() { showRegisterModal.value = false }
+function switchLoginToRegister() { showLoginModal.value = false; showRegisterModal.value = true }
+function switchRegisterToLogin() { showRegisterModal.value = false; showLoginModal.value = true }
 
 const { organizationSchema, webSiteSchema } = useStructuredData()
 
