@@ -157,6 +157,7 @@ const eventSchema = computed(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
   transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -182,7 +183,7 @@ const eventSchema = computed(() => {
 
 .card-image {
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
 }
