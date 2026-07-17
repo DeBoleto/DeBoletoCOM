@@ -1,5 +1,6 @@
 <template>
-  <section class="hero-slider-section">
+    <div class="container">
+<section class="hero-slider-section">
     <div
       class="hero-slider"
       :aria-label="type === 'banners' ? 'Banners promocionales' : 'Eventos destacados'"
@@ -48,7 +49,7 @@
             }"
             :aria-hidden="index !== currentIndex && index !== previousIndex"
           >
-            <picture>
+            <picture class="slide-picture">
               <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
               <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
               <img
@@ -80,6 +81,7 @@
       </div>
     </div>
   </section>
+    </div>
 </template>
 
 <script setup>
@@ -180,6 +182,7 @@ onUnmounted(() => {
 
 <style scoped>
 .hero-slider-section {
+  max-width: 100%;
   padding-block: var(--space-8);
 }
 
@@ -206,6 +209,7 @@ onUnmounted(() => {
   pointer-events: none;
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .slide--active {
@@ -227,6 +231,11 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+.slide-picture {
+  position: absolute;
+  inset: 0;
 }
 
 .slide-overlay {
