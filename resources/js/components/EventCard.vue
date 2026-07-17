@@ -20,13 +20,10 @@
           height="220"
         />
       </picture>
-      <span
-        class="card-category"
-        :class="`card-category--${event.categoryColor}`"
-        :aria-label="`Categoría: ${event.category}`"
-      >
-        {{ event.category }}
-      </span>
+      <div class="date-badge">
+        <span class="d">{{ dateBadge.day }}</span>
+        <span class="m">{{ dateBadge.month }}</span>
+      </div>
       <span
         v-if="event.availability === 'sold-out'"
         class="card-badge card-badge--sold"
@@ -52,12 +49,7 @@
 
     <div class="card-body">
       <div class="card-meta">
-        <time :datetime="event.dateISO" class="card-date">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          {{ event.date }}
-        </time>
+
         <span class="card-location">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
@@ -105,6 +97,13 @@ const isWishlisted = ref(false)
 function toggleWishlist() {
   isWishlisted.value = !isWishlisted.value
 }
+
+const dateBadge = computed(() => {
+  const parts = props.event.date.split(' ')
+  const day = parts[0].split(/[–-]/)[0]
+  const month = (parts[1] || '').toUpperCase()
+  return { day, month }
+})
 
 const origin = window.location.origin
 
@@ -189,25 +188,33 @@ const eventSchema = computed(() => {
 
 .event-card:hover .card-image { transform: scale(1.05); }
 
-.card-category {
+.date-badge {
   position: absolute;
   top: var(--space-3);
   left: var(--space-3);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(10, 10, 15, 0.85);
+  border-radius: var(--radius-lg);
   z-index: 1;
 }
 
-.card-category--concert    { background: rgba(229, 53, 171, 0.9);  color: #fff; }
-.card-category--festival   { background: rgba(249, 115, 22, 0.9);  color: #fff; }
-.card-category--conference { background: rgba(59, 130, 246, 0.9);  color: #fff; }
-.card-category--theater    { background: rgba(168, 85, 247, 0.9);  color: #fff; }
-.card-category--sports     { background: rgba(34, 197, 94, 0.9);   color: #fff; }
-.card-category--edm        { background: rgba(6, 182, 212, 0.9);   color: #fff; }
+.date-badge .d {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.date-badge .m {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-brand);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
 
 .card-badge {
   position: absolute;
@@ -261,7 +268,6 @@ const eventSchema = computed(() => {
   flex-wrap: wrap;
 }
 
-.card-date,
 .card-location {
   display: flex;
   align-items: center;
