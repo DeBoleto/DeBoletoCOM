@@ -1,10 +1,8 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import DialogModal from '@/components/DialogModal.vue';
-import AuthenticationCardLogo from '@/components/AuthenticationCardLogo.vue';
 import InputError from '@/components/InputError.vue';
 import InputLabel from '@/components/InputLabel.vue';
-import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import Checkbox from '@/components/Checkbox.vue';
 
@@ -34,14 +32,27 @@ const submit = () => {
 <template>
     <DialogModal :show="show" max-width="lg" @close="emit('close')">
         <template #title>
-            Iniciar sesión
+            <div class="flex items-center justify-between">
+                <span>Iniciar sesión</span>
+                <button
+                    type="button"
+                    class="modal-close"
+                    @click="emit('close')"
+                    aria-label="Cerrar"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
         </template>
 
         <template #content>
-            <div class="flex justify-center mb-6">
-                <AuthenticationCardLogo />
+            <div class="flex justify-center mb-8">
+                <img src="/logo_blanco.png" alt="Boleto" class="h-8 w-auto">
             </div>
-            <form @submit.prevent="submit">
+            <form @submit.prevent="submit" class="modal-form">
                 <div>
                     <InputLabel for="email" value="Email" />
                     <TextInput
@@ -56,8 +67,8 @@ const submit = () => {
                     <InputError class="mt-2" :message="form.errors.email" />
                 </div>
 
-                <div class="mt-4">
-                    <InputLabel for="password" value="Password" />
+                <div class="mt-5">
+                    <InputLabel for="password" value="Contraseña" />
                     <TextInput
                         id="password"
                         v-model="form.password"
@@ -69,24 +80,29 @@ const submit = () => {
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
 
-                <div class="block mt-4">
-                    <label class="flex items-center">
+                <div class="flex items-center justify-between mt-5">
+                    <label class="flex items-center gap-2 cursor-pointer">
                         <Checkbox v-model:checked="form.remember" name="remember" />
-                        <span class="ms-2 text-sm text-gray-600">Remember me</span>
+                        <span class="text-sm text-[var(--color-text-secondary)]">Recordarme</span>
                     </label>
-                </div>
 
-                <div class="flex items-center justify-end mt-4">
                     <a
                         :href="route('password.request')"
-                        class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors"
                     >
-                        Forgot your password?
+                        ¿Olvidaste tu contraseña?
                     </a>
+                </div>
 
-                    <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Log in
-                    </PrimaryButton>
+                <div class="mt-6">
+                    <button
+                        type="submit"
+                        class="btn-brand w-full"
+                        :class="{ 'opacity-50': form.processing }"
+                        :disabled="form.processing"
+                    >
+                        {{ form.processing ? 'Entrando…' : 'Iniciar sesión' }}
+                    </button>
                 </div>
             </form>
         </template>
@@ -94,7 +110,7 @@ const submit = () => {
         <template #footer>
             <button
                 type="button"
-                class="text-sm text-gray-600 hover:text-gray-900 underline"
+                class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors underline"
                 @click="emit('switch-to-register')"
             >
                 ¿No tienes cuenta? Regístrate
@@ -102,3 +118,86 @@ const submit = () => {
         </template>
     </DialogModal>
 </template>
+
+<style scoped>
+.modal-form :deep(.text-gray-700) {
+    color: var(--color-text-primary);
+}
+
+.modal-form :deep(input) {
+    background-color: var(--color-surface-2);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.modal-form :deep(input:focus) {
+    border-color: var(--color-brand);
+    --tw-ring-color: var(--color-brand);
+}
+
+.modal-form :deep(.text-indigo-600) {
+    color: var(--color-brand);
+}
+
+.modal-form :deep(.border-gray-300) {
+    border-color: var(--color-border);
+}
+
+.modal-form :deep(.focus\:border-indigo-500) {
+    --tw-ring-color: var(--color-brand);
+    border-color: var(--color-brand);
+}
+
+.modal-form :deep(.focus\:ring-indigo-500) {
+    --tw-ring-color: var(--color-brand);
+}
+
+.modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.modal-close:hover {
+    color: var(--color-text-primary);
+    background: var(--color-surface-2);
+}
+
+.btn-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+    border: none;
+    border-radius: var(--radius-full);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    box-shadow: var(--shadow-brand);
+    cursor: pointer;
+}
+
+.btn-brand:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+:deep(.bg-white) {
+    background-color: var(--color-surface-1);
+}
+
+:deep(.text-lg.font-medium) {
+    color: var(--color-text-primary);
+}
+
+:deep(.mt-4.text-sm) {
+    color: var(--color-text-secondary);
+}
+</style>
