@@ -28,7 +28,6 @@
               class="slide-bg"
               fetchpriority="high"
             />
-            <div class="slide-overlay"></div>
 
             <div class="slide-content slide-content--banner">
               <div class="slide-footer">
@@ -59,7 +58,6 @@
                 fetchpriority="high"
               />
             </picture>
-            <div class="slide-overlay"></div>
 
             <div class="slide-content">
               <div class="slide-text">
@@ -187,7 +185,7 @@ onUnmounted(() => {
 
 .hero-slider {
   position: relative;
-  height: min(70vh, 560px);
+  height: min(100vh, 560px);
   overflow: hidden;
   background: var(--color-bg);
   border-radius: var(--radius-xl);
@@ -234,12 +232,7 @@ onUnmounted(() => {
 .slide-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    rgba(10, 10, 15, 0.85) 0%,
-    rgba(10, 10, 15, 0.5) 50%,
-    rgba(10, 10, 15, 0.3) 100%
-  );
+
 }
 
 .slide-content {
@@ -359,7 +352,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .hero-slider {
-    height: min(60vh, 420px);
+    height: min(100vh, 420px);
   }
 
   .slide-overlay {

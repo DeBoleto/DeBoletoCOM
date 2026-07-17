@@ -178,7 +178,6 @@ const eventSchema = computed(() => {
 .card-image-wrap {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
 }
 
 .card-image {

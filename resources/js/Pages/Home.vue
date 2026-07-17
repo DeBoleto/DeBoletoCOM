@@ -17,18 +17,29 @@
     <SiteHeader @open-login="openLogin" @open-register="openRegister" />
 
     <main id="main-content">
-      <HeroSlider :events="featuredEvents" :banners="banners" type="banners" />
 
-      <EventSection
-        title="Próximos Eventos"
-        subtitle="No te pierdas lo que viene esta temporada"
-        section-id="events"
-        icon="📅"
-        accent-color="brand"
-        view-all-link="/eventos?filtro=proximos"
-        :events="resolvedNextEvents"
-        layout="grid"
-      />
+	<HeroSlider :events="featuredEvents" :banners="banners" type="banners" />
+
+	<EventSection
+            title="Eventos en tu Zona"
+            subtitle="Selección especial de nuestra plataforma"
+            section-id="featured"
+            icon="⭐"
+            accent-color="conference"
+            view-all-link="/eventos?filtro=destacados"
+            :events="featuredEvents"
+            layout="featured"
+	/>
+	<EventSection
+            title="Próximos Eventos"
+            subtitle="No te pierdas lo que viene esta temporada"
+            section-id="events"
+            icon="📅"
+            accent-color="brand"
+            view-all-link="/eventos?filtro=proximos"
+            :events="resolvedNextEvents"
+            layout="grid"
+	/>
 
       <EventSection
         title="Eventos Populares"
@@ -39,17 +50,6 @@
         view-all-link="/eventos?filtro=populares"
         :events="popularEvents"
         layout="grid"
-      />
-
-      <EventSection
-        title="Eventos Destacados"
-        subtitle="Selección especial de nuestra plataforma"
-        section-id="featured"
-        icon="⭐"
-        accent-color="conference"
-        view-all-link="/eventos?filtro=destacados"
-        :events="featuredEvents"
-        layout="featured"
       />
 
       <section class="categories-strip" aria-labelledby="categories-heading">
