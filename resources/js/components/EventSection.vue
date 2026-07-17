@@ -165,17 +165,8 @@ defineProps({
 }
 
 @media (min-width: 1400px) {
-  .events-grid--grid     { grid-template-columns: repeat(5, 1fr); }
+  .events-grid--grid,
   .events-grid--featured { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media (min-width: 1600px) {
-  .events-grid--grid     { grid-template-columns: repeat(6, 1fr); }
-}
-
-@media (min-width: 1920px) {
-  .events-grid--grid     { grid-template-columns: repeat(7, 1fr); }
-  .events-grid--featured { grid-template-columns: repeat(5, 1fr); }
 }
 
 @media (max-width: 1100px) {
