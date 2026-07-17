@@ -18,7 +18,6 @@
             <li><a href="#events" class="nav-link">Eventos</a></li>
             <li><a href="#categories" class="nav-link">Categorías</a></li>
             <li><a href="#venues" class="nav-link">Recintos</a></li>
-            <li><a href="#promoters" class="nav-link">Promotores</a></li>
           </ul>
         </nav>
 

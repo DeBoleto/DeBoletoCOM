@@ -72,42 +72,6 @@
         </div>
       </section>
 
-      <section class="promoter-banner" aria-label="Sección para promotores">
-        <div class="container">
-          <div class="banner-content">
-            <div class="banner-text">
-              <h2 class="banner-title">¿Quieres vender tu evento?</h2>
-              <p class="banner-desc">
-                Únete a la plataforma líder de venta de boletos. Herramientas profesionales,
-                pagos seguros y soporte dedicado para promotores.
-              </p>
-              <ul class="banner-features" aria-label="Beneficios para promotores">
-                <li>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  Comisiones competitivas
-                </li>
-                <li>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  Dashboard en tiempo real
-                </li>
-                <li>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  Acceso a +2M de usuarios
-                </li>
-              </ul>
-            </div>
-            <div class="banner-actions">
-              <a href="/promotores" class="banner-cta-primary">
-                Crear mi evento gratis
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                  <path d="m9 18 6-6-6-6"/>
-                </svg>
-              </a>
-              <a href="/promotores/demo" class="banner-cta-secondary">Ver demo</a>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
 
     <SiteFooter />

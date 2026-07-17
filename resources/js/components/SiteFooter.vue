@@ -44,7 +44,6 @@
             <ul role="list" class="footer-list">
               <li><a href="#" class="footer-link">Acerca de</a></li>
               <li><a href="#" class="footer-link">Blog</a></li>
-              <li><a href="#" class="footer-link">Promotores</a></li>
               <li><a href="#" class="footer-link">Prensa</a></li>
               <li><a href="#" class="footer-link">Empleos</a></li>
             </ul>
