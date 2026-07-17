@@ -24,7 +24,7 @@
             title="Eventos en tu Zona"
             subtitle="Eventos cerca de ti"
             section-id="featured"
-            icon="⭐"
+            icon="📍"
             accent-color="conference"
             view-all-link="/eventos?filtro=destacados"
             :events="resolvedZoneEvents"

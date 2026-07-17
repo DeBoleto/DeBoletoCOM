@@ -177,11 +177,12 @@ const eventSchema = computed(() => {
 .card-image-wrap {
   position: relative;
   overflow: hidden;
+  aspect-ratio: 400 / 220;
 }
 
 .card-image {
   width: 100%;
-  height: 100%;
+  height: auto;
   object-fit: cover;
   transition: transform 0.5s ease;
 }
@@ -282,11 +283,9 @@ const eventSchema = computed(() => {
   font-weight: 700;
   line-height: 1.3;
   color: var(--color-text-primary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  text-wrap: balance;
+  text-overflow: ellipsis;
 }
 
 .card-title-link {
