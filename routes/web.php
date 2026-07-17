@@ -25,7 +25,29 @@ Route::get('/', function () {
         'category' => null,
         'categoryColor' => null,
         'availability' => 'available',
-    ], array_slice($events, 0, 8));
+    ], array_slice($events, 0, 6));
+
+    $zoneEvents = collect($events)
+        ->filter(fn($e) => ($e['estado'] ?? '') === 'Tabasco')
+        ->sortByDesc(fn($e) => $e['id'] ?? '')
+        ->take(6)
+        ->map(fn($e) => [
+            'id' => $e['id'] ?? 0,
+            'slug' => $e['url'] ?? '',
+            'title' => $e['evento'] ?? '',
+            'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
+            'date' => $e['fecha'] ?? '',
+            'dateISO' => '',
+            'venue' => $e['escenario'] ?? '',
+            'city' => $e['ciudad'] ?? '',
+            'priceFormatted' => ($e['desde'] ?? 0) > 0 ? '$' . number_format((float)$e['desde'], 0) : '',
+            'artist' => null,
+            'category' => null,
+            'categoryColor' => null,
+            'availability' => 'available',
+        ])
+        ->values()
+        ->all();
 
     $bannersData = Redis::get('eventos_activos_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
@@ -38,6 +60,7 @@ Route::get('/', function () {
 
     return Inertia::render('Home', [
         'nextEvents' => $nextEvents,
+        'zoneEvents' => $zoneEvents,
         'banners' => $banners,
     ]);
 })->name('home');

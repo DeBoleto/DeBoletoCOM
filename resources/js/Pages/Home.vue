@@ -22,12 +22,12 @@
 
 	<EventSection
             title="Eventos en tu Zona"
-            subtitle="Selección especial de nuestra plataforma"
+            subtitle="Eventos cerca de ti"
             section-id="featured"
             icon="⭐"
             accent-color="conference"
             view-all-link="/eventos?filtro=destacados"
-            :events="featuredEvents"
+            :events="resolvedZoneEvents"
             layout="featured"
 	/>
 	<EventSection
@@ -100,6 +100,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  zoneEvents: {
+    type: Array,
+    default: () => [],
+  },
   banners: {
     type: Array,
     default: () => [],
@@ -121,6 +125,9 @@ const { organizationSchema, webSiteSchema } = useStructuredData()
 const { nextEvents: mockNextEvents, popularEvents, featuredEvents } = useEvents()
 const resolvedNextEvents = computed(() =>
   props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents
+)
+const resolvedZoneEvents = computed(() =>
+  props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents
 )
 
 const categories = [
