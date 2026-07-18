@@ -52,25 +52,7 @@
         layout="grid"
       />
 
-      <section class="categories-strip" aria-labelledby="categories-heading">
-        <div class="container">
-          <h2 id="categories-heading" class="strip-title">Explorar por categoría</h2>
-          <ul role="list" class="categories-grid">
-            <li v-for="cat in categories" :key="cat.slug">
-              <a
-                :href="`/buscar?categoria=${cat.slug}`"
-                class="cat-card"
-                :class="`cat-card--${cat.color}`"
-                :aria-label="`Ver todos los eventos de ${cat.name}`"
-              >
-                <span class="cat-icon" aria-hidden="true">{{ cat.icon }}</span>
-                <span class="cat-name">{{ cat.name }}</span>
-                <span class="cat-count" aria-label="eventos disponibles">{{ cat.count }}</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <CategoriesStrip />
 
     </main>
 
@@ -88,6 +70,7 @@ import { Head } from '@inertiajs/vue3'
 import SiteHeader from '@/components/SiteHeader.vue'
 import HeroSlider from '@/components/HeroSlider.vue'
 import EventSection from '@/components/EventSection.vue'
+import CategoriesStrip from '@/components/CategoriesStrip.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import MobileBottomNav from '@/components/MobileBottomNav.vue'
 import LoginModal from '@/components/LoginModal.vue'
@@ -129,15 +112,6 @@ const resolvedNextEvents = computed(() =>
 const resolvedZoneEvents = computed(() =>
   props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents
 )
-
-const categories = [
-  { name: 'Conciertos',    slug: 'conciertos',    icon: '🎵', color: 'concert',    count: '+1,200 eventos' },
-  { name: 'Festivales',    slug: 'festivales',    icon: '🎪', color: 'festival',   count: '+340 eventos'   },
-  { name: 'Teatro',        slug: 'teatro',        icon: '🎭', color: 'theater',    count: '+890 eventos'   },
-  { name: 'Conferencias',  slug: 'conferencias',  icon: '🎤', color: 'conference', count: '+560 eventos'   },
-  { name: 'Deportes',      slug: 'deportes',      icon: '⚽', color: 'sports',     count: '+420 eventos'   },
-  { name: 'Electrónica',   slug: 'electronica',   icon: '🎧', color: 'edm',        count: '+180 eventos'   },
-]
 </script>
 
 <style scoped>
@@ -149,69 +123,6 @@ const categories = [
 
 main { flex: 1; }
 
-.categories-strip {
-  padding-block: var(--space-16) var(--space-8);
-}
-
-.strip-title {
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-8);
-}
-
-.categories-grid {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--space-4);
-}
-
-.cat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-1);
-  text-align: center;
-  transition: transform var(--transition-base), border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
-  cursor: pointer;
-}
-
-.cat-card:hover {
-  transform: scale(1.04) translateY(-6px);
-  box-shadow: 0 0 0 3px #4ecba0, 0 0 12px 4px rgba(78,203,160,.60), 0 0 30px 10px rgba(60,175,135,.22), 0 0 60px 18px rgba(43,161,124,.07), 0 10px 30px rgba(0,0,0,.45);
-  text-decoration: none;
-  color: inherit;
-}
-
-.cat-card--concert:hover    { border-color: var(--color-concert); }
-.cat-card--festival:hover   { border-color: var(--color-festival); }
-.cat-card--theater:hover    { border-color: var(--color-theater); }
-.cat-card--conference:hover { border-color: var(--color-conference); }
-.cat-card--sports:hover     { border-color: var(--color-sports); }
-.cat-card--edm:hover        { border-color: var(--color-edm); }
-
-.cat-icon {
-  font-size: 2rem;
-  display: block;
-}
-
-.cat-name {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.cat-count {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
 
 .promoter-banner {
   padding-block: var(--space-16);
@@ -301,30 +212,12 @@ main { flex: 1; }
 
 .banner-cta-secondary:hover { color: var(--color-text-primary); }
 
-@media (min-width: 1400px) {
-  .categories-grid { grid-template-columns: repeat(7, 1fr); }
-}
-
-@media (min-width: 1600px) {
-  .categories-grid { grid-template-columns: repeat(8, 1fr); }
-}
-
-@media (min-width: 1920px) {
-  .categories-grid { grid-template-columns: repeat(10, 1fr); }
-}
-
-@media (max-width: 1100px) {
-  .categories-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
 @media (max-width: 768px) {
-  .categories-grid { grid-template-columns: repeat(3, 1fr); }
   .banner-content  { padding: var(--space-8); }
   .banner-title    { font-size: var(--text-2xl); }
 }
 
 @media (max-width: 540px) {
-  .categories-grid { grid-template-columns: repeat(2, 1fr); }
   .banner-content  { padding: var(--space-6); }
   .banner-actions  { width: 100%; }
   .banner-cta-primary { justify-content: center; width: 100%; }
