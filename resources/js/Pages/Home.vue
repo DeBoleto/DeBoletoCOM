@@ -54,6 +54,8 @@
 
       <CategoriesStrip />
 
+      <CategoriesCircleGrid />
+
     </main>
 
     <SiteFooter />
@@ -71,6 +73,7 @@ import SiteHeader from '@/components/SiteHeader.vue'
 import HeroSlider from '@/components/HeroSlider.vue'
 import EventSection from '@/components/EventSection.vue'
 import CategoriesStrip from '@/components/CategoriesStrip.vue'
+import CategoriesCircleGrid from '@/components/CategoriesCircleGrid.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import MobileBottomNav from '@/components/MobileBottomNav.vue'
 import LoginModal from '@/components/LoginModal.vue'
