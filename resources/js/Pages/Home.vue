@@ -59,7 +59,7 @@
     </main>
 
     <SiteFooter />
-    <MobileBottomNav />
+    <MobileBottomNav @open-login="openLogin" />
 
     <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
     <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />

@@ -7,6 +7,7 @@
       class="bottom-nav-link"
       :class="{ 'bottom-nav-link--active': isActive(tab.href) }"
       :aria-label="tab.label"
+      @click="tab.click"
     >
       <span class="bottom-nav-icon" v-html="tab.icon" aria-hidden="true"></span>
       <span class="bottom-nav-label">{{ tab.label }}</span>
@@ -15,6 +16,8 @@
 </template>
 
 <script setup>
+const emit = defineEmits(['open-login'])
+
 const tabs = [
   {
     href: '/',
@@ -27,9 +30,10 @@ const tabs = [
     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M9 12h6"/></svg>',
   },
   {
-    href: '/login',
+    href: '#',
     label: 'Perfil',
     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    click: () => emit('open-login'),
   },
 ]
 
