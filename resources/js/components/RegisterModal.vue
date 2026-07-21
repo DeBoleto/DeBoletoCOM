@@ -30,6 +30,15 @@ const submit = () => {
 const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? false;
 </script>
 
+<style scoped>
+:deep(.dialog-content) {
+  padding: var(--space-6) var(--space-8);
+}
+:deep(.dialog-footer) {
+  padding: var(--space-4) var(--space-8);
+}
+</style>
+
 <template>
     <DialogModal :show="show" max-width="lg" @close="emit('close')">
         <template #title>
@@ -50,7 +59,7 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
         </template>
 
         <template #content>
-            <div class="flex justify-center mb-8">
+            <div class="flex justify-center mb-6 sm:mb-8">
                 <img src="/logo_blanco.png" alt="Boleto" class="h-8 w-auto">
             </div>
             <form @submit.prevent="submit" class="modal-form">
@@ -68,7 +77,7 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
                     <InputError class="mt-2" :message="form.errors.name" />
                 </div>
 
-                <div class="mt-5">
+                <div class="mt-4 sm:mt-5">
                     <InputLabel for="email" value="Email" />
                     <TextInput
                         id="email"
@@ -81,7 +90,7 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
                     <InputError class="mt-2" :message="form.errors.email" />
                 </div>
 
-                <div class="mt-5">
+                <div class="mt-4 sm:mt-5">
                     <InputLabel for="password" value="Contraseña" />
                     <TextInput
                         id="password"
@@ -94,7 +103,7 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
 
-                <div class="mt-5">
+                <div class="mt-4 sm:mt-5">
                     <InputLabel for="password_confirmation" value="Confirmar contraseña" />
                     <TextInput
                         id="password_confirmation"
@@ -107,10 +116,10 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
                     <InputError class="mt-2" :message="form.errors.password_confirmation" />
                 </div>
 
-                <div v-if="hasTerms" class="mt-5">
+                <div v-if="hasTerms" class="mt-4 sm:mt-5">
                     <InputLabel for="terms">
-                        <div class="flex items-center gap-2">
-                            <Checkbox id="terms" v-model:checked="form.terms" name="terms" required />
+                        <div class="flex items-start gap-2">
+                            <Checkbox id="terms" v-model:checked="form.terms" name="terms" required class="mt-0.5" />
                             <span class="text-sm text-[var(--color-text-secondary)]">
                                 Acepto los <a target="_blank" :href="route('terms.show')" class="text-[var(--color-brand)] hover:underline">Términos de servicio</a> y la <a target="_blank" :href="route('policy.show')" class="text-[var(--color-brand)] hover:underline">Política de privacidad</a>
                             </span>
@@ -119,10 +128,10 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
                     </InputLabel>
                 </div>
 
-                <div class="mt-6">
+                <div class="mt-5 sm:mt-6">
                     <button
                         type="submit"
-                        class="btn-brand w-full"
+                        class="btn-brand w-full min-h-[44px]"
                         :class="{ 'opacity-50': form.processing }"
                         :disabled="form.processing"
                     >
@@ -143,86 +152,3 @@ const hasTerms = usePage().props.jetstream?.hasTermsAndPrivacyPolicyFeature ?? f
         </template>
     </DialogModal>
 </template>
-
-<style scoped>
-.modal-form :deep(.text-gray-700) {
-    color: var(--color-text-primary);
-}
-
-.modal-form :deep(input) {
-    background-color: var(--color-surface-2);
-    border-color: var(--color-border);
-    color: var(--color-text-primary);
-}
-
-.modal-form :deep(input:focus) {
-    border-color: var(--color-brand);
-    --tw-ring-color: var(--color-brand);
-}
-
-.modal-form :deep(.text-indigo-600) {
-    color: var(--color-brand);
-}
-
-.modal-form :deep(.border-gray-300) {
-    border-color: var(--color-border);
-}
-
-.modal-form :deep(.focus\:border-indigo-500) {
-    --tw-ring-color: var(--color-brand);
-    border-color: var(--color-brand);
-}
-
-.modal-form :deep(.focus\:ring-indigo-500) {
-    --tw-ring-color: var(--color-brand);
-}
-
-.modal-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-muted);
-    transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.modal-close:hover {
-    color: var(--color-text-primary);
-    background: var(--color-surface-2);
-}
-
-.btn-brand {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.625rem 1.25rem;
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: #fff;
-    background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
-    border: none;
-    border-radius: var(--radius-full);
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
-    box-shadow: var(--shadow-brand);
-    cursor: pointer;
-}
-
-.btn-brand:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-:deep(.bg-white) {
-    background-color: var(--color-surface-1);
-}
-
-:deep(.text-lg.font-medium) {
-    color: var(--color-text-primary);
-}
-
-:deep(.mt-4.text-sm) {
-    color: var(--color-text-secondary);
-}
-</style>

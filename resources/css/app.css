@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/forms";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -40,6 +41,7 @@
   --color-theater:     #a855f7;
   --color-sports:      #22c55e;
   --color-edm:         #06b6d4;
+  --color-danger:      #ef4444;
 
   /* Spacing scale (fluid — scales with viewport) */
   --space-1:  clamp(0.2rem, 0.1rem + 0.15vw, 0.35rem);
@@ -176,3 +178,42 @@ input, button, select, textarea {
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
+
+/* --- Shared Modal Styles --- */
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.modal-close:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-2);
+}
+
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+  border: none;
+  border-radius: var(--radius-full);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  box-shadow: var(--shadow-brand);
+  cursor: pointer;
+}
+
+.btn-brand:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+

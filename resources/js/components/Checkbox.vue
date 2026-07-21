@@ -25,12 +25,23 @@ const proxyChecked = computed({
 });
 </script>
 
+<style scoped>
+input[type="checkbox"] {
+    border-color: var(--color-border);
+    color: var(--color-brand);
+}
+
+input[type="checkbox"]:focus {
+    --tw-ring-color: var(--color-brand);
+}
+</style>
+
 
 <template>
     <input
         v-model="proxyChecked"
         type="checkbox"
         :value="value"
-        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+        class="rounded shadow-sm"
     >
 </template>
