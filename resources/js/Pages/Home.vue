@@ -45,190 +45,318 @@
         title="Eventos Populares"
         subtitle="Los más buscados en este momento"
         section-id="popular"
-        icon="🔥"
-        accent-color="festival"
-        view-all-link="/eventos?filtro=populares"
-        :events="popularEvents"
-        layout="grid"
+          icon="🔥"
+          accent-color="festival"
+          view-all-link="/eventos?filtro=populares"
+          :events="popularEvents"
+          layout="grid"
       />
 
-      <CategoriesStrip />
-
-      <CategoriesCircleGrid />
-
+      <section class="categories-strip" aria-labelledby="categories-heading">
+          <div class="container">
+              <h2 id="categories-heading" class="strip-title">Explorar por categoría</h2>
+              <ul role="list" class="categories-grid">
+		  <li v-for="cat in categories" :key="cat.slug">
+		      <a
+			  :href="`/buscar?categoria=${cat.slug}`"
+			  class="cat-card"
+			  :class="`cat-card--${cat.color}`"
+			  :aria-label="`Ver todos los eventos de ${cat.name}`"
+		      >
+			  <span class="cat-icon" aria-hidden="true">{{ cat.icon }}</span>
+			  <span class="cat-name">{{ cat.name }}</span>
+			  <span class="cat-count" aria-label="eventos disponibles">{{ cat.count }}</span>
+		      </a>
+		  </li>
+              </ul>
+          </div>
+      </section>
     </main>
 
     <SiteFooter />
     <MobileBottomNav @open-login="openLogin" />
 
-    <PhoneLoginModal :show="showPhoneLoginModal" @close="closePhoneLogin" @switch-to-login="switchPhoneToLogin" @switch-to-register="switchPhoneToRegister" />
+    <PhoneLoginModal :show="showPhoneLoginModal" @close="closePhoneLogin" @switch-to-login="switchPhoneToLogin" @switch-to-register="switchPhoneToRegister" @code-sent="handleCodeSent" />
+    <VerifyCodeModal :show="showVerifyCodeModal" :lada="verifyLada" :telefono="verifyTelefono" :canal="verifyCanal" @close="closeVerifyCode" @verified="handleVerified" @resend="handleResend" @switch-to-login="switchVerifyToLogin" @switch-to-register="switchVerifyToRegister" />
     <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
     <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { Head } from '@inertiajs/vue3'
-import SiteHeader from '@/components/SiteHeader.vue'
-import HeroSlider from '@/components/HeroSlider.vue'
-import EventSection from '@/components/EventSection.vue'
-import CategoriesStrip from '@/components/CategoriesStrip.vue'
-import CategoriesCircleGrid from '@/components/CategoriesCircleGrid.vue'
-import SiteFooter from '@/components/SiteFooter.vue'
-import MobileBottomNav from '@/components/MobileBottomNav.vue'
-import PhoneLoginModal from '@/components/PhoneLoginModal.vue'
-import LoginModal from '@/components/LoginModal.vue'
-import RegisterModal from '@/components/RegisterModal.vue'
-import { useEvents } from '@/composables/useEvents.js'
-import { useStructuredData } from '@/composables/useStructuredData.js'
+ import { computed, ref } from 'vue'
+ import { Head } from '@inertiajs/vue3'
+ import SiteHeader from '@/components/SiteHeader.vue'
+ import HeroSlider from '@/components/HeroSlider.vue'
+ import EventSection from '@/components/EventSection.vue'
+ import SiteFooter from '@/components/SiteFooter.vue'
+ import MobileBottomNav from '@/components/MobileBottomNav.vue'
+ import PhoneLoginModal from '@/components/PhoneLoginModal.vue'
+ import VerifyCodeModal from '@/components/VerifyCodeModal.vue'
+ import LoginModal from '@/components/LoginModal.vue'
+ import RegisterModal from '@/components/RegisterModal.vue'
+ import { useEvents } from '@/composables/useEvents.js'
+ import { useStructuredData } from '@/composables/useStructuredData.js'
 
-const props = defineProps({
-  nextEvents: {
-    type: Array,
-    default: () => [],
-  },
-  zoneEvents: {
-    type: Array,
-    default: () => [],
-  },
-  banners: {
-    type: Array,
-    default: () => [],
-  },
-})
+ const props = defineProps({
+     nextEvents: {
+	 type: Array,
+	 default: () => [],
+     },
+     zoneEvents: {
+	 type: Array,
+	 default: () => [],
+     },
+     banners: {
+	 type: Array,
+	 default: () => [],
+     },
+ })
 
-const showPhoneLoginModal = ref(false)
-const showLoginModal = ref(false)
-const showRegisterModal = ref(false)
+ const showPhoneLoginModal = ref(false)
+ const showVerifyCodeModal = ref(false)
+ const showLoginModal = ref(false)
+ const showRegisterModal = ref(false)
 
-function openLogin() { showRegisterModal.value = false; showLoginModal.value = false; showPhoneLoginModal.value = true }
-function openRegister() { showPhoneLoginModal.value = false; showLoginModal.value = false; showRegisterModal.value = true }
-function closePhoneLogin() { showPhoneLoginModal.value = false }
-function closeLogin() { showLoginModal.value = false }
-function closeRegister() { showRegisterModal.value = false }
-function switchPhoneToLogin() { showPhoneLoginModal.value = false; showLoginModal.value = true }
-function switchPhoneToRegister() { showPhoneLoginModal.value = false; showRegisterModal.value = true }
-function switchLoginToRegister() { showLoginModal.value = false; showRegisterModal.value = true }
-function switchRegisterToLogin() { showRegisterModal.value = false; showLoginModal.value = true }
+ const verifyLada = ref('52')
+ const verifyTelefono = ref('')
+ const verifyCanal = ref('whatsapp')
 
-const { organizationSchema, webSiteSchema } = useStructuredData()
+ function openLogin() { showRegisterModal.value = false; showLoginModal.value = false; showVerifyCodeModal.value = false; showPhoneLoginModal.value = true }
+ function openRegister() { showPhoneLoginModal.value = false; showLoginModal.value = false; showVerifyCodeModal.value = false; showRegisterModal.value = true }
+ function closePhoneLogin() { showPhoneLoginModal.value = false }
+ function closeVerifyCode() { showVerifyCodeModal.value = false }
+ function closeLogin() { showLoginModal.value = false }
+ function closeRegister() { showRegisterModal.value = false }
+ function switchPhoneToLogin() { showPhoneLoginModal.value = false; showLoginModal.value = true }
+ function switchPhoneToRegister() { showPhoneLoginModal.value = false; showRegisterModal.value = true }
 
-const { nextEvents: mockNextEvents, popularEvents, featuredEvents } = useEvents()
-const resolvedNextEvents = computed(() =>
-  props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents
-)
-const resolvedZoneEvents = computed(() =>
-  props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents
-)
+ function handleCodeSent(data) {
+     verifyLada.value = data.lada
+     verifyTelefono.value = data.telefono
+     verifyCanal.value = data.canal
+     showPhoneLoginModal.value = false
+     showVerifyCodeModal.value = true
+ }
+ function handleVerified() {
+     showVerifyCodeModal.value = false
+ }
+ function handleResend() {
+     showVerifyCodeModal.value = false
+     showPhoneLoginModal.value = true
+ }
+ function switchVerifyToLogin() { showVerifyCodeModal.value = false; showLoginModal.value = true }
+ function switchVerifyToRegister() { showVerifyCodeModal.value = false; showRegisterModal.value = true }
+
+ function switchLoginToRegister() { showLoginModal.value = false; showRegisterModal.value = true }
+ function switchRegisterToLogin() { showRegisterModal.value = false; showLoginModal.value = true }
+
+ const { organizationSchema, webSiteSchema } = useStructuredData()
+
+ const { nextEvents: mockNextEvents, popularEvents, featuredEvents } = useEvents()
+ const resolvedNextEvents = computed(() =>
+     props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents
+ )
+ const resolvedZoneEvents = computed(() =>
+     props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents
+ )
+
+ const categories = [
+     { name: 'Conciertos',    slug: 'conciertos',    icon: '🎵', color: 'concert',    count: '+1,200 eventos' },
+     { name: 'Festivales',    slug: 'festivales',    icon: '🎪', color: 'festival',   count: '+340 eventos'   },
+     { name: 'Teatro',        slug: 'teatro',        icon: '🎭', color: 'theater',    count: '+890 eventos'   },
+     { name: 'Conferencias',  slug: 'conferencias',  icon: '🎤', color: 'conference', count: '+560 eventos'   },
+     { name: 'Deportes',      slug: 'deportes',      icon: '⚽', color: 'sports',     count: '+420 eventos'   },
+     { name: 'Electrónica',   slug: 'electronica',   icon: '🎧', color: 'edm',        count: '+180 eventos'   },
+ ]
 </script>
 
 <style scoped>
-.page-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-}
+ .page-layout {
+     display: flex;
+     flex-direction: column;
+     min-height: 100dvh;
+ }
 
-main { flex: 1; }
+ main { flex: 1; }
 
+ .categories-strip {
+     padding-block: var(--space-16) var(--space-8);
+ }
 
-.promoter-banner {
-  padding-block: var(--space-16);
-}
+ .strip-title {
+     font-size: var(--text-2xl);
+     font-weight: 800;
+     color: var(--color-text-primary);
+     letter-spacing: -0.02em;
+     margin-bottom: var(--space-8);
+ }
 
-.banner-content {
-  background: linear-gradient(135deg, rgba(60,175,135,.22) 0%, rgba(124, 58, 237, 0.12) 100%);
-  border: 1px solid rgba(78, 203, 160, 0.6);
-  border-radius: var(--radius-xl);
-  padding: var(--space-12) var(--space-12);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-10);
-  flex-wrap: wrap;
-}
+ .categories-grid {
+     list-style: none;
+     display: grid;
+     grid-template-columns: repeat(6, 1fr);
+     gap: var(--space-4);
+ }
 
-.banner-text { flex: 1; min-width: 280px; }
+ .cat-card {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     gap: var(--space-3);
+     padding: var(--space-6) var(--space-4);
+     border-radius: var(--radius-lg);
+     border: 1px solid var(--color-border);
+     background: var(--color-surface-1);
+     text-align: center;
+     transition: transform var(--transition-base), border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+     cursor: pointer;
+ }
 
-.banner-title {
-  font-size: var(--text-3xl);
-  font-weight: 900;
-  color: var(--color-text-primary);
-  letter-spacing: -0.03em;
-  margin-bottom: var(--space-4);
-  text-wrap: balance;
-}
+ .cat-card:hover {
+     transform: scale(1.04) translateY(-6px);
+     box-shadow: 0 0 0 3px #4ecba0, 0 0 12px 4px rgba(78,203,160,.60), 0 0 30px 10px rgba(60,175,135,.22), 0 0 60px 18px rgba(43,161,124,.07), 0 10px 30px rgba(0,0,0,.45);
+     text-decoration: none;
+     color: inherit;
+ }
 
-.banner-desc {
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-  margin-bottom: var(--space-6);
-}
+ .cat-card--concert:hover    { border-color: var(--color-concert); }
+ .cat-card--festival:hover   { border-color: var(--color-festival); }
+ .cat-card--theater:hover    { border-color: var(--color-theater); }
+ .cat-card--conference:hover { border-color: var(--color-conference); }
+ .cat-card--sports:hover     { border-color: var(--color-sports); }
+ .cat-card--edm:hover        { border-color: var(--color-edm); }
 
-.banner-features {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
+ .cat-icon {
+     font-size: 2rem;
+     display: block;
+ }
 
-.banner-features li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
+ .cat-name {
+     font-size: var(--text-sm);
+     font-weight: 700;
+     color: var(--color-text-primary);
+ }
 
-.banner-features svg { color: var(--color-brand); flex-shrink: 0; }
+ .cat-count {
+     font-size: 11px;
+     color: var(--color-text-muted);
+     font-weight: 500;
+ }
 
-.banner-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  align-items: center;
-  flex-shrink: 0;
-}
+ .promoter-banner {
+     padding-block: var(--space-16);
+ }
 
-.banner-cta-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-8);
-  background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
-  color: #fff;
-  font-size: var(--text-base);
-  font-weight: 700;
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-brand);
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  white-space: nowrap;
-}
+ .banner-content {
+     background: linear-gradient(135deg, rgba(60,175,135,.22) 0%, rgba(124, 58, 237, 0.12) 100%);
+     border: 1px solid rgba(78, 203, 160, 0.6);
+     border-radius: var(--radius-xl);
+     padding: var(--space-12) var(--space-12);
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: var(--space-10);
+     flex-wrap: wrap;
+ }
 
-.banner-cta-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+ .banner-text { flex: 1; min-width: 280px; }
 
-.banner-cta-secondary {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color var(--transition-fast);
-}
+ .banner-title {
+     font-size: var(--text-3xl);
+     font-weight: 900;
+     color: var(--color-text-primary);
+     letter-spacing: -0.03em;
+     margin-bottom: var(--space-4);
+     text-wrap: balance;
+ }
 
-.banner-cta-secondary:hover { color: var(--color-text-primary); }
+ .banner-desc {
+     font-size: var(--text-base);
+     color: var(--color-text-secondary);
+     line-height: 1.7;
+     margin-bottom: var(--space-6);
+ }
 
-@media (max-width: 768px) {
-  .banner-content  { padding: var(--space-8); }
-  .banner-title    { font-size: var(--text-2xl); }
-}
+ .banner-features {
+     list-style: none;
+     display: flex;
+     flex-direction: column;
+     gap: var(--space-3);
+ }
 
-@media (max-width: 540px) {
-  .banner-content  { padding: var(--space-6); }
-  .banner-actions  { width: 100%; }
-  .banner-cta-primary { justify-content: center; width: 100%; }
-}
+ .banner-features li {
+     display: flex;
+     align-items: center;
+     gap: var(--space-3);
+     font-size: var(--text-sm);
+     font-weight: 500;
+     color: var(--color-text-secondary);
+ }
+
+ .banner-features svg { color: var(--color-brand); flex-shrink: 0; }
+
+ .banner-actions {
+     display: flex;
+     flex-direction: column;
+     gap: var(--space-4);
+     align-items: center;
+     flex-shrink: 0;
+ }
+
+ .banner-cta-primary {
+     display: inline-flex;
+     align-items: center;
+     gap: var(--space-2);
+     padding: var(--space-4) var(--space-8);
+     background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+     color: #fff;
+     font-size: var(--text-base);
+     font-weight: 700;
+     border-radius: var(--radius-full);
+     box-shadow: var(--shadow-brand);
+     transition: opacity var(--transition-fast), transform var(--transition-fast);
+     white-space: nowrap;
+ }
+
+ .banner-cta-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+
+ .banner-cta-secondary {
+     font-size: var(--text-sm);
+     font-weight: 600;
+     color: var(--color-text-muted);
+     text-decoration: underline;
+     text-underline-offset: 3px;
+     transition: color var(--transition-fast);
+ }
+
+ .banner-cta-secondary:hover { color: var(--color-text-primary); }
+ @media (min-width: 1400px) {
+     .categories-grid { grid-template-columns: repeat(7, 1fr); }
+ }
+
+ @media (min-width: 1600px) {
+     .categories-grid { grid-template-columns: repeat(8, 1fr); }
+ }
+
+ @media (min-width: 1920px) {
+     .categories-grid { grid-template-columns: repeat(10, 1fr); }
+ }
+
+ @media (max-width: 1100px) {
+     .categories-grid { grid-template-columns: repeat(3, 1fr); }
+ }
+
+ @media (max-width: 768px) {
+     .categories-grid { grid-template-columns: repeat(3, 1fr); }
+     .banner-content  { padding: var(--space-8); }
+     .banner-title    { font-size: var(--text-2xl); }
+ }
+
+ @media (max-width: 540px) {
+     .categories-grid { grid-template-columns: repeat(2, 1fr); }
+     .banner-content  { padding: var(--space-6); }
+     .banner-actions  { width: 100%; }
+     .banner-cta-primary { justify-content: center; width: 100%; }
+ }
 </style>
