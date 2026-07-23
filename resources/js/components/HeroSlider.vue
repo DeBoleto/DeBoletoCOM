@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+
 <section class="hero-slider-section">
     <div
       class="hero-slider"
@@ -81,7 +81,7 @@
       </div>
     </div>
   </section>
-    </div>
+
 </template>
 
 <script setup>
