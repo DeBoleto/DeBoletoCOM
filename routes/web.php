@@ -49,12 +49,12 @@ Route::get('/', function () {
         ->values()
         ->all();
 
-    $bannersData = Redis::get('eventos_activos_app');
+    $bannersData = Redis::get('eventos_sidebar_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
 
     $banners = array_map(fn($b) => [
         'url'   => $b['url'] ?? '#',
-        'image' => !empty($b['imagen']) ? 'https://deboleto.com/images/eventos/' . $b['imagen'] : '',
+        'image' => !empty($b['imagen']) ? 'https://deboleto.com/images/eventos/slide/' . $b['imagen'] : '',
         'price' => ($b['desde'] ?? 0) > 0 ? '$' . number_format((float)$b['desde'], 0) : '',
     ], $rawBanners);
 
