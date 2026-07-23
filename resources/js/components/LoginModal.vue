@@ -2,9 +2,6 @@
 import { useForm } from '@inertiajs/vue3';
 import DialogModal from '@/components/DialogModal.vue';
 import InputError from '@/components/InputError.vue';
-import InputLabel from '@/components/InputLabel.vue';
-import TextInput from '@/components/TextInput.vue';
-import Checkbox from '@/components/Checkbox.vue';
 
 defineProps({
     show: { type: Boolean, default: false },
@@ -31,44 +28,155 @@ const submit = () => {
 
 <style scoped>
 :deep(.dialog-content) {
-  padding: var(--space-6) var(--space-8);
+    position: relative;
+    padding: 30px 24px;
 }
 :deep(.dialog-footer) {
-  padding: var(--space-4) var(--space-8);
+    border-top: 1px solid var(--color-border);
+    padding: 15px 0 0;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+}
+
+.login-logo {
+    max-height: 24px;
+    width: auto;
+    margin: 10px auto 20px;
+    display: block;
+}
+.login-subtitle {
+    font-size: 13.5px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    text-align: center;
+    margin: 0 auto 25px;
+    max-width: 320px;
+}
+.login-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: inline-block;
+    letter-spacing: 0.8px;
+    color: var(--color-text-secondary);
+}
+.login-input {
+    background-color: var(--color-surface-2);
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: 12px;
+    color: var(--color-text-primary);
+    height: 48px;
+    padding: 10px 16px;
+    font-size: 15px;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.25s ease;
+}
+.login-input:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgba(78, 203, 160, 0.25);
+}
+.login-input::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+}
+.btn-login {
+    background-color: var(--color-brand);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    height: 48px;
+    font-size: 14.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(78, 203, 160, 0.25);
+    width: 100%;
+    cursor: pointer;
+}
+.btn-login:hover:not(:disabled) {
+    background-color: var(--color-brand-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(78, 203, 160, 0.4);
+}
+.btn-login:active:not(:disabled) {
+    transform: translateY(0);
+}
+.btn-login:disabled {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.25);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+.login-footer-link {
+    color: var(--color-text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: color 0.2s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: none;
+}
+.login-footer-link:hover {
+    color: var(--color-brand);
+}
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    color: var(--color-text-primary);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+.close-btn:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 </style>
 
 <template>
-    <DialogModal :show="show" max-width="lg" @close="emit('close')">
+    <DialogModal :show="show" max-width="md" @close="emit('close')">
         <template #title>
-            <div class="flex items-center justify-between">
-                <span>Iniciar sesión</span>
-                <button
-                    type="button"
-                    class="modal-close"
-                    @click="emit('close')"
-                    aria-label="Cerrar"
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
+            <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+            <img src="/logo_blanco.png" alt="Boleto" class="login-logo">
         </template>
 
         <template #content>
-            <div class="flex justify-center mb-6 sm:mb-8">
-                <img src="/logo_blanco.png" alt="Boleto" class="h-8 w-auto">
-            </div>
-            <form @submit.prevent="submit" class="modal-form">
-                <div>
-                    <InputLabel for="email" value="Email" />
-                    <TextInput
-                        id="email"
+            <p class="login-subtitle">Ingresa tu correo y contraseña para acceder</p>
+
+            <form @submit.prevent="submit">
+                <div class="mb-4">
+                    <label class="login-label">Correo electrónico</label>
+                    <input
                         v-model="form.email"
                         type="email"
-                        class="mt-1 block w-full"
+                        class="login-input"
+                        placeholder="ejemplo@correo.com"
                         required
                         autofocus
                         autocomplete="username"
@@ -76,53 +184,52 @@ const submit = () => {
                     <InputError class="mt-2" :message="form.errors.email" />
                 </div>
 
-                <div class="mt-4 sm:mt-5">
-                    <InputLabel for="password" value="Contraseña" />
-                    <TextInput
-                        id="password"
+                <div class="mb-4">
+                    <label class="login-label">Contraseña</label>
+                    <input
                         v-model="form.password"
                         type="password"
-                        class="mt-1 block w-full"
+                        class="login-input"
+                        placeholder="Ingresa tu contraseña"
                         required
                         autocomplete="current-password"
                     />
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mt-4 sm:mt-5">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <Checkbox v-model:checked="form.remember" name="remember" />
-                        <span class="text-sm text-[var(--color-text-secondary)]">Recordarme</span>
+                <div style="display: none;">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" v-model="form.remember" />
+                        Recuérdame
                     </label>
-
-                    <a
-                        :href="route('password.request')"
-                        class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors"
-                    >
-                        ¿Olvidaste tu contraseña?
-                    </a>
                 </div>
 
                 <div class="mt-5 sm:mt-6">
                     <button
                         type="submit"
-                        class="btn-brand w-full min-h-[44px]"
+                        class="btn-login"
                         :class="{ 'opacity-50': form.processing }"
                         :disabled="form.processing"
                     >
-                        {{ form.processing ? 'Entrando…' : 'Iniciar sesión' }}
+                        {{ form.processing ? 'Entrando…' : 'ENTRAR' }}
                     </button>
                 </div>
             </form>
         </template>
 
         <template #footer>
+            <a
+                :href="route('password.request')"
+                class="login-footer-link"
+            >
+                ¿Olvidaste tu contraseña?
+            </a>
             <button
                 type="button"
-                class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors underline"
+                class="login-footer-link"
                 @click="emit('switch-to-register')"
             >
-                ¿No tienes cuenta? Regístrate
+                ¿No tienes cuenta? Regístrate aquí
             </button>
         </template>
     </DialogModal>

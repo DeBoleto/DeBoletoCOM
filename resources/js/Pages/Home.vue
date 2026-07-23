@@ -61,6 +61,7 @@
     <SiteFooter />
     <MobileBottomNav @open-login="openLogin" />
 
+    <PhoneLoginModal :show="showPhoneLoginModal" @close="closePhoneLogin" @switch-to-login="switchPhoneToLogin" @switch-to-register="switchPhoneToRegister" />
     <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
     <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />
   </div>
@@ -76,6 +77,7 @@ import CategoriesStrip from '@/components/CategoriesStrip.vue'
 import CategoriesCircleGrid from '@/components/CategoriesCircleGrid.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import MobileBottomNav from '@/components/MobileBottomNav.vue'
+import PhoneLoginModal from '@/components/PhoneLoginModal.vue'
 import LoginModal from '@/components/LoginModal.vue'
 import RegisterModal from '@/components/RegisterModal.vue'
 import { useEvents } from '@/composables/useEvents.js'
@@ -96,13 +98,17 @@ const props = defineProps({
   },
 })
 
+const showPhoneLoginModal = ref(false)
 const showLoginModal = ref(false)
 const showRegisterModal = ref(false)
 
-function openLogin() { showRegisterModal.value = false; showLoginModal.value = true }
-function openRegister() { showLoginModal.value = false; showRegisterModal.value = true }
+function openLogin() { showRegisterModal.value = false; showLoginModal.value = false; showPhoneLoginModal.value = true }
+function openRegister() { showPhoneLoginModal.value = false; showLoginModal.value = false; showRegisterModal.value = true }
+function closePhoneLogin() { showPhoneLoginModal.value = false }
 function closeLogin() { showLoginModal.value = false }
 function closeRegister() { showRegisterModal.value = false }
+function switchPhoneToLogin() { showPhoneLoginModal.value = false; showLoginModal.value = true }
+function switchPhoneToRegister() { showPhoneLoginModal.value = false; showRegisterModal.value = true }
 function switchLoginToRegister() { showLoginModal.value = false; showRegisterModal.value = true }
 function switchRegisterToLogin() { showRegisterModal.value = false; showLoginModal.value = true }
 
