@@ -89,6 +89,7 @@ function reenviarCodigo() {
     border-top: 1px solid var(--color-border);
     padding: 15px 0 0;
     margin-top: 20px;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -186,6 +187,7 @@ function reenviarCodigo() {
     box-shadow: 0 4px 12px rgba(78, 203, 160, 0.25);
     width: 100%;
     cursor: pointer;
+    margin-top: 15px;
 }
 .btn-login:hover:not(:disabled) {
     background-color: var(--color-brand-hover);

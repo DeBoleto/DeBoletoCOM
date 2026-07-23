@@ -40,6 +40,7 @@ const submit = () => {
     align-items: center;
     gap: 10px;
     background: transparent;
+    margin-bottom: 15px;
 }
 
 .login-logo {
@@ -99,7 +100,10 @@ const submit = () => {
     box-shadow: 0 4px 12px rgba(78, 203, 160, 0.25);
     width: 100%;
     cursor: pointer;
+    margin-bottom: 15px;
+    margin-top: 15px;
 }
+
 .btn-login:hover:not(:disabled) {
     background-color: var(--color-brand-hover);
     transform: translateY(-1px);
