@@ -70,6 +70,50 @@
                   </div>
                 </div>
               </div>
+
+              <section class="sponsors-section">
+                <h2 class="sponsors-title block-title">Sponsors</h2>
+                <div class="sponsor-wrapper">
+                  <a
+                    href="javascript:void(0)"
+                    class="sponsor-arrow sponsor-arrow-prev"
+                    aria-label="Anterior"
+                    @click.prevent="scrollSponsorsPrev"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M10 12L6 8L10 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </a>
+                  <div
+                    ref="sponsorScrollRef"
+                    class="sponsor-scroll"
+                    @mousedown="onSponsorMouseDown"
+                    @mousemove="onSponsorMouseMove"
+                    @mouseup="onSponsorMouseUp"
+                    @mouseleave="onSponsorMouseUp"
+                    @click.prevent="onSponsorClick"
+                  >
+                    <ul class="sponsor-track">
+                      <li v-for="s in sponsors" :key="s.name">
+                        <a :href="s.url" :title="s.name" draggable="false">
+                          <img :src="s.image" :alt="s.name" draggable="false">
+                          <h3>{{ s.name }}</h3>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                  <a
+                    href="javascript:void(0)"
+                    class="sponsor-arrow sponsor-arrow-next"
+                    aria-label="Siguiente"
+                    @click.prevent="scrollSponsorsNext"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M6 4L10 8L6 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </a>
+                </div>
+              </section>
             </div>
 
             <aside class="sidebar">
@@ -107,6 +151,7 @@
           </div>
         </div>
       </section>
+
     </main>
 
     <SiteFooter />
@@ -192,6 +237,70 @@ const formattedMainDate = computed(() => {
   if (!props.event.functions.length) return ''
   return formatDate(props.event.functions[0].date)
 })
+
+const sponsors = [
+  { name: 'Coca Cola',   image: 'https://picsum.photos/seed/cocacola/440/280',   url: '#' },
+  { name: 'Canon',       image: 'https://picsum.photos/seed/canon/440/280',       url: '#' },
+  { name: 'Spotify',     image: 'https://picsum.photos/seed/spotify/440/280',     url: '#' },
+  { name: 'FedEx',       image: 'https://picsum.photos/seed/fedex/440/280',       url: '#' },
+  { name: 'UPS',         image: 'https://picsum.photos/seed/ups/440/280',         url: '#' },
+  { name: 'Citi',        image: 'https://picsum.photos/seed/citi/440/280',        url: '#' },
+  { name: 'BBVA',        image: 'https://picsum.photos/seed/bbva/440/280',        url: '#' },
+  { name: 'Cerveza Sol', image: 'https://picsum.photos/seed/cervezasol/440/280', url: '#' },
+]
+
+const sponsorScrollRef = ref(null)
+
+let sponsorIsDown = false
+let sponsorStartX = 0
+let sponsorStartScroll = 0
+let sponsorMoved = false
+
+function onSponsorMouseDown(e) {
+  if (!sponsorScrollRef.value) return
+  sponsorIsDown = true
+  sponsorMoved = false
+  sponsorStartX = e.pageX
+  sponsorStartScroll = sponsorScrollRef.value.scrollLeft
+  sponsorScrollRef.value.classList.add('dragging')
+}
+
+function onSponsorMouseMove(e) {
+  if (!sponsorIsDown || !sponsorScrollRef.value) return
+  const dx = e.pageX - sponsorStartX
+  if (Math.abs(dx) > 3) sponsorMoved = true
+  sponsorScrollRef.value.scrollLeft = sponsorStartScroll - dx
+}
+
+function onSponsorMouseUp() {
+  if (!sponsorIsDown || !sponsorScrollRef.value) return
+  sponsorIsDown = false
+  sponsorScrollRef.value.classList.remove('dragging')
+}
+
+function onSponsorClick(e) {
+  if (sponsorMoved) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+}
+
+function getSponsorStep() {
+  if (!sponsorScrollRef.value) return 440
+  const item = sponsorScrollRef.value.querySelector('.sponsor-track li')
+  const w = item ? item.getBoundingClientRect().width : 220
+  return (w + 6) * 2
+}
+
+function scrollSponsorsPrev() {
+  if (!sponsorScrollRef.value) return
+  sponsorScrollRef.value.scrollBy({ left: -getSponsorStep(), behavior: 'smooth' })
+}
+
+function scrollSponsorsNext() {
+  if (!sponsorScrollRef.value) return
+  sponsorScrollRef.value.scrollBy({ left: getSponsorStep(), behavior: 'smooth' })
+}
 </script>
 
 <style scoped>
@@ -453,5 +562,142 @@ main { flex: 1; }
   font-size: var(--text-base);
   font-weight: 700;
   color: var(--color-text-primary);
+}
+
+.sponsors-section {
+  padding: var(--space-10) 0 0;
+}
+
+.sponsors-title {
+  margin-bottom: var(--space-5);
+}
+
+.sponsor-wrapper {
+  position: relative;
+  padding: 0;
+}
+
+.sponsor-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+}
+
+.sponsor-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.sponsor-scroll.dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+.sponsor-track {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.sponsor-track li {
+  flex: 0 0 calc(25% - 4.5px);
+  scroll-snap-align: start;
+  border-radius: 12px;
+  position: relative;
+}
+
+.sponsor-track li a {
+  position: relative;
+  display: block;
+  transition: transform .35s ease, box-shadow .35s ease;
+  transform-style: preserve-3d;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sponsor-track li a:focus,
+.sponsor-track li a:active {
+  outline: none;
+}
+
+.sponsor-track li a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(to top, rgba(0,0,0,.65), transparent 60%);
+  pointer-events: none;
+}
+
+.sponsor-track li a img {
+  border-radius: 12px;
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.sponsor-track li a:hover {
+  transform: perspective(700px) rotateY(7deg) scale(1.06) translateZ(10px);
+  box-shadow: 0 14px 30px rgba(0,0,0,.55);
+}
+
+.sponsor-track li a h3 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  z-index: 2;
+  color: #fff;
+  font-weight: 800;
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.sponsor-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+  border-radius: 50%;
+  transition: background .2s ease;
+}
+
+.sponsor-arrow:hover {
+  background: rgba(0,0,0,.8);
+}
+
+.sponsor-arrow-prev {
+  left: 0;
+}
+
+.sponsor-arrow-next {
+  right: 0;
+}
+
+@media (max-width: 767px) {
+  .sponsor-track li {
+    flex: 0 0 calc(50% - 3px);
+  }
+
+  .sponsor-arrow {
+    display: none;
+  }
+
+  .sponsor-wrapper {
+    padding: 0;
+  }
 }
 </style>
