@@ -188,7 +188,10 @@ onUnmounted(() => {
 
 .hero-slider {
   position: relative;
-  height: min(100vh, 560px);
+  width: 100%;
+  aspect-ratio: 5 / 2;
+  max-height: 680px;
+  min-height: 280px;
   overflow: hidden;
   background: var(--color-bg);
   border-radius: var(--radius-xl);
@@ -281,17 +284,14 @@ onUnmounted(() => {
 
 @media (min-width: 1400px) {
   .slide-text  { max-width: 640px; }
-  .hero-slider { height: min(65vh, 600px); }
 }
 
 @media (min-width: 1600px) {
   .slide-text  { max-width: 720px; }
-  .hero-slider { height: min(60vh, 640px); }
 }
 
 @media (min-width: 1920px) {
   .slide-text  { max-width: 800px; }
-  .hero-slider { height: min(55vh, 680px); }
 }
 
 .slide-category {
@@ -365,7 +365,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .hero-slider {
-    height: min(100vh, 420px);
+    min-height: 340px;
   }
 
   .slide-overlay {
@@ -394,7 +394,7 @@ onUnmounted(() => {
 
 @media (max-width: 540px) {
   .hero-slider {
-    height: min(50vh, 360px);
+    min-height: 280px;
   }
 
   .slide-content {
