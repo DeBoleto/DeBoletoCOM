@@ -37,7 +37,7 @@
                 </template>
               </p>
             </div>
-            <button type="button" class="btn-buy">Comprar boleto</button>
+            <button v-if="event.ventaWeb" type="button" class="btn-buy">Comprar boleto</button>
           </div>
         </div>
       </section>
