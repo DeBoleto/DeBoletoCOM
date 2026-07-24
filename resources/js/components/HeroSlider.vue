@@ -79,6 +79,30 @@
           </article>
         </template>
       </div>
+
+      <button
+        class="slider-arrow slider-arrow--prev"
+        aria-label="Anterior slide"
+        @click="prev"
+        @mouseenter="pause"
+        @mouseleave="resume"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      <button
+        class="slider-arrow slider-arrow--next"
+        aria-label="Siguiente slide"
+        @click="next"
+        @mouseenter="pause"
+        @mouseleave="resume"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
     </div>
   </section>
 
@@ -347,6 +371,54 @@ onUnmounted(() => {
 .slide-cta:hover {
   opacity: 0.88;
   transform: translateY(-2px);
+}
+
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.slider-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.slider-arrow--prev { left: var(--space-4); }
+.slider-arrow--next { right: var(--space-4); }
+
+@media (max-width: 768px) {
+  .slider-arrow {
+    width: 36px;
+    height: 36px;
+  }
+  .slider-arrow--prev { left: var(--space-2); }
+  .slider-arrow--next { right: var(--space-2); }
+}
+
+@media (max-width: 540px) {
+  .slider-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  .slider-arrow svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
  @media (min-width: 769px) {
