@@ -4,48 +4,48 @@
     :class="[`event-card--${variant}`, { 'event-card--featured': featured }]"
     :aria-label="`Evento: ${event.title}`"
   >
-    <a :href="`/evento/${event.slug}`" class="card-link" tabindex="-1" aria-hidden="true"></a>
-
-    <div class="card-image-wrap">
-      <picture>
-        <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
-        <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
-        <img
-          :src="event.image"
-          :alt="`Imagen del evento: ${event.title}`"
-          class="card-image"
-          loading="lazy"
-          decoding="async"
-          width="400"
-          height="220"
-        />
-      </picture>
-      <div class="date-badge">
-        <span class="d">{{ dateBadge.day }}</span>
-        <span class="m">{{ dateBadge.month }}</span>
+    <a :href="`/evento/${event.slug}`" class="card-image-link" :aria-label="`Ver evento: ${event.title}`">
+      <div class="card-image-wrap">
+        <picture>
+          <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
+          <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
+          <img
+            :src="event.image"
+            :alt="`Imagen del evento: ${event.title}`"
+            class="card-image"
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="220"
+          />
+        </picture>
+        <div class="date-badge">
+          <span class="d">{{ dateBadge.day }}</span>
+          <span class="m">{{ dateBadge.month }}</span>
+        </div>
+        <span
+          v-if="event.availability === 'sold-out'"
+          class="card-badge card-badge--sold"
+          aria-label="Agotado"
+        >Agotado</span>
+        <span
+          v-else-if="event.availability === 'low'"
+          class="card-badge card-badge--low"
+          aria-label="Pocos boletos disponibles"
+        >Últimos boletos</span>
+        <button
+          type="button"
+          class="card-wishlist"
+          :class="{ 'card-wishlist--active': isWishlisted }"
+          :aria-label="isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+          @click.prevent="toggleWishlist"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
       </div>
-      <span
-        v-if="event.availability === 'sold-out'"
-        class="card-badge card-badge--sold"
-        aria-label="Agotado"
-      >Agotado</span>
-      <span
-        v-else-if="event.availability === 'low'"
-        class="card-badge card-badge--low"
-        aria-label="Pocos boletos disponibles"
-      >Últimos boletos</span>
-      <button
-        type="button"
-        class="card-wishlist"
-        :class="{ 'card-wishlist--active': isWishlisted }"
-        :aria-label="isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos'"
-        @click.prevent="toggleWishlist"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      </button>
-    </div>
+    </a>
 
     <div class="card-body">
       <div class="card-meta">
@@ -169,10 +169,11 @@ const eventSchema = computed(() => {
   color: inherit;
 }
 
-.card-link {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.card-image-link {
+  display: block;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
 }
 
 .card-image-wrap {
