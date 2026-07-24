@@ -42,6 +42,18 @@
         <div class="container">
           <div class="body-grid">
             <div class="main-column">
+              <div v-if="event.hasPromotion" class="detail-block">
+                <h2 class="block-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  Promociones
+                </h2>
+                <div v-if="event.promotions.length" class="promo-main-list">
+                  <div v-for="(promo, i) in event.promotions" :key="i" class="promo-main-card">{{ promo }}</div>
+                </div>
+                <p v-else class="promo-empty">Aplican promociones</p>
+              </div>
               <div v-if="event.functions.length" class="detail-block">
                 <h2 class="block-title">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -685,6 +697,21 @@ main { flex: 1; }
 
 .sponsor-arrow-next {
   right: 0;
+}
+
+.promo-main-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.promo-main-card {
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 @media (max-width: 767px) {
