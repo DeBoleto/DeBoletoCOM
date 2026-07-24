@@ -14,7 +14,11 @@
       <section class="hero-section">
         <div class="container">
           <div class="hero-frame">
-            <img :src="event.image" :alt="event.name" class="hero-image" />
+            <picture class="hero-picture">
+              <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
+              <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
+              <img :src="event.image" :alt="event.name" class="hero-image" />
+            </picture>
           </div>
         </div>
       </section>
@@ -333,14 +337,32 @@ main { flex: 1; }
   border-radius: var(--radius-xl);
   overflow: hidden;
   max-height: 480px;
+  aspect-ratio: 5 / 2;
+}
+
+.hero-picture {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .hero-image {
   width: 100%;
   height: 100%;
-  max-height: 480px;
   object-fit: cover;
   display: block;
+}
+
+@media (max-width: 768px) {
+  .hero-frame {
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 540px) {
+  .hero-frame {
+    min-height: 280px;
+  }
 }
 
 .info-bar {
