@@ -1,5 +1,5 @@
 <template>
-  <header class="site-header" role="banner">
+  <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }" role="banner">
     <div class="header-inner container">
       <a href="/" class="brand" aria-label="Boleto — Ir a inicio">
         <picture>
@@ -99,8 +99,27 @@ function logout() {
   router.post(route('logout'))
 }
 
-onMounted(() => window.addEventListener('resize', handleResize))
-onBeforeUnmount(() => window.removeEventListener('resize', handleResize))
+const isScrolled = ref(false)
+
+function handleScroll() {
+  const slider = document.querySelector('.hero-slider')
+  if (slider) {
+    isScrolled.value = slider.getBoundingClientRect().bottom <= 0
+  } else {
+    isScrolled.value = window.scrollY > 0
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <style scoped>
@@ -113,6 +132,22 @@ onBeforeUnmount(() => window.removeEventListener('resize', handleResize))
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
   height: var(--header-height);
+}
+
+@media (min-width: 768px) {
+  .site-header {
+    background: rgba(10, 10, 15, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .site-header--scrolled {
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--color-border);
+  }
 }
 
 .header-inner {

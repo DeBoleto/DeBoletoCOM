@@ -336,7 +336,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   font-size: var(--text-sm);
   font-weight: 700;
   background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
@@ -349,13 +349,17 @@ onUnmounted(() => {
   transform: translateY(-2px);
 }
 
-@media (min-width: 769px) {
-  .hero-slider-section {
-    padding-block: 0;
-  }
+ @media (min-width: 769px) {
+     .hero-slider-section {
+	 width: 95%;
+	 max-width: 95%;
+	 margin-inline: auto;
+	 padding-block: 0;
+
+     }
 
   .hero-slider {
-    border-radius: 0;
+    border-radius: var(--radius-xl);
   }
 }
 
