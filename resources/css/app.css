@@ -86,7 +86,7 @@
   --transition-base: 250ms ease;
 
   /* Layout */
-  --container-max: clamp(1280px, 80vw, 1920px);
+  --container-max: clamp(1280px, 90vw, 1920px);
   --header-height: 68px;
   --bottom-nav-height: 64px;
 }
@@ -206,7 +206,7 @@ input, button, select, textarea {
   color: #fff;
   background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
   box-shadow: var(--shadow-brand);
   cursor: pointer;

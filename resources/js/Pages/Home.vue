@@ -313,11 +313,11 @@
      color: #fff;
      font-size: var(--text-base);
      font-weight: 700;
-     border-radius: var(--radius-full);
-     box-shadow: var(--shadow-brand);
-     transition: opacity var(--transition-fast), transform var(--transition-fast);
-     white-space: nowrap;
- }
+      border-radius: var(--radius-xs);
+      box-shadow: var(--shadow-brand);
+      transition: opacity var(--transition-fast), transform var(--transition-fast);
+      white-space: nowrap;
+  }
 
  .banner-cta-primary:hover { opacity: 0.9; transform: translateY(-2px); }
 

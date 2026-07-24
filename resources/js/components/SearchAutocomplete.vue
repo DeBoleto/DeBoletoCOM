@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
   padding: 0 14px 0 40px;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   color: var(--color-text-primary);
   caret-color: var(--color-brand);

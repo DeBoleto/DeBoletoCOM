@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
   box-shadow: var(--shadow-brand);

@@ -124,7 +124,7 @@ defineProps({
   font-weight: 600;
   color: var(--color-brand);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   border: 1px solid rgba(78, 203, 160, 0.6);
   transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
   white-space: nowrap;

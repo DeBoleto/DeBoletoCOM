@@ -336,7 +336,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xs);
   font-size: var(--text-sm);
   font-weight: 700;
   background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
@@ -351,8 +351,8 @@ onUnmounted(() => {
 
  @media (min-width: 769px) {
      .hero-slider-section {
-	 width: 95%;
-	 max-width: 95%;
+    width: 90%;
+    max-width: 90%;
 	 margin-inline: auto;
 	 padding-block: 0;
 
