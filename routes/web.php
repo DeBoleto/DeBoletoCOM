@@ -75,7 +75,7 @@ Route::get('/', function () {
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
 
     $banners = array_map(fn($b) => [
-        'url'   => $b['url'] ?? '#',
+        'url'   => !empty($b['url']) ? '/evento/' . $b['url'] : '#',
         'image' => !empty($b['imagen']) ? 'https://deboleto.com/images/eventos/slide/' . $b['imagen'] : '',
         'price' => ($b['desde'] ?? 0) > 0 ? '$' . number_format((float)$b['desde'], 0) : '',
     ], $rawBanners);
@@ -87,6 +87,36 @@ Route::get('/', function () {
         'banners' => $banners,
     ]);
 })->name('home');
+
+Route::get('/evento/{slug}', function ($slug) {
+    $data = Redis::get('detalle_evento:' . $slug);
+    abort_unless($data, 404);
+
+    $event = json_decode($data, true);
+
+    return Inertia::render('EventDetail', [
+        'event' => [
+            'id'        => $event['id'],
+            'name'      => $event['nombre'],
+            'image'     => !empty($event['imagen'])
+                ? 'https://deboleto.com/images/eventos/' . $event['imagen'] : '',
+            'hasPromotion' => $event['tiene_promocion'],
+            'webSales'  => $event['ventaWeb'],
+            'promotions' => $event['promociones'] ?? [],
+            'functions' => array_map(fn($f) => [
+                'id'   => $f['id'],
+                'date' => $f['fecha'],
+            ], $event['funciones'] ?? []),
+            'zones' => array_map(fn($z) => [
+                'id'             => $z['id'],
+                'name'           => $z['nombre'],
+                'originalPrice'  => $z['precio_original'],
+                'discountPrice'  => $z['precio_descuento'],
+                'hasPromotion'   => $z['tiene_promocion'],
+            ], $event['zonas'] ?? []),
+        ],
+    ]);
+})->name('event.detail');
 
 Route::middleware([
     'auth:sanctum',
