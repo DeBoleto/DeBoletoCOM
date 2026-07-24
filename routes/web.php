@@ -49,6 +49,28 @@ Route::get('/', function () {
         ->values()
         ->all();
 
+    $popularEvents = collect($events)
+        ->sortBy(fn($e) => $e['id'])
+        ->skip(6)
+        ->take(6)
+        ->values()
+        ->map(fn($e) => [
+            'id' => $e['id'] ?? 0,
+            'slug' => $e['url'] ?? '',
+            'title' => $e['evento'] ?? '',
+            'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
+            'date' => $e['fecha'] ?? '',
+            'dateISO' => '',
+            'venue' => $e['escenario'] ?? '',
+            'city' => $e['ciudad'] ?? '',
+            'priceFormatted' => ($e['desde'] ?? 0) > 0 ? '$' . number_format((float)$e['desde'], 0) : '',
+            'artist' => null,
+            'category' => null,
+            'categoryColor' => null,
+            'availability' => 'available',
+        ])
+        ->all();
+
     $bannersData = Redis::get('eventos_sidebar_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
 
@@ -61,6 +83,7 @@ Route::get('/', function () {
     return Inertia::render('Home', [
         'nextEvents' => $nextEvents,
         'zoneEvents' => $zoneEvents,
+        'popularEvents' => $popularEvents,
         'banners' => $banners,
     ]);
 })->name('home');

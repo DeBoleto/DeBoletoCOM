@@ -48,7 +48,7 @@
           icon="🔥"
           accent-color="festival"
           view-all-link="/eventos?filtro=populares"
-          :events="popularEvents"
+          :events="resolvedPopularEvents"
           layout="grid"
       />
 
@@ -107,6 +107,10 @@
 	 type: Array,
 	 default: () => [],
      },
+     popularEvents: {
+	 type: Array,
+	 default: () => [],
+     },
      banners: {
 	 type: Array,
 	 default: () => [],
@@ -153,12 +157,15 @@
 
  const { organizationSchema, webSiteSchema } = useStructuredData()
 
- const { nextEvents: mockNextEvents, popularEvents, featuredEvents } = useEvents()
+ const { nextEvents: mockNextEvents, popularEvents: mockPopularEvents, featuredEvents } = useEvents()
  const resolvedNextEvents = computed(() =>
      props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents
  )
  const resolvedZoneEvents = computed(() =>
      props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents
+ )
+ const resolvedPopularEvents = computed(() =>
+     props.popularEvents.length > 0 ? props.popularEvents : mockPopularEvents
  )
 
  const categories = [
