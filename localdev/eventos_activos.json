@@ -1,0 +1,137 @@
+[
+    {
+        "id": 1070,
+        "evento": "BUSCO AL HOMBRE DE MI VIDA... MARIDO YA TUVE",
+        "imagen": "buscoalhombredemividavhs20260618174022jpeg",
+        "desde": 500.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "busco-al-hombre-de-mi-vida-vhsa-2026"
+    },
+    {
+        "id": 1101,
+        "evento": "EL GRAN SHOWMAN: EL MUSICAL",
+        "imagen": "elgranshowmanelmusical20260703114137jpeg",
+        "desde": 250.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "el-gran-showman:-el-musical"
+    },
+    {
+        "id": 1122,
+        "evento": "THIS IS MICHAEL - TOLUCA",
+        "imagen": "thisismichael20260625155941jpeg",
+        "desde": 700.0,
+        "ciudad": "Toluca",
+        "estado": "Estado de México",
+        "url": "this-is-michael-"
+    },
+    {
+        "id": 1123,
+        "evento": "AUTÉNTICOS DECADENTES Y CALIGARIS",
+        "imagen": "autenticosdecadentesycaliga20260618173923jpeg",
+        "desde": 800.0,
+        "ciudad": "La Paz",
+        "estado": " B.C.",
+        "url": "autenticos-decadentes-y-caligaris"
+    },
+    {
+        "id": 1125,
+        "evento": "DOS LEYENDAS",
+        "imagen": "dosleyendas20260707101759jpeg",
+        "desde": 500.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "dos-leyendas"
+    },
+    {
+        "id": 1127,
+        "evento": "JULIETA VENEGAS - LA PAZ, B.C.S",
+        "imagen": "julietavenegaslapazbc20260625200816jpeg",
+        "desde": 1000.0,
+        "ciudad": "La Paz",
+        "estado": " B.C.",
+        "url": "julieta-venegas---la-paz,-b.c.s"
+    },
+    {
+        "id": 1130,
+        "evento": "JULIETA VENEGAS - LOS CABOS, B.C.S",
+        "imagen": "julietavenegasloscabosb20260625200722jpeg",
+        "desde": 800.0,
+        "ciudad": "Los Cabos",
+        "estado": " B.C.",
+        "url": "julieta-venegas---los-cabos,-b.c.s"
+    },
+    {
+        "id": 1134,
+        "evento": "Manuel Medrano - ACAPULCO",
+        "imagen": "manuelmedranoacapulco20260617195246jpeg",
+        "desde": 1000.0,
+        "ciudad": "Acapulco ",
+        "estado": "Guerrero",
+        "url": "manuel-medrano-acapulco-2026"
+    },
+    {
+        "id": 1135,
+        "evento": "MANUEL MEDRANO - LOS CABOS, B.C.S",
+        "imagen": "manuelmedranoloscabosbcs20260625115131jpeg",
+        "desde": 1000.0,
+        "ciudad": "Los Cabos",
+        "estado": " B.C.",
+        "url": "manuel-medrano-los-cabos-bcs"
+    },
+    {
+        "id": 1148,
+        "evento": "Luis Angel: El Flaco - Zumpango del Rio",
+        "imagen": "luisangelelflacozumpangod20260619164102jpeg",
+        "desde": 250.0,
+        "ciudad": "Zumpango del Rio",
+        "estado": "Guerrero",
+        "url": "luis-angel-el-flaco-zumpango-del-rio-26"
+    },
+    {
+        "id": 1151,
+        "evento": "THIS IS MICHAEL - PUEBLA",
+        "imagen": "thisismichaelpuebla20260626174655jpeg",
+        "desde": 750.0,
+        "ciudad": "Puebla",
+        "estado": "Puebla",
+        "url": "this-is-michael---puebla"
+    },
+    {
+        "id": 1154,
+        "evento": "GUERREROS DEL EDEN",
+        "imagen": "guerrerosdeleden20260707102136jpeg",
+        "desde": 200.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "guerreros-del-eden"
+    },
+    {
+        "id": 1156,
+        "evento": "Plim Plim - Tributo",
+        "imagen": "tributoaplimplim202620260707101810jpeg",
+        "desde": 230.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "plim-plim-tributo"
+    },
+    {
+        "id": 1157,
+        "evento": "Más Líderes 10K",
+        "imagen": "carreramaslideres10k20260714173343jpeg",
+        "desde": 300.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "carrera-mas-lideres-10k"
+    },
+    {
+        "id": 1159,
+        "evento": "La Obscenidad de la Carne",
+        "imagen": "laobscenidaddelacarne20260712175004jpeg",
+        "desde": 500.0,
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "url": "la-obscenidad-de-la-carne"
+    }
+]

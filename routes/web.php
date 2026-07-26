@@ -1,4 +1,5 @@
-<?php
+
+    <?php
 
 use App\Http\Controllers\HomeController;
 use Illuminate\Foundation\Application;
@@ -7,25 +8,43 @@ use Illuminate\Support\Facades\Redis;
 use Inertia\Inertia;
 use App\Http\Controllers\SitemapController;
 
-Route::get('/', function () {
-    $searchData = Redis::get('eventos_activos_app');
+$getData = function ($redisKey, $localFile = null) {
+    if (env('USE_LOCAL_JSON', false)) {
+        return $localFile ? file_get_contents(base_path($localFile)) : null;
+    }
+    return Redis::get($redisKey);
+};
+
+$imageUrl = function ($imagen, $useSlide = false) {
+    if (env('USE_LOCAL_JSON', false)) {
+        return asset('sample.png');
+    }
+    if (empty($imagen)) return '';
+    $base = $useSlide
+        ? 'https://deboleto.com/images/eventos/slide/'
+        : 'https://deboleto.com/images/eventos/';
+    return $base . $imagen;
+};
+
+Route::get('/', function () use ($getData, $imageUrl) {
+    $searchData = $getData('eventos_activos_app', '/localdev/eventos_activos.json');
     $events = $searchData ? json_decode($searchData, true) : [];
 
     $nextEvents = array_map(fn($e) => [
         'id' => $e['id'] ?? 0,
         'slug' => $e['url'] ?? '',
         'title' => $e['evento'] ?? '',
-        'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
-        'date' => $e['fecha'] ?? '',
-        'dateISO' => '',
-        'venue' => $e['escenario'] ?? '',
-        'city' => $e['ciudad'] ?? '',
-        'priceFormatted' => ($e['desde'] ?? 0) > 0 ? '$' . number_format((float)$e['desde'], 0) : '',
-        'artist' => null,
-        'category' => null,
-        'categoryColor' => null,
-        'availability' => 'available',
-    ], array_slice($events, 0, 6));
+        'image' => $imageUrl($e['imagen']),
+            'date' => $e['fecha'] ?? '',
+            'dateISO' => '',
+            'venue' => $e['escenario'] ?? '',
+            'city' => $e['ciudad'] ?? '',
+            'priceFormatted' => ($e['desde'] ?? 0) > 0 ? '$' . number_format((float)$e['desde'], 0) : '',
+            'artist' => null,
+            'category' => null,
+            'categoryColor' => null,
+            'availability' => 'available',
+        ], array_slice($events, 0, 6));
 
     $zoneEvents = collect($events)
         ->filter(fn($e) => ($e['estado'] ?? '') === 'Tabasco')
@@ -35,7 +54,7 @@ Route::get('/', function () {
             'id' => $e['id'] ?? 0,
             'slug' => $e['url'] ?? '',
             'title' => $e['evento'] ?? '',
-            'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
+            'image' => $imageUrl($e['imagen']),
             'date' => $e['fecha'] ?? '',
             'dateISO' => '',
             'venue' => $e['escenario'] ?? '',
@@ -58,7 +77,7 @@ Route::get('/', function () {
             'id' => $e['id'] ?? 0,
             'slug' => $e['url'] ?? '',
             'title' => $e['evento'] ?? '',
-            'image' => !empty($e['imagen']) ? 'https://deboleto.com/images/eventos/' . $e['imagen'] : '',
+            'image' => $imageUrl($e['imagen']),
             'date' => $e['fecha'] ?? '',
             'dateISO' => '',
             'venue' => $e['escenario'] ?? '',
@@ -71,12 +90,12 @@ Route::get('/', function () {
         ])
         ->all();
 
-    $bannersData = Redis::get('eventos_sidebar_app');
+    $bannersData = $getData('eventos_sidebar_app', '/localdev/eventos_sidebar.json');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
 
     $banners = array_map(fn($b) => [
         'url'   => !empty($b['url']) ? '/evento/' . $b['url'] : '#',
-        'image' => !empty($b['imagen']) ? 'https://deboleto.com/images/eventos/slide/' . $b['imagen'] : '',
+        'image' => $imageUrl($b['imagen'], true),
         'price' => ($b['desde'] ?? 0) > 0 ? '$' . number_format((float)$b['desde'], 0) : '',
     ], $rawBanners);
 
@@ -88,8 +107,8 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/evento/{slug}', function ($slug) {
-    $data = Redis::get('detalle_evento:' . $slug);
+Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
+    $data = $getData('detalle_evento:' . $slug, '/localdev/detalle_evento.json');
     abort_unless($data, 404);
 
     $event = json_decode($data, true);
@@ -98,10 +117,9 @@ Route::get('/evento/{slug}', function ($slug) {
         'event' => [
             'id'        => $event['id'],
             'name'      => $event['nombre'],
-            'image'     => !empty($event['imagen'])
-                ? 'https://deboleto.com/images/eventos/' . $event['imagen'] : '',
+            'image'     => $imageUrl($event['imagen'] ?? ''),
             'hasPromotion' => $event['tiene_promocion'],
-            'webSales'  => $event['ventaWeb'],
+            'ventaWeb'  => $event['ventaWeb'],
             'promotions' => $event['promociones'] ?? [],
             'functions' => array_map(fn($f) => [
                 'id'   => $f['id'],

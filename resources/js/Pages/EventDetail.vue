@@ -153,7 +153,7 @@
                   </svg>
                   Precios de zonas
                 </h2>
-                <div class="zone-list">
+                <div class="zone-list" :class="{ 'zone-list--cols-2': sortedZones.length > 10 }">
                   <div v-for="zone in sortedZones" :key="zone.id" class="zone-row">
                     <span class="zone-name">{{ zone.name }}</span>
                     <span class="zone-price">
@@ -336,7 +336,6 @@ main { flex: 1; }
   border: 2px solid var(--color-border-strong);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  max-height: 480px;
   aspect-ratio: 5 / 2;
 }
 
@@ -351,18 +350,6 @@ main { flex: 1; }
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-@media (max-width: 768px) {
-  .hero-frame {
-    min-height: 340px;
-  }
-}
-
-@media (max-width: 540px) {
-  .hero-frame {
-    min-height: 280px;
-  }
 }
 
 .info-bar {
@@ -557,9 +544,13 @@ main { flex: 1; }
 }
 
 .zone-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-2);
+}
+
+.zone-list--cols-2 {
+  grid-template-columns: 1fr 1fr;
 }
 
 .zone-row {
@@ -640,7 +631,7 @@ main { flex: 1; }
 }
 
 .sponsor-track li {
-  flex: 0 0 calc(25% - 4.5px);
+  flex: 0 0 150px;
   scroll-snap-align: start;
   border-radius: 12px;
   position: relative;
@@ -737,8 +728,13 @@ main { flex: 1; }
 }
 
 @media (max-width: 767px) {
+  .btn-buy {
+    width: 100%;
+    justify-content: center;
+  }
+
   .sponsor-track li {
-    flex: 0 0 calc(50% - 3px);
+    flex: 0 0 150px;
   }
 
   .sponsor-arrow {
