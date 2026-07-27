@@ -142,6 +142,11 @@ defineProps({
   gap: var(--space-5);
 }
 
+.grid-item {
+  min-width: 0;
+  overflow: hidden;
+}
+
 .events-grid--grid {
   grid-template-columns: repeat(3, 1fr);
 }

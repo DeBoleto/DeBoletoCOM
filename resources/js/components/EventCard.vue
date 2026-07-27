@@ -279,6 +279,9 @@ const eventSchema = computed(() => {
   font-size: var(--text-xs);
   color: var(--color-text-primary);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-title {
