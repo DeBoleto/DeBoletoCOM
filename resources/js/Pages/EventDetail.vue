@@ -46,17 +46,9 @@
         <div class="container">
           <div class="body-grid">
             <div class="main-column">
-              <div v-if="event.hasPromotion" class="detail-block">
-                <h2 class="block-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  Promociones
-                </h2>
-                <div v-if="event.promotions.length" class="promo-main-list">
-                  <div v-for="(promo, i) in event.promotions" :key="i" class="promo-main-card">{{ promo }}</div>
-                </div>
-                <p v-else class="promo-empty">Aplican promociones</p>
+              <div class="detail-block">
+                <h2 class="block-title">Acerca del evento</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
               </div>
               <div v-if="event.functions.length" class="detail-block">
                 <h2 class="block-title">
@@ -67,28 +59,28 @@
                 </h2>
                 <ul class="function-list">
                   <li v-for="fn in event.functions" :key="fn.id" class="function-item">
-                    <span class="fn-date">{{ formatDate(fn.date) }}</span>
-                    <span class="fn-time">{{ formatTime(fn.date) }}</span>
+                    <div class="function-date-badge">
+                      <span class="d">{{ getDay(fn.date) }}</span>
+                      <span class="m">{{ getMonth(fn.date) }}</span>
+                    </div>
+                    <div class="fn-info">
+                      <span class="fn-event-name">{{ event.name }}</span>
+                      <span class="fn-details">{{ formatTime(fn.date) }}, {{ event.venueName }} - Villahermosa, Tabasco</span>
+                    </div>
                   </li>
                 </ul>
               </div>
 
               <div class="detail-block">
-                <h2 class="block-title">Detalles del evento</h2>
-                <div class="detail-grid">
-                  <div v-if="formattedMainDate" class="detail-item">
-                    <span class="detail-label">Fecha</span>
-                    <span class="detail-value">{{ formattedMainDate }}</span>
-                  </div>
-                  <div v-if="event.venueName" class="detail-item">
-                    <span class="detail-label">Lugar</span>
-                    <span class="detail-value">{{ event.venueName }}</span>
-                  </div>
+                <button v-if="event.ventaWeb" type="button" class="btn-buy">Comprar boleto</button>
+                <div class="event-info-label">
+                  <span>Tabasco - {{ event.venueName }}</span>
+                  <span>1 evento</span>
                 </div>
               </div>
 
               <section class="sponsors-section">
-                <h2 class="sponsors-title block-title">Sponsors</h2>
+                <h2 class="sponsors-title block-title">Patrocinadores</h2>
                 <div class="sponsor-wrapper">
                   <a
                     href="javascript:void(0)"
@@ -157,8 +149,8 @@
                   <div v-for="zone in sortedZones" :key="zone.id" class="zone-row">
                     <span class="zone-name">{{ zone.name }}</span>
                     <span class="zone-price">
-                      <span v-if="hasDiscount(zone)" class="old-price">${{ formatPrice(zone.originalPrice) }}</span>
-                      <span class="current-price">${{ formatPrice(zone.discountPrice) }}</span>
+                      <span :class="{ 'old-price': hasDiscount(zone) }">${{ formatPrice(zone.originalPrice) }}</span>
+                      <span v-if="hasDiscount(zone)" class="current-price">${{ formatPrice(zone.discountPrice) }}</span>
                     </span>
                   </div>
                 </div>
@@ -235,6 +227,16 @@ function formatTime(iso) {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return ''
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} hrs`
+}
+
+function getDay(iso) {
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '' : d.getDate()
+}
+
+function getMonth(iso) {
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '' : monthNames[d.getMonth()].toUpperCase()
 }
 
 function formatPrice(val) {
@@ -333,7 +335,6 @@ main { flex: 1; }
 }
 
 .hero-frame {
-  border: 2px solid var(--color-border-strong);
   border-radius: var(--radius-xl);
   overflow: hidden;
   aspect-ratio: 5 / 2;
@@ -413,6 +414,15 @@ main { flex: 1; }
   transform: translateY(-2px);
 }
 
+.event-info-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
 .body-section {
   padding-block: var(--space-10) var(--space-16);
 }
@@ -459,20 +469,52 @@ main { flex: 1; }
 .function-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
   background: var(--color-surface-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
 
-.fn-date {
+.function-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(10, 10, 15, 0.85);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+
+.function-date-badge .d {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.function-date-badge .m {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-brand);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.fn-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.fn-event-name {
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
-.fn-time {
+.fn-details {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
