@@ -1,25 +1,30 @@
 {
     "id": 1143,
     "nombre": "Leones VS Olmecas 2do Juego",
+    "slug": "leones-vs-olmecas-2do-juego",
     "imagen": "leonesvsolmecas2dojuego20260617003821jpeg",
-    "lugar": "Estadio de Béisbol",
-    "latitud": 17.9892,
-    "longitud": -92.9474,
+    "descripcion": "Vive la emoción del béisbol con los Leones VS Olmecas en un partido lleno de acción.",
     "tiene_promocion": true,
     "ventaWeb": true,
-    "promociones":
-    [
+    "lugar": "Estadio de Béisbol",
+    "ciudad": "Villahermosa",
+    "estado": "Tabasco",
+    "redes": {
+        "facebook": "https://facebook.com/evento",
+        "instagram": "https://instagram.com/evento",
+        "twitter": "https://twitter.com/evento",
+        "youtube": "https://youtube.com/@evento"
+    },
+    "promociones": [
         "General: 2x1"
     ],
-    "funciones":
-    [
+    "funciones": [
         {
             "id": 1305,
             "fecha": "2026-07-25T19:00:00"
         }
     ],
-    "zonas":
-    [
+    "zonas": [
         {
             "id": 13248,
             "nombre": "Zona A",
@@ -35,190 +40,190 @@
             "tiene_promocion": false
         },
         {
-            "id": 13254,
-            "nombre": "Área de discapacidad",
+            "id": 13258,
+            "nombre": "Zona E",
             "precio_original": 110.0,
             "precio_descuento": 110.0,
             "tiene_promocion": false
         },
         {
-            "id": 13249,
-            "nombre": "Zona B",
+            "id": 13259,
+            "nombre": "Zona Baja",
             "precio_original": 131.0,
             "precio_descuento": 131.0,
             "tiene_promocion": false
         },
         {
-            "id": 13252,
-            "nombre": "Zona E",
+            "id": 13260,
+            "nombre": "Zona Baja",
             "precio_original": 131.0,
             "precio_descuento": 131.0,
             "tiene_promocion": false
         },
         {
-            "id": 13250,
-            "nombre": "Zona C",
+            "id": 13261,
+            "nombre": "Zona Preferente",
             "precio_original": 160.0,
             "precio_descuento": 160.0,
             "tiene_promocion": false
         },
         {
-            "id": 13251,
-            "nombre": "Zona D",
+            "id": 13262,
+            "nombre": "Zona Preferente",
             "precio_original": 160.0,
             "precio_descuento": 160.0,
             "tiene_promocion": false
         },
         {
-            "id": 13237,
-            "nombre": "A1",
+            "id": 13263,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13238,
-            "nombre": "A2",
+            "id": 13264,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13239,
-            "nombre": "A3",
+            "id": 13265,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13245,
-            "nombre": "A9",
+            "id": 13266,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13246,
-            "nombre": "A10",
+            "id": 13267,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13247,
-            "nombre": "A11",
+            "id": 13268,
+            "nombre": "Zona VIP",
             "precio_original": 186.0,
             "precio_descuento": 186.0,
             "tiene_promocion": false
         },
         {
-            "id": 13226,
-            "nombre": "Sección 1",
+            "id": 13269,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13227,
-            "nombre": "Sección 2",
+            "id": 13270,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13228,
-            "nombre": "Sección 3",
+            "id": 13271,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13234,
-            "nombre": "Sección 9",
+            "id": 13272,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13235,
-            "nombre": "Sección 10",
+            "id": 13273,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13236,
-            "nombre": "Sección 11",
+            "id": 13274,
+            "nombre": "Zona VIP",
             "precio_original": 221.0,
             "precio_descuento": 221.0,
             "tiene_promocion": false
         },
         {
-            "id": 13240,
-            "nombre": "A4",
+            "id": 13275,
+            "nombre": "Zona VIP+",
             "precio_original": 274.0,
             "precio_descuento": 274.0,
             "tiene_promocion": false
         },
         {
-            "id": 13241,
-            "nombre": "A5",
+            "id": 13276,
+            "nombre": "Zona VIP+",
             "precio_original": 274.0,
             "precio_descuento": 274.0,
             "tiene_promocion": false
         },
         {
-            "id": 13243,
-            "nombre": "A7",
+            "id": 13277,
+            "nombre": "Zona VIP+",
             "precio_original": 274.0,
             "precio_descuento": 274.0,
             "tiene_promocion": false
         },
         {
-            "id": 13244,
-            "nombre": "A8",
+            "id": 13278,
+            "nombre": "Zona VIP+",
             "precio_original": 274.0,
             "precio_descuento": 274.0,
             "tiene_promocion": false
         },
         {
-            "id": 13229,
-            "nombre": "Sección 4",
+            "id": 13279,
+            "nombre": "Zona Platinum",
             "precio_original": 328.0,
             "precio_descuento": 328.0,
             "tiene_promocion": false
         },
         {
-            "id": 13230,
-            "nombre": "Sección 5",
+            "id": 13280,
+            "nombre": "Zona Platinum",
             "precio_original": 328.0,
             "precio_descuento": 328.0,
             "tiene_promocion": false
         },
         {
-            "id": 13232,
-            "nombre": "Sección 7",
+            "id": 13281,
+            "nombre": "Zona Platinum",
             "precio_original": 328.0,
             "precio_descuento": 328.0,
             "tiene_promocion": false
         },
         {
-            "id": 13233,
-            "nombre": "Sección 8",
+            "id": 13282,
+            "nombre": "Zona Platinum",
             "precio_original": 328.0,
             "precio_descuento": 328.0,
             "tiene_promocion": false
         },
         {
-            "id": 13231,
-            "nombre": "Sección 6",
+            "id": 13283,
+            "nombre": "Zona Golden Box",
             "precio_original": 357.0,
             "precio_descuento": 357.0,
             "tiene_promocion": false
         },
         {
-            "id": 13242,
-            "nombre": "A6",
+            "id": 13284,
+            "nombre": "Zona Golden Box",
             "precio_original": 357.0,
             "precio_descuento": 357.0,
             "tiene_promocion": false
