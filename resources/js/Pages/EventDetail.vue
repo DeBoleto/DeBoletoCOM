@@ -37,7 +37,7 @@
                 </template>
               </p>
             </div>
-            <button v-if="event.ventaWeb" type="button" class="btn-buy">Comprar boleto</button>
+            <button v-if="event.ventaWeb" type="button" class="btn-buy">COMPRAR BOLETO</button>
           </div>
         </div>
       </section>
@@ -72,7 +72,7 @@
               </div>
 
               <div class="detail-block">
-                <button v-if="event.ventaWeb" type="button" class="btn-buy">Comprar boleto</button>
+                <button v-if="event.ventaWeb" type="button" class="btn-buy">COMPRAR BOLETO</button>
                 <div class="event-info-label">
                   <span>Tabasco - {{ event.venueName }}</span>
                   <span>1 evento</span>

@@ -32,7 +32,7 @@
 
             <div class="slide-content slide-content--banner">
               <div class="slide-footer">
-                <a :href="banner.url" class="slide-cta">Ver más</a>
+                 <a :href="banner.url" class="slide-cta">VER M&Aacute;S</a>
               </div>
             </div>
           </div>
@@ -73,7 +73,7 @@
               </div>
 
               <div class="slide-footer">
-                <a :href="`/evento/${event.slug}`" class="slide-cta">Comprar boletos</a>
+                <a :href="`/evento/${event.slug}`" class="slide-cta">COMPRAR BOLETOS</a>
               </div>
             </div>
           </article>

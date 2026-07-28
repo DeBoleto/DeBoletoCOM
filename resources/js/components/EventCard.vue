@@ -67,8 +67,8 @@
 
       <div class="card-footer">
         <div class="card-price" aria-label="Precio desde">
-          <span class="price-from">Desde</span>
-          <strong class="price-amount">{{ event.priceFormatted }}</strong>
+     <span class="price-from">Desde&nbsp;<strong class="price-amount">{{ event.priceFormatted }}</strong></span>
+
         </div>
 
       </div>
@@ -326,17 +326,17 @@ const eventSchema = computed(() => {
 }
 
 .price-from {
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-text-muted);
+  color: #23aa83;
   font-weight: 600;
 }
 
 .price-amount {
-  font-size: var(--text-lg);
+
   font-weight: 800;
-  color: var(--color-text-primary);
+  color: var(--color-text-accent);
   letter-spacing: -0.02em;
 }
 

@@ -15,21 +15,21 @@
       <div class="header-right">
         <nav class="primary-nav" aria-label="Navegación principal">
           <ul role="list" class="nav-list">
-            <li><a href="#events" class="nav-link">Eventos</a></li>
-            <li><a href="#categories" class="nav-link">Categorías</a></li>
-            <li><a href="#venues" class="nav-link">Recintos</a></li>
+            <li><a href="#events" class="nav-link">EVENTOS</a></li>
+            <li><a href="#categories" class="nav-link">CATEGORIAS</a></li>
+            <li><a href="#venues" class="nav-link">RECINTOS</a></li>
           </ul>
         </nav>
 
         <div class="header-actions">
         <template v-if="user">
-          <a :href="route('dashboard')" class="btn-ghost">Dashboard</a>
+          <a :href="route('dashboard')" class="btn-ghost">DASHBOARD</a>
           <span class="user-name">{{ user.name }}</span>
-          <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">Salir</a>
+          <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">SALIR</a>
         </template>
         <template v-else>
-          <a href="#" class="btn-ghost" @click.prevent="emit('open-login')">Iniciar sesión</a>
-          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">Crear cuenta</a>
+               <a href="#" class="btn-ghost" @click.prevent="emit('open-login')">INICIAR SESIÓN</a>
+          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">CREAR CUENTA</a>
         </template>
         <button
           class="hamburger"
@@ -54,18 +54,18 @@
       aria-label="Menú móvil"
     >
       <ul role="list" class="mobile-nav-list">
-        <li><a href="#events" class="mobile-nav-link" @click="closeMenu">Eventos</a></li>
-        <li><a href="#categories" class="mobile-nav-link" @click="closeMenu">Categorías</a></li>
-        <li><a href="#venues" class="mobile-nav-link" @click="closeMenu">Recintos</a></li>
-        <li><a href="#promoters" class="mobile-nav-link" @click="closeMenu">Promotores</a></li>
+        <li><a href="#events" class="mobile-nav-link" @click="closeMenu">EVENTOS</a></li>
+        <li><a href="#categories" class="mobile-nav-link" @click="closeMenu">CATEGORÍAS</a></li>
+        <li><a href="#venues" class="mobile-nav-link" @click="closeMenu">RECINTOS</a></li>
+        <li><a href="#promoters" class="mobile-nav-link" @click="closeMenu">PROMOTORES</a></li>
         <li class="mobile-actions">
           <template v-if="user">
             <a :href="route('dashboard')" class="btn-ghost w-full">Dashboard</a>
             <a href="/logout" class="btn-ghost w-full" @click.prevent="logout">Salir</a>
           </template>
           <template v-else>
-            <a href="#" class="btn-ghost w-full" @click.prevent="emit('open-login')">Iniciar sesión</a>
-            <a href="#" class="btn-brand w-full" @click.prevent="emit('open-register')">Crear cuenta</a>
+            <a href="#" class="btn-ghost w-full" @click.prevent="emit('open-login')">INICIAR SESIÓN</a>
+            <a href="#" class="btn-brand w-full" @click.prevent="emit('open-register')">CREAR CUENTA</a>
           </template>
         </li>
       </ul>

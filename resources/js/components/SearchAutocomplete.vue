@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
   padding: 0 14px 0 40px;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   font-size: var(--text-sm);
   color: var(--color-text-primary);
   caret-color: var(--color-brand);
@@ -391,7 +391,7 @@ onBeforeUnmount(() => {
 
   .search-input {
     height: 36px;
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
   }
 }
 </style>
