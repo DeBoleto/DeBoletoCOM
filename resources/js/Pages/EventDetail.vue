@@ -37,7 +37,7 @@
                 </template>
               </p>
             </div>
-            <button v-if="event.ventaWeb" type="button" class="btn-buy">COMPRAR BOLETO</button>
+            <button v-if="event.ventaWeb && (!hasMultipleFunctions || isFiltered)" type="button" class="btn-buy">COMPRAR BOLETO</button>
           </div>
         </div>
       </section>
@@ -58,25 +58,33 @@
                   Fechas del evento
                 </h2>
                 <ul class="function-list">
-                  <li v-for="fn in event.functions" :key="fn.id" class="function-item">
-                    <div class="function-date-badge">
-                      <span class="d">{{ getDay(fn.date) }}</span>
-                      <span class="m">{{ getMonth(fn.date) }}</span>
-                    </div>
-                    <div class="fn-info">
-                      <span class="fn-event-name">{{ event.name }}</span>
-                      <span class="fn-details">{{ formatTime(fn.date) }}, {{ event.venueName }} - Villahermosa, Tabasco</span>
-                    </div>
+                  <li v-for="fn in displayFunctions" :key="fn.id" class="function-item" :class="{ 'function-item--active': selectedFunction?.id === fn.id, 'function-item--clickable': hasMultipleFunctions }">
+                    <a :href="`/evento/${page.props.slug}${hasMultipleFunctions ? `?function=${fn.id}` : ''}`" class="function-link" @click.prevent="hasMultipleFunctions && selectFunction(fn)">
+                      <div class="function-date-badge">
+                        <span class="d">{{ getDay(fn.date) }}</span>
+                        <span class="m">{{ getMonth(fn.date) }}</span>
+                      </div>
+                      <div class="fn-info">
+                        <span class="fn-event-name">{{ event.name }}</span>
+                        <span class="fn-details">{{ formatTime(fn.date) }}, {{ event.venueName }} - Villahermosa, Tabasco</span>
+                      </div>
+                      <svg v-if="hasMultipleFunctions" class="function-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path v-if="!isFiltered" d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path v-else d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </a>
                   </li>
                 </ul>
               </div>
 
               <div class="detail-block">
-                <button v-if="event.ventaWeb" type="button" class="btn-buy">COMPRAR BOLETO</button>
-                <div class="event-info-label">
-                  <span>Tabasco - {{ event.venueName }}</span>
-                  <span>1 evento</span>
-                </div>
+                <template v-if="event.ventaWeb && (!hasMultipleFunctions || isFiltered)">
+                  <button type="button" class="btn-buy">COMPRAR BOLETO</button>
+                  <div class="event-info-label">
+                    <span>Tabasco - {{ event.venueName }}</span>
+                    <span>1 evento</span>
+                  </div>
+                </template>
               </div>
 
               <section class="sponsors-section">
@@ -197,7 +205,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Head, usePage } from '@inertiajs/vue3'
+import { Head, usePage, router } from '@inertiajs/vue3'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import MobileBottomNav from '@/components/MobileBottomNav.vue'
@@ -209,6 +217,40 @@ import RegisterModal from '@/components/RegisterModal.vue'
 const props = defineProps({
   event: { type: Object, required: true },
 })
+
+const page = usePage()
+
+const selectedFunctionId = computed(() => {
+  const url = new URL(page.url, window.location.origin)
+  return url.searchParams.get('function') || null
+})
+
+const selectedFunction = computed(() => {
+  const fn = props.event.functions.find(f => String(f.id) === selectedFunctionId.value)
+  return fn || props.event.functions[0] || null
+})
+
+const hasMultipleFunctions = computed(() => {
+  return props.event.functions.length > 1
+})
+
+const isFiltered = computed(() => {
+  return selectedFunctionId.value !== null && props.event.functions.some(f => String(f.id) === selectedFunctionId.value)
+})
+
+const displayFunctions = computed(() => {
+  if (!isFiltered.value) return props.event.functions
+  const fn = props.event.functions.find(f => String(f.id) === selectedFunctionId.value)
+  return fn ? [fn] : props.event.functions
+})
+
+function selectFunction(fn) {
+  if (selectedFunctionId.value === String(fn.id)) {
+    router.get(`/evento/${page.props.slug}`, {}, { preserveScroll: true })
+  } else {
+    router.get(`/evento/${page.props.slug}`, { function: fn.id }, { preserveScroll: true })
+  }
+}
 
 const showPhoneLoginModal = ref(false)
 const showVerifyCodeModal = ref(false)
@@ -275,8 +317,8 @@ const sortedZones = computed(() => {
 })
 
 const formattedMainDate = computed(() => {
-  if (!props.event.functions.length) return ''
-  return formatDate(props.event.functions[0].date)
+  if (!selectedFunction.value) return ''
+  return formatDate(selectedFunction.value.date)
 })
 
 const sponsors = [
@@ -497,6 +539,44 @@ main { flex: 1; }
   background: var(--color-surface-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+}
+
+.function-item--active {
+  border-color: var(--color-brand);
+  background: var(--color-brand-dim);
+}
+
+.function-item--clickable {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.function-item--clickable:hover {
+  border-color: var(--color-brand);
+  background: var(--color-brand-dim);
+}
+
+.function-link {
+  display: contents;
+  color: inherit;
+  text-decoration: none;
+}
+
+.function-link:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+.function-arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.function-item--clickable:hover .function-arrow {
+  color: var(--color-brand);
 }
 
 .function-date-badge {

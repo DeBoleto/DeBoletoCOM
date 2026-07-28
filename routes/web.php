@@ -114,6 +114,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
     $event = json_decode($data, true);
 
     return Inertia::render('EventDetail', [
+        'slug'  => $slug,
         'event' => [
             'id'        => $event['id'],
             'name'      => $event['nombre'],
