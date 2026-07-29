@@ -432,8 +432,8 @@ onUnmounted(() => {
 
  @media (min-width: 769px) {
      .hero-slider-section {
-    width: 90%;
-    max-width: 90%;
+    width: 98.5%;
+    max-width: 98.5%;
 	 margin-inline: auto;
 	 padding-block: 0;
 
