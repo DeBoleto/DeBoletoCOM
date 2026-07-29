@@ -144,7 +144,6 @@ defineProps({
 
 .grid-item {
   min-width: 0;
-  overflow: hidden;
 }
 
 .events-grid--grid {
