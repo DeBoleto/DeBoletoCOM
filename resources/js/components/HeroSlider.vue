@@ -363,14 +363,23 @@ onUnmounted(() => {
   border-radius: var(--radius-xs);
   font-size: var(--text-sm);
   font-weight: 700;
-  background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+  background: transparent;
   color: #fff;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  border: 2px solid #fff;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .slide-cta:hover {
-  opacity: 0.88;
+
+  background-color: var(--color-brand);
+  border-color: #fff;
+  color: #fff;
   transform: translateY(-2px);
+  box-shadow:
+    0 0 0 3px var(--color-accent),
+    0 0 12px 4px rgba(78, 203, 160, 0.6),
+    0 0 30px 10px rgba(60, 175, 135, 0.22),
+    0 0 60px 18px rgba(43, 161, 124, 0.07);
 }
 
 .slider-arrow {
