@@ -372,7 +372,12 @@ onBeforeUnmount(() => {
   color: var(--color-text-muted);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 852px) {
+  .search-autocomplete { max-width: 320px; }
+  .search-dropdown { min-width: 320px; max-width: 400px; }
+}
+
+@media (max-width: 540px) {
   .search-autocomplete {
     max-width: none;
   }

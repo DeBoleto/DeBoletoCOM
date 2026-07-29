@@ -293,6 +293,18 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 852px) {
+  .slide-text { max-width: 480px; }
+}
+
+@media (min-width: 394px) and (max-width: 430px) {
+  .slide-content { padding-inline: var(--space-5); }
+}
+
+@media (max-width: 393px) {
+  .slide-content { padding-inline: var(--space-3); }
+}
+
 @media (max-width: 540px) {
   .slide-content {
     padding-inline: var(--space-4);
@@ -471,6 +483,15 @@ onUnmounted(() => {
     gap: var(--space-3);
   }
 
+}
+
+@media (max-width: 852px) {
+  .hero-slider { min-height: 300px; }
+}
+
+@media (max-width: 393px) {
+  .hero-slider { min-height: 240px; }
+  .slide-content { padding-bottom: var(--space-8); }
 }
 
 @media (max-width: 540px) {

@@ -178,6 +178,14 @@ defineProps({
   .events-grid--featured { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (max-width: 852px) {
+  .events-grid--grid,
+  .events-grid--featured {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
 @media (max-width: 768px) {
   .events-grid--grid,
   .events-grid--featured {
@@ -211,5 +219,12 @@ defineProps({
   }
 
   .scroll-hint { display: flex; }
+}
+
+@media (max-width: 393px) {
+  .grid-item {
+    flex: 0 0 85vw;
+    max-width: 280px;
+  }
 }
 </style>

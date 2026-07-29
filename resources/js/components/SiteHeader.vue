@@ -299,6 +299,16 @@ onBeforeUnmount(() => {
   .hamburger { display: none; }
 }
 
+@media (max-width: 852px) {
+  .search-col { max-width: 240px; }
+  .btn-brand { font-size: var(--text-xs); padding-inline: var(--space-3); }
+}
+
+@media (max-width: 393px) {
+  .brand-logo { height: 22px; }
+  .header-inner { gap: var(--space-2); }
+}
+
 .mobile-menu {
   position: fixed;
   top: var(--header-height);

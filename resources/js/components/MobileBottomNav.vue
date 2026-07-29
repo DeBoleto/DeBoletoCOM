@@ -61,7 +61,7 @@ function isActive(href) {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 853px) {
   .mobile-bottom-nav {
     display: none;
   }

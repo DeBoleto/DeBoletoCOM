@@ -89,6 +89,12 @@
   --container-max: clamp(1280px, 90vw, 1920px);
   --header-height: 68px;
   --bottom-nav-height: 64px;
+
+  /* Target viewports
+     393px — iPhone 14/15 Pro portrait
+     430px — iPhone 14/15 Pro Max portrait
+     852px — iPhone Pro landscape / smaller tablet
+     932px — iPhone Pro Max landscape / larger tablet   */
 }
 
 /* --- Reset & Box-sizing --- */
@@ -104,6 +110,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -166,8 +173,16 @@ input, button, select, textarea {
   .container { max-width: 98.5%; }
 }
 
+@media (max-width: 932px) {
+  .container { max-width: 100%; }
+}
+
 @media (max-width: 640px) {
   .container { padding-inline: var(--space-4); }
+}
+
+@media (max-width: 393px) {
+  .container { padding-inline: var(--space-3); }
 }
 
 /* --- Scrollbar (webkit) --- */

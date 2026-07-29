@@ -204,9 +204,21 @@ const currentYear = new Date().getFullYear()
   .footer-inner  { padding-block: var(--space-20); }
 }
 
+@media (max-width: 852px) {
+  .footer-top { gap: var(--space-10); }
+  .footer-nav { gap: var(--space-8); }
+  .footer-brand { flex: 0 0 220px; max-width: 220px; }
+}
+
 @media (max-width: 768px) {
   .footer-brand { flex: 1 1 100%; max-width: 100%; }
   .footer-nav { gap: var(--space-8); }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 393px) {
+  .footer-top { gap: var(--space-8); }
+  .footer-nav { gap: var(--space-6); }
+  .footer-inner { padding-block: var(--space-10); }
 }
 </style>

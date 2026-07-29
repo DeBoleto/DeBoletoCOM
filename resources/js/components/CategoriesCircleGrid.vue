@@ -135,7 +135,7 @@ defineProps({
   padding: 0 12px;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .circle-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 18px;
@@ -166,6 +166,20 @@ defineProps({
   .circle-name {
     font-size: .7rem;
     bottom: 16px;
+  }
+}
+
+@media (max-width: 393px) {
+  .circle-grid { gap: 10px; }
+
+  .circle-card {
+    width: 120px;
+    height: 120px;
+  }
+
+  .circle-name {
+    font-size: .65rem;
+    bottom: 12px;
   }
 }
 </style>

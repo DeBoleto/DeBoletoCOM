@@ -488,12 +488,12 @@ main { flex: 1; }
 
 .body-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr minmax(340px, 380px);
   gap: var(--space-10);
   align-items: start;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 767px) {
   .body-grid {
     grid-template-columns: 1fr;
   }
@@ -870,7 +870,12 @@ main { flex: 1; }
   color: var(--color-text-primary);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 852px) {
+  .body-grid { gap: var(--space-6); }
+  .sidebar-block { padding: var(--space-4); }
+}
+
+@media (max-width: 768px) {
   .btn-buy {
     width: 100%;
     justify-content: center;
@@ -887,5 +892,11 @@ main { flex: 1; }
   .sponsor-wrapper {
     padding: 0;
   }
+}
+
+@media (max-width: 393px) {
+  .event-title { font-size: var(--text-2xl); }
+  .info-bar-inner { flex-direction: column; align-items: stretch; }
+  .sponsor-track li { flex: 0 0 130px; }
 }
 </style>

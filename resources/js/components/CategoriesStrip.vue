@@ -265,7 +265,7 @@ function scrollNext() {
   right: 0;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .cat-track li {
     width: 150px;
   }
@@ -277,5 +277,9 @@ function scrollNext() {
   .cat-wrapper {
     padding: 0 12px;
   }
+}
+
+@media (max-width: 393px) {
+  .cat-track li { width: 130px; }
 }
 </style>
