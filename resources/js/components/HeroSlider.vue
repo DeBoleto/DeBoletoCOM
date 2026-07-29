@@ -32,7 +32,7 @@
 
             <div class="slide-content slide-content--banner">
               <div class="slide-footer">
-                 <a :href="banner.url" class="slide-cta">VER M&Aacute;S</a>
+                 <a :href="banner.url" class="slide-cta">COMPRAR</a>
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ onUnmounted(() => {
   min-height: 280px;
   overflow: hidden;
   background: var(--color-bg);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
 }
 
 .slides-wrapper {
@@ -322,7 +322,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-self: flex-start;
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -431,7 +431,7 @@ onUnmounted(() => {
      }
 
   .hero-slider {
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-sm);
   }
 }
 

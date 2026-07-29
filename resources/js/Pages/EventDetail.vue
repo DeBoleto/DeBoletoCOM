@@ -394,7 +394,7 @@ main { flex: 1; }
 }
 
 .hero-frame {
-  border-radius: var(--radius-xl);
+    border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 5 / 2;
 }
@@ -532,7 +532,7 @@ main { flex: 1; }
   padding: var(--space-4) var(--space-5);
   background: var(--color-surface-1);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xs);
 }
 
 .function-item--active {

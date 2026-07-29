@@ -15,7 +15,6 @@
       <div class="header-right">
         <nav class="primary-nav" aria-label="Navegación principal">
           <ul role="list" class="nav-list">
-            <li><a href="#events" class="nav-link">EVENTOS</a></li>
             <li><a href="#categories" class="nav-link">CATEGORIAS</a></li>
             <li><a href="#venues" class="nav-link">RECINTOS</a></li>
           </ul>
@@ -28,8 +27,7 @@
           <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">SALIR</a>
         </template>
         <template v-else>
-               <a href="#" class="btn-ghost" @click.prevent="emit('open-login')">INICIAR SESIÓN</a>
-          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">CREAR CUENTA</a>
+          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">INICIAR SESIÓN / REGISTRARSE</a>
         </template>
         <button
           class="hamburger"
