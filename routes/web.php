@@ -8,18 +8,17 @@ use Illuminate\Support\Facades\Redis;
 use Inertia\Inertia;
 use App\Http\Controllers\SitemapController;
 
-$getData = function ($redisKey, $localFile = null) {
-    if (env('USE_LOCAL_JSON', false)) {
-        return $localFile ? file_get_contents(base_path($localFile)) : null;
-    }
+$getData = function ($redisKey) {
     return Redis::get($redisKey);
 };
 
 $imageUrl = function ($imagen, $useSlide = false) {
     if (env('USE_LOCAL_JSON', false)) {
-        return asset('sample.png');
+        return asset('hero-bg.png');
     }
-    if (empty($imagen)) return '';
+    if (empty($imagen)) {
+        return asset('hero-bg.png');
+    }
     $base = $useSlide
         ? 'https://deboleto.com/images/eventos/slide/'
         : 'https://deboleto.com/images/eventos/';
@@ -27,7 +26,7 @@ $imageUrl = function ($imagen, $useSlide = false) {
 };
 
 Route::get('/', function () use ($getData, $imageUrl) {
-    $searchData = $getData('eventos_activos_app', '/localdev/eventos_activos.json');
+    $searchData = Redis::get('eventos_activos_app');
     $events = $searchData ? json_decode($searchData, true) : [];
 
     $nextEvents = array_map(fn($e) => [
@@ -90,7 +89,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
         ])
         ->all();
 
-    $bannersData = $getData('eventos_sidebar_app', '/localdev/eventos_sidebar.json');
+    $bannersData = $getData('eventos_sidebar_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
 
     $banners = array_map(fn($b) => [
@@ -108,7 +107,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
 })->name('home');
 
 Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
-    $data = $getData('detalle_evento:' . $slug, '/localdev/detalle_evento.json');
+    $data = $getData('detalle_evento:' . $slug);
     abort_unless($data, 404);
 
     $event = json_decode($data, true);
@@ -121,6 +120,9 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             'image'     => $imageUrl($event['imagen'] ?? ''),
             'hasPromotion' => $event['tiene_promocion'],
             'ventaWeb'  => $event['ventaWeb'],
+            'venueName' => $event['lugar'] ?? '',
+            'latitude'  => $event['latitud'] ?? null,
+            'longitude' => $event['longitud'] ?? null,
             'promotions' => $event['promociones'] ?? [],
             'functions' => array_map(fn($f) => [
                 'id'   => $f['id'],
