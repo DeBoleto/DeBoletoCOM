@@ -735,9 +735,6 @@ main { flex: 1; }
   color: var(--color-text-primary);
 }
 
-.sponsors-section {
-  padding: var(--space-10) 0 0;
-}
 
 .sponsors-title {
   margin-bottom: var(--space-5);
