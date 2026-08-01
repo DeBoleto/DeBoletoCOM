@@ -29,11 +29,15 @@ Route::get('/', function () use ($getData, $imageUrl) {
     $searchData = Redis::get('eventos_activos_app');
     $events = $searchData ? json_decode($searchData, true) : [];
 
-    $nextEvents = array_map(fn($e) => [
-        'id' => $e['id'] ?? 0,
-        'slug' => $e['url'] ?? '',
-        'title' => $e['evento'] ?? '',
-        'image' => $imageUrl($e['imagen']),
+    $nextEvents = collect($events)
+        ->sortByDesc(fn($e) => $e['id'] ?? 0)
+        ->take(6)
+        ->values()
+        ->map(fn($e) => [
+            'id' => $e['id'] ?? 0,
+            'slug' => $e['url'] ?? '',
+            'title' => $e['evento'] ?? '',
+            'image' => $imageUrl($e['imagen']),
             'date' => $e['fecha'] ?? '',
             'dateISO' => '',
             'venue' => $e['escenario'] ?? '',
@@ -43,7 +47,8 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'category' => null,
             'categoryColor' => null,
             'availability' => 'available',
-        ], array_slice($events, 0, 6));
+        ])
+        ->all();
 
     $zoneEvents = collect($events)
         ->filter(fn($e) => ($e['estado'] ?? '') === 'Tabasco')
