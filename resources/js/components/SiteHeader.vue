@@ -15,7 +15,7 @@
       <div class="header-right">
         <nav class="primary-nav" aria-label="Navegación principal">
           <ul role="list" class="nav-list">
-            <li><a href="#categories" class="nav-link">CATEGORIAS</a></li>
+            <li><a href="#" class="nav-link" @click.prevent="openCategories">CATEGORIAS</a></li>
             <li><a href="#" class="nav-link" @click.prevent="openVenues">RECINTOS</a></li>
           </ul>
         </nav>
@@ -27,7 +27,7 @@
           <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">SALIR</a>
         </template>
         <template v-else>
-          <a href="#" class="btn-brand" @click.prevent="emit('open-register')">INICIAR SESIÓN / REGISTRARSE</a>
+          <a href="#" class="btn-brand" @click.prevent="emit('open-login')">INICIAR SESIÓN / REGISTRARSE</a>
         </template>
         <button
           class="hamburger"
@@ -53,7 +53,7 @@
     >
       <ul role="list" class="mobile-nav-list">
         <li><a href="#events" class="mobile-nav-link" @click="closeMenu">EVENTOS</a></li>
-        <li><a href="#categories" class="mobile-nav-link" @click="closeMenu">CATEGORÍAS</a></li>
+        <li><a href="#" class="mobile-nav-link" @click="openCategories">CATEGORÍAS</a></li>
         <li><a href="#" class="mobile-nav-link" @click="openVenues">RECINTOS</a></li>
         <li><a href="#promoters" class="mobile-nav-link" @click="closeMenu">PROMOTORES</a></li>
         <li class="mobile-actions">
@@ -70,6 +70,7 @@
     </nav>
 
     <Teleport to="body">
+      <CategoriesModal :show="showCategoriesModal" @close="showCategoriesModal = false" />
       <VenueSearchModal :show="showVenuesModal" @close="showVenuesModal = false" />
     </Teleport>
   </header>
@@ -80,6 +81,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import SearchAutocomplete from '@/components/SearchAutocomplete.vue'
 import VenueSearchModal from '@/components/VenueSearchModal.vue'
+import CategoriesModal from '@/components/CategoriesModal.vue'
 
 const emit = defineEmits(['open-login', 'open-register'])
 
@@ -87,12 +89,17 @@ const user = computed(() => usePage().props.auth?.user ?? null)
 
 const menuOpen = ref(false)
 const showVenuesModal = ref(false)
+const showCategoriesModal = ref(false)
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value
 }
 function closeMenu() {
   menuOpen.value = false
+}
+function openCategories() {
+  closeMenu()
+  showCategoriesModal.value = true
 }
 function openVenues() {
   closeMenu()

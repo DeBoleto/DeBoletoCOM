@@ -22,12 +22,14 @@ class SyncSearchData extends Command
             return self::SUCCESS;
         }
 
+        $categories = $this->fetchCategories();
+
         $bar = $this->output->createProgressBar(count($events));
         $bar->start();
 
         $data = [];
         foreach ($events as $event) {
-            $data[] = $this->transformEvent($event);
+            $data[] = $this->transformEvent($event, $categories);
             $bar->advance();
         }
 
@@ -70,8 +72,10 @@ class SyncSearchData extends Command
         }
     }
 
-    private function transformEvent($event): array
+    private function transformEvent($event, array $categories = []): array
     {
+        $category = $categories[$event->pk_evento ?? $event->id ?? 0] ?? null;
+
         return [
             'id' => (int) ($event->pk_evento ?? $event->id ?? 0),
             'evento' => $event->evento ?? $event->title ?? '',
@@ -83,7 +87,61 @@ class SyncSearchData extends Command
             'estado' => $event->estado ?? '',
             'venta_web' => true,
             'url' => $event->friendly_url ?? $event->url ?? $event->slug ?? $this->slugify($event->evento ?? ''),
+            'categoria' => $category['slug'] ?? null,
+            'categoria_nombre' => $category['nombre'] ?? null,
+            'categoria_imagen' => $category['imagen'] ?? null,
         ];
+    }
+
+    private function fetchCategories(): array
+    {
+        $categories = [];
+
+        try {
+            $hasImage = \Illuminate\Support\Facades\Schema::hasColumn('eventos_categorias', 'imagen');
+
+            $columns = ['pk_evento_categoria', 'evento_categoria', 'friendly_url'];
+
+            if ($hasImage) {
+                $columns[] = 'imagen';
+            }
+
+            $rows = DB::table('eventos_categorias')
+                ->where('eliminado', 0)
+                ->get($columns);
+        } catch (\Exception $e) {
+            $rows = collect();
+        }
+
+        $catalog = [];
+        foreach ($rows as $row) {
+            $catalog[(int) $row->pk_evento_categoria] = [
+                'slug' => $this->slugify($row->friendly_url ?? $row->evento_categoria ?? ''),
+                'nombre' => trim((string) ($row->evento_categoria ?? '')),
+                'imagen' => trim((string) ($row->imagen ?? '')),
+            ];
+        }
+
+        if (empty($catalog)) {
+            return [];
+        }
+
+        try {
+            $map = DB::table('eventos_map_eventos_categorias')
+                ->get(['pk_evento', 'pk_evento_categoria']);
+        } catch (\Exception $e) {
+            return [];
+        }
+
+        foreach ($map as $link) {
+            $category = $catalog[(int) $link->pk_evento_categoria] ?? null;
+
+            if ($category && !empty($category['slug'])) {
+                $categories[(int) $link->pk_evento] = $category;
+            }
+        }
+
+        return $categories;
     }
 
     private function resolveImageName($event): string

@@ -29,7 +29,7 @@
               :data-categoria-slug="cat.slug"
             >
               <a
-                :href="`/evento/categorias/${cat.slug}`"
+                :href="`/buscar?categoria=${cat.slug}`"
                 :title="cat.name"
                 draggable="false"
               >

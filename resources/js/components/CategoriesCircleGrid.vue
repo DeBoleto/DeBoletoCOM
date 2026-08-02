@@ -5,7 +5,7 @@
       <ul class="circle-grid">
         <li v-for="cat in categories" :key="cat.slug">
           <a
-            :href="`/evento/categorias/${cat.slug}`"
+            :href="`/buscar?categoria=${cat.slug}`"
             class="circle-card"
             :title="cat.name"
           >
