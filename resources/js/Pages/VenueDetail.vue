@@ -370,7 +370,7 @@ main { flex: 1; }
 
 .body-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) 1fr;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
   gap: var(--space-10);
   align-items: start;
 }
@@ -611,7 +611,7 @@ main { flex: 1; }
   }
 
   .body-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sidebar {

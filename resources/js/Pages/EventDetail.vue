@@ -488,15 +488,23 @@ main { flex: 1; }
 
 .body-grid {
   display: grid;
-  grid-template-columns: 1fr minmax(340px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
   gap: var(--space-10);
   align-items: start;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .body-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .detail-block {
@@ -650,6 +658,7 @@ main { flex: 1; }
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  min-width: 0;
 }
 
 .sidebar-block {
