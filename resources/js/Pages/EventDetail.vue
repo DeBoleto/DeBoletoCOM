@@ -48,7 +48,11 @@
             <div class="main-column">
               <div class="detail-block">
                 <h2 class="block-title">Acerca del evento</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>{{event.desc}}</p>
+                    &nbsp;
+                    <hr>
+                    &nbsp;
+                <p>{{event.comments}}</p>
               </div>
               <div v-if="event.functions.length" class="detail-block">
                 <h2 class="block-title">

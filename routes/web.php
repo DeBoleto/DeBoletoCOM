@@ -122,6 +122,8 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         'event' => [
             'id'        => $event['id'],
             'name'      => $event['nombre'],
+            'desc'      => $event['descripcion'],
+            'comments'  => $event['comentarios'],
             'image'     => $imageUrl($event['imagen'] ?? ''),
             'hasPromotion' => $event['tiene_promocion'],
             'ventaWeb'  => $event['ventaWeb'],
