@@ -11,9 +11,9 @@ use Inertia\Response;
 
 class CategoriesController extends Controller
 {
-    private const REDIS_KEY = 'eventos_activos_app';
+    private const REDIS_KEY = 'eventos_por_categoria';
+
     private const IMAGE_BASE = 'https://deboleto.com/images/eventos/';
-    private const CATEGORY_IMAGE_BASE = 'https://deboleto.com/images/categoria/';
 
     public function index(): JsonResponse
     {
@@ -26,25 +26,28 @@ class CategoriesController extends Controller
     {
         $slug = $request->query('categoria');
 
-        $events = collect($this->activeEvents());
+        $grouped = $this->groupedEvents();
 
         $category = null;
+        $events = [];
 
         if ($slug) {
-            $category = $this->findCategory($events, $slug);
+            $category = $this->findCategory($grouped, $slug);
 
             abort_unless($category, 404);
 
-            $events = $events->filter(fn ($e) => ($e['categoria'] ?? null) === $slug);
+            $events = $grouped[$category['name']] ?? [];
+        } else {
+            $events = collect($grouped)->flatten(1)->all();
         }
 
-        $events = $events->values();
+        $events = collect($events);
 
         return Inertia::render('CategorySearch', [
             'category' => $category ? [
-                'slug'  => $category['slug'],
-                'name'  => $category['name'],
-                'image' => $this->resolveCategoryImage($category['image']),
+                'slug' => $category['slug'],
+                'name' => $category['name'],
+                'image' => $category['image'],
                 'count' => $events->count(),
             ] : null,
             'events' => $events
@@ -58,17 +61,16 @@ class CategoriesController extends Controller
 
     private function groupedCategories(): array
     {
-        return collect($this->activeEvents())
-            ->filter(fn ($event) => !empty($event['categoria']))
-            ->groupBy(fn ($event) => $event['categoria'])
-            ->map(function ($group, $slug) {
-                $representative = $group->first();
+        return collect($this->groupedEvents())
+            ->filter(fn ($group) => is_array($group) && count($group) > 0)
+            ->map(function ($group, $name) {
+                $representative = $group[0] ?? [];
 
                 return [
-                    'slug'  => $slug,
-                    'name'  => $representative['categoria_nombre'] ?? ucfirst($slug),
-                    'image' => $representative['categoria_imagen'] ?? $representative['imagen'] ?? '',
-                    'count' => $group->count(),
+                    'slug' => $this->slugify($name),
+                    'name' => $name,
+                    'image' => $this->resolveImage($representative['imagen'] ?? ''),
+                    'count' => count($group),
                 ];
             })
             ->values()
@@ -77,28 +79,32 @@ class CategoriesController extends Controller
             ->all();
     }
 
-    private function findCategory($events, string $slug): ?array
+    private function findCategory(array $grouped, string $slug): ?array
     {
-        $event = $events->first(fn ($e) => ($e['categoria'] ?? null) === $slug);
+        foreach ($grouped as $name => $group) {
+            if (is_array($group) && count($group) > 0 && $this->slugify($name) === $slug) {
+                $representative = $group[0];
 
-        if (!$event) {
-            return null;
+                return [
+                    'slug' => $slug,
+                    'name' => $name,
+                    'image' => $this->resolveImage($representative['imagen'] ?? ''),
+                    'count' => count($group),
+                ];
+            }
         }
 
-        return [
-            'slug'  => $slug,
-            'name'  => $event['categoria_nombre'] ?? ucfirst($slug),
-            'image' => $event['categoria_imagen'] ?? $event['imagen'] ?? '',
-        ];
+        return null;
     }
 
     private function buildFacets($events): array
     {
         return [
-            'cities'   => $events->pluck('ciudad')->map(fn ($c) => trim((string) $c))->filter()->unique()->values()->all(),
-            'states'   => $events->pluck('estado')->map(fn ($s) => trim((string) $s))->filter()->unique()->values()->all(),
-            'months'   => $events->pluck('fecha')->map(function ($fecha) {
+            'cities' => $events->pluck('ciudad')->map(fn ($c) => trim((string) $c))->filter()->unique()->values()->all(),
+            'states' => $events->pluck('estado')->map(fn ($s) => trim((string) $s))->filter()->unique()->values()->all(),
+            'months' => $events->pluck('fecha')->map(function ($fecha) {
                 $parts = explode(' ', trim((string) $fecha));
+
                 return $parts[1] ?? null;
             })->filter()->unique()->values()->all(),
             'priceMin' => (float) $events->min('desde'),
@@ -106,7 +112,7 @@ class CategoriesController extends Controller
         ];
     }
 
-    private function activeEvents(): array
+    private function groupedEvents(): array
     {
         $raw = Redis::get(self::REDIS_KEY);
         $events = $raw ? json_decode($raw, true) : [];
@@ -121,20 +127,20 @@ class CategoriesController extends Controller
         $parts = explode(' ', $fecha);
 
         return [
-            'id'             => $event['id'] ?? 0,
-            'slug'           => $event['url'] ?? '',
-            'title'          => $event['evento'] ?? '',
-            'image'          => $this->resolveImage($event['imagen'] ?? ''),
-            'date'           => $fecha,
-            'dateISO'        => $this->sortableDate($fecha),
-            'month'          => $parts[1] ?? '',
-            'price'          => $price,
+            'id' => $event['id'] ?? 0,
+            'slug' => $event['url'] ?? '',
+            'title' => $event['evento'] ?? '',
+            'image' => $this->resolveImage($event['imagen'] ?? ''),
+            'date' => $fecha,
+            'dateISO' => $this->sortableDate($fecha),
+            'month' => $parts[1] ?? '',
+            'price' => $price,
             'priceFormatted' => $this->formatPrice($event['desde'] ?? null),
-            'city'           => trim($event['ciudad'] ?? ''),
-            'state'          => trim($event['estado'] ?? ''),
-            'venue'          => trim($event['escenario'] ?? ''),
-            'artist'         => null,
-            'availability'   => ($event['venta_web'] ?? true) ? 'available' : 'sold-out',
+            'city' => trim($event['ciudad'] ?? ''),
+            'state' => trim($event['estado'] ?? ''),
+            'venue' => trim($event['escenario'] ?? ''),
+            'artist' => null,
+            'availability' => ($event['venta_web'] ?? true) ? 'available' : 'sold-out',
         ];
     }
 
@@ -148,20 +154,7 @@ class CategoriesController extends Controller
             return $imagen;
         }
 
-        return self::IMAGE_BASE . $imagen;
-    }
-
-    private function resolveCategoryImage(string $imagen): string
-    {
-        if (empty($imagen)) {
-            return '/events/concert-01.png';
-        }
-
-        if (str_contains($imagen, '/')) {
-            return $imagen;
-        }
-
-        return self::CATEGORY_IMAGE_BASE . $imagen;
+        return self::IMAGE_BASE.$imagen;
     }
 
     private function formatPrice($desde): string
@@ -180,7 +173,7 @@ class CategoriesController extends Controller
             return '';
         }
 
-        return '$' . ($num >= 1000
+        return '$'.($num >= 1000
             ? number_format($num, 0, '.', ',')
             : number_format($num, 0));
     }
@@ -213,6 +206,7 @@ class CategoriesController extends Controller
             $text
         );
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+
         return trim($text, '-');
     }
 }
