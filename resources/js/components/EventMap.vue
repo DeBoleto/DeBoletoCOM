@@ -89,5 +89,6 @@ watch(() => [props.latitude, props.longitude], () => {
   height: 200px;
   border-radius: var(--radius-md);
   overflow: hidden;
+     z-index: 0;
 }
 </style>

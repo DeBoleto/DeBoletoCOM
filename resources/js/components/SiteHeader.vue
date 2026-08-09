@@ -52,10 +52,8 @@
       aria-label="Menú móvil"
     >
       <ul role="list" class="mobile-nav-list">
-        <li><a href="#events" class="mobile-nav-link" @click="closeMenu">EVENTOS</a></li>
         <li><a href="#" class="mobile-nav-link" @click="openCategories">CATEGORÍAS</a></li>
         <li><a href="#" class="mobile-nav-link" @click="openVenues">RECINTOS</a></li>
-        <li><a href="#promoters" class="mobile-nav-link" @click="closeMenu">PROMOTORES</a></li>
         <li class="mobile-actions">
           <template v-if="user">
             <a :href="route('dashboard')" class="btn-ghost w-full">Dashboard</a>
