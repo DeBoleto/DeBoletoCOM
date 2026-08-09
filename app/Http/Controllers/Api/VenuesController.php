@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\VenueNameNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
 use Inertia\Inertia;
@@ -10,35 +11,51 @@ use Inertia\Response;
 
 class VenuesController extends Controller
 {
-    private const REDIS_KEY = 'eventos_activos_app';
+    private const CATALOG_KEY = 'escenarios_unicos';
+
+    private const EVENTS_KEY = 'eventos_por_escenario';
+
     private const IMAGE_BASE = 'https://deboleto.com/images/eventos/';
 
     public function index(): JsonResponse
     {
-        $venues = $this->groupedVenues();
+        $eventsMap = $this->readEventsMap();
+        $venues = $this->buildVenues($this->readCatalog(), $eventsMap);
 
-        return response()->json($venues);
+        $venues = array_map(fn ($v) => [
+            'slug' => $v['slug'],
+            'name' => $v['name'],
+            'city' => $v['city'],
+            'state' => $v['state'],
+            'image' => $v['image'],
+            'eventCount' => $v['eventCount'],
+        ], $venues);
+
+        return response()->json(array_values($venues));
     }
 
     public function show(string $slug): Response
     {
-        $events = collect($this->activeEvents())
-            ->filter(fn ($event) => $this->slugify($event['escenario'] ?? '') === $slug)
-            ->values();
+        $eventsMap = $this->readEventsMap();
+        $venue = collect($this->buildVenues($this->readCatalog(), $eventsMap))
+            ->first(fn ($v) => ($v['slug'] ?? '') === $slug);
 
-        if ($events->isEmpty()) {
+        if (! $venue) {
             abort(404);
         }
 
-        $venue = $events->sortByDesc(fn ($e) => $e['id'] ?? 0)->first();
+        $events = collect($eventsMap[$venue['name']] ?? []);
 
         return Inertia::render('VenueDetail', [
             'venue' => [
-                'name'       => trim($venue['escenario'] ?? ''),
-                'city'       => $venue['ciudad'] ?? '',
-                'state'      => trim($venue['estado'] ?? ''),
-                'image'      => $this->resolveImage($venue['imagen'] ?? ''),
-                'eventCount' => $events->count(),
+                'name' => $venue['name'],
+                'city' => $venue['city'],
+                'state' => $venue['state'],
+                'address' => $venue['address'],
+                'image' => $venue['image'],
+                'latitude' => $venue['latitude'],
+                'longitude' => $venue['longitude'],
+                'eventCount' => $venue['eventCount'],
             ],
             'events' => $events
                 ->sortBy(fn ($e) => $this->sortableDate($e['fecha'] ?? ''))
@@ -49,38 +66,67 @@ class VenuesController extends Controller
         ]);
     }
 
-    private function groupedVenues(): array
+    private function buildVenues(array $catalog, array $eventsMap): array
     {
-        $events = $this->activeEvents();
+        $venues = [];
+        $seen = [];
 
-        return collect($events)
-            ->groupBy(fn ($event) => $event['escenario'] ?? '')
-            ->filter(fn ($group, $name) => trim((string) $name) !== '')
-            ->map(function ($group, $name) {
-                $representative = $group->sortByDesc(fn ($e) => $e['id'] ?? 0)->first();
+        foreach ($catalog as $row) {
+            $name = VenueNameNormalizer::normalize((string) ($row['nombre'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
 
-                return [
-                    'slug'       => $this->slugify($name),
-                    'name'       => trim($name),
-                    'city'       => $representative['ciudad'] ?? '',
-                    'state'      => trim($representative['estado'] ?? ''),
-                    'image'      => $this->resolveImage($representative['imagen'] ?? ''),
-                    'eventCount' => $group->count(),
-                ];
-            })
-            ->values()
-            ->sortBy(fn ($venue) => mb_strtolower($venue['name']))
-            ->values()
-            ->all();
+            $events = collect($eventsMap[$name] ?? []);
+            if ($events->isEmpty()) {
+                continue;
+            }
+
+            $representative = $events->sortByDesc(fn ($e) => $e['id'] ?? 0)->first() ?? [];
+
+            $venues[] = $this->buildVenue($name, $representative, $events->count());
+            $seen[$name] = true;
+        }
+
+        foreach ($eventsMap as $name => $group) {
+            if (isset($seen[$name]) || empty($group)) {
+                continue;
+            }
+
+            $events = collect($group ?? []);
+            $representative = $events->sortByDesc(fn ($e) => $e['id'] ?? 0)->first() ?? [];
+
+            $venues[] = $this->buildVenue($name, $representative, $events->count());
+        }
+
+        usort($venues, fn ($a, $b) => mb_strtolower($a['name']) <=> mb_strtolower($b['name']));
+
+        return array_values($venues);
+    }
+
+    private function buildVenue(string $name, array $representative, int $eventCount): array
+    {
+        return [
+            'slug' => VenueNameNormalizer::slugify($name),
+            'name' => $name,
+            'city' => trim((string) ($representative['ciudad'] ?? '')),
+            'state' => trim((string) ($representative['estado'] ?? '')),
+            'image' => $this->resolveImage($representative['imagen'] ?? ''),
+            'address' => trim((string) ($representative['direccion'] ?? '')),
+            'latitude' => $representative['latitud'] ?? null,
+            'longitude' => $representative['longitud'] ?? null,
+            'eventCount' => $eventCount,
+        ];
     }
 
     private function buildFacets($events): array
     {
         return [
-            'cities'   => $events->pluck('ciudad')->map(fn ($c) => trim((string) $c))->filter()->unique()->values()->all(),
-            'states'   => $events->pluck('estado')->map(fn ($s) => trim((string) $s))->filter()->unique()->values()->all(),
-            'months'   => $events->pluck('fecha')->map(function ($fecha) {
+            'cities' => $events->pluck('ciudad')->map(fn ($c) => trim((string) $c))->filter()->unique()->values()->all(),
+            'states' => $events->pluck('estado')->map(fn ($s) => trim((string) $s))->filter()->unique()->values()->all(),
+            'months' => $events->pluck('fecha')->map(function ($fecha) {
                 $parts = explode(' ', trim((string) $fecha));
+
                 return $parts[1] ?? null;
             })->filter()->unique()->values()->all(),
             'priceMin' => (float) $events->min('desde'),
@@ -88,12 +134,33 @@ class VenuesController extends Controller
         ];
     }
 
-    private function activeEvents(): array
+    private function readCatalog(): array
     {
-        $raw = Redis::get(self::REDIS_KEY);
-        $events = $raw ? json_decode($raw, true) : [];
+        $raw = Redis::get(self::CATALOG_KEY);
+        $data = $raw ? json_decode($raw, true) : [];
 
-        return is_array($events) ? $events : [];
+        return is_array($data) ? $data : [];
+    }
+
+    private function readEventsMap(): array
+    {
+        $raw = Redis::get(self::EVENTS_KEY);
+        $map = $raw ? json_decode($raw, true) : [];
+
+        if (! is_array($map)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($map as $name => $group) {
+            if (! is_array($group)) {
+                continue;
+            }
+
+            $normalized[VenueNameNormalizer::normalize((string) $name)] = array_values($group);
+        }
+
+        return $normalized;
     }
 
     private function transformEvent(array $event): array
@@ -103,20 +170,20 @@ class VenuesController extends Controller
         $parts = explode(' ', $fecha);
 
         return [
-            'id'             => $event['id'] ?? 0,
-            'slug'           => $event['url'] ?? '',
-            'title'          => $event['evento'] ?? '',
-            'image'          => $this->resolveImage($event['imagen'] ?? ''),
-            'date'           => $fecha,
-            'dateISO'        => $this->sortableDate($fecha),
-            'month'          => $parts[1] ?? '',
-            'price'          => $price,
+            'id' => $event['id'] ?? 0,
+            'slug' => $event['url'] ?? '',
+            'title' => $event['evento'] ?? '',
+            'image' => $this->resolveImage($event['imagen'] ?? ''),
+            'date' => $fecha,
+            'dateISO' => $this->sortableDate($fecha),
+            'month' => $parts[1] ?? '',
+            'price' => $price,
             'priceFormatted' => $this->formatPrice($event['desde'] ?? null),
-            'city'           => trim($event['ciudad'] ?? ''),
-            'state'          => trim($event['estado'] ?? ''),
-            'venue'          => trim($event['escenario'] ?? ''),
-            'artist'         => null,
-            'availability'   => ($event['venta_web'] ?? true) ? 'available' : 'sold-out',
+            'city' => trim($event['ciudad'] ?? ''),
+            'state' => trim($event['estado'] ?? ''),
+            'venue' => trim($event['escenario'] ?? ''),
+            'artist' => null,
+            'availability' => ($event['venta_web'] ?? true) ? 'available' : 'sold-out',
         ];
     }
 
@@ -130,7 +197,7 @@ class VenuesController extends Controller
             return $imagen;
         }
 
-        return self::IMAGE_BASE . $imagen;
+        return self::IMAGE_BASE.$imagen;
     }
 
     private function formatPrice($desde): string
@@ -149,7 +216,7 @@ class VenuesController extends Controller
             return '';
         }
 
-        return '$' . ($num >= 1000
+        return '$'.($num >= 1000
             ? number_format($num, 0, '.', ',')
             : number_format($num, 0));
     }
@@ -171,17 +238,5 @@ class VenuesController extends Controller
         }
 
         return sprintf('%04d-%02d-%02d', (int) date('Y'), $month + 1, $day);
-    }
-
-    private function slugify(string $text): string
-    {
-        $text = mb_strtolower(trim($text));
-        $text = str_replace(
-            ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ', 'Ü'],
-            ['a', 'e', 'i', 'o', 'u', 'n', 'u', 'a', 'e', 'i', 'o', 'u', 'n', 'u'],
-            $text
-        );
-        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-        return trim($text, '-');
     }
 }

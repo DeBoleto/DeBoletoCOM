@@ -23,7 +23,14 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                 </svg>
-                {{ venue.city }}, {{ venue.state }}
+                <template v-if="venue.address">{{ venue.address }}</template>
+                <template v-else-if="venue.city || venue.state">{{ venue.city }}<template v-if="venue.city && venue.state">, </template>{{ venue.state }}</template>
+              </p>
+              <p v-if="mapUrl" class="venue-meta">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 21s-6-5.7-6-11a6 6 0 0 1 12 0c0 5.3-6 11-6 11z" /><circle cx="12" cy="10" r="2.5" />
+                </svg>
+                <a :href="mapUrl" target="_blank" rel="noopener" class="venue-map-link">Ver en el mapa</a>
               </p>
               <p class="venue-count">{{ venue.eventCount }} {{ venue.eventCount === 1 ? 'evento' : 'eventos' }} próximos</p>
             </div>
@@ -196,6 +203,11 @@ const filters = reactive({
 
 const sortBy = ref('date')
 
+const mapUrl = computed(() => {
+    if (!props.venue.latitude || !props.venue.longitude) return null
+    return `https://www.google.com/maps?q=${props.venue.latitude},${props.venue.longitude}`
+})
+
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 const MONTH_LABELS = {
   ENE: 'Enero', FEB: 'Febrero', MAR: 'Marzo', ABR: 'Abril',
@@ -354,6 +366,16 @@ main { flex: 1; }
 .venue-meta svg {
   color: var(--color-brand);
   flex-shrink: 0;
+}
+
+.venue-map-link {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.venue-map-link:hover {
+  text-decoration: underline;
 }
 
 .venue-count {
