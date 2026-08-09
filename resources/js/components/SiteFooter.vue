@@ -4,10 +4,7 @@
       <div class="footer-top">
         <div class="footer-brand">
           <a href="/" class="brand" aria-label="Boleto — Inicio">
-            <picture>
-              <source srcset="/deboletoIcono.png" media="(max-width: 767px)">
-              <img src="/logo_blanco.png" alt="Boleto" class="brand-logo">
-            </picture>
+            <img src="/logo_blanco.png" alt="Boleto" class="brand-logo">
           </a>
           <p class="brand-desc">
             La plataforma líder de venta de boletos para conciertos, festivales, teatro, conferencias y más.
