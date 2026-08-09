@@ -507,8 +507,13 @@ main { flex: 1; }
   height: 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-strong);
-  background: var(--color-surface-2);
+  background-color: var(--color-surface-2);
   accent-color: var(--color-brand);
+}
+
+.filter-check:checked {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
 }
 
 .price-fields {
