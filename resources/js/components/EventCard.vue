@@ -5,8 +5,9 @@
     :class="[`event-card--${variant}`, { 'event-card--featured': featured }]"
     :aria-label="`Evento: ${event.title}`"
   >
-    <a :href="`/evento/${event.slug}`" class="card-image-link" :aria-label="`Ver evento: ${event.title}`">
-      <div class="card-image-wrap">
+    <a :href="`/evento/${event.slug}`" class="card-cover" :aria-label="`Ver evento: ${event.title}`"></a>
+
+    <div class="card-image-wrap">
         <picture>
           <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
           <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
@@ -46,7 +47,6 @@
           </svg>
         </button>
       </div>
-    </a>
 
     <div class="card-body">
       <div class="card-meta">
@@ -59,9 +59,7 @@
         </span>
       </div>
 
-      <h3 class="card-title">
-        <a :href="`/evento/${event.slug}`" class="card-title-link">{{ event.title }}</a>
-      </h3>
+      <h3 class="card-title">{{ event.title }}</h3>
 
       <p v-if="event.artist" class="card-artist">{{ event.artist }}</p>
 
@@ -170,11 +168,17 @@ const eventSchema = computed(() => {
   color: inherit;
 }
 
-.card-image-link {
-  display: block;
-  overflow: hidden;
+.card-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   text-decoration: none;
   color: inherit;
+}
+
+.card-cover:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
 }
 
 .card-image-wrap {
@@ -293,15 +297,6 @@ const eventSchema = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.card-title-link {
-  color: inherit;
-  transition: color var(--transition-fast);
-  position: relative;
-  z-index: 1;
-}
-
-.card-title-link:hover { color: var(--color-brand); }
 
 .card-artist {
   font-size: var(--text-sm);
