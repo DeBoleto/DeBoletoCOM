@@ -25,9 +25,7 @@
                             <h1 class="hero-title">{{ heroTitle }}</h1>
                             <p class="hero-count">
                                 {{ events.length }}
-                                {{
-                                    events.length === 1 ? "evento" : "eventos"
-                                }}
+                                {{ events.length === 1 ? "evento" : "eventos" }}
                                 próximos
                             </p>
                         </div>

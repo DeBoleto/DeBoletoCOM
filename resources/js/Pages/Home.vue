@@ -79,6 +79,10 @@
                 :events="resolvedZoneEvents"
                 layout="featured"
             />
+            <NearbySection
+                :sidebar-events="sidebarEvents"
+                :activos-events="activosEvents"
+            />
             <EventSection
                 title="Próximos Eventos"
                 subtitle="No te pierdas lo que viene esta temporada"
@@ -142,6 +146,7 @@ import { Head } from "@inertiajs/vue3";
 import SiteHeader from "@/components/SiteHeader.vue";
 import HeroSlider from "@/components/HeroSlider.vue";
 import EventSection from "@/components/EventSection.vue";
+import NearbySection from "@/components/NearbySection.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
 import PhoneLoginModal from "@/components/PhoneLoginModal.vue";
@@ -165,6 +170,14 @@ const props = defineProps({
         default: () => [],
     },
     banners: {
+        type: Array,
+        default: () => [],
+    },
+    sidebarEvents: {
+        type: Array,
+        default: () => [],
+    },
+    activosEvents: {
         type: Array,
         default: () => [],
     },
