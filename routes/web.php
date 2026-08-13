@@ -133,7 +133,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
 
     $banners = array_map(fn ($b) => [
         'url' => ! empty($b['url']) ? '/evento/'.$b['url'] : '#',
-        'image' => $imageUrl($b['imagen'], false),
+        'image' => $imageUrl($b['imagen'], true),
         'price' => ($b['desde'] ?? 0) > 0 ? '$'.number_format((float) $b['desde'], 0) : '',
     ], $rawBanners);
 
