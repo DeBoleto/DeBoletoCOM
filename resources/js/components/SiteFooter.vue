@@ -60,9 +60,9 @@
 
       <div class="footer-bottom">
         <p class="copyright">
-          &copy; {{ currentYear }} Boleto. Todos los derechos reservados.
+          &copy; {{ currentYear }} DeBoleto. Todos los derechos reservados.
         </p>
-        <p class="tagline">Hecho con pasión para los amantes de los eventos.</p>
+        <p class="tagline">Hecho con 🔥</p>
       </div>
     </div>
   </footer>

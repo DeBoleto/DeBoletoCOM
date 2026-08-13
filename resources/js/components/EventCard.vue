@@ -312,7 +312,7 @@ const eventSchema = computed(() => {
 .card-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
   gap: var(--space-3);
   margin-top: auto;
   padding-top: var(--space-4);
