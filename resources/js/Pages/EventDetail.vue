@@ -98,7 +98,12 @@
                                 &nbsp;
                                 <hr />
                                 &nbsp;
-                                <p>{{ event.comments }}</p>
+                                <h2 class="block-title">
+                                    Información importante
+                                </h2>
+                                <p class="event-comments">
+                                    {{ formattedComments }}
+                                </p>
                             </div>
                             <div
                                 v-if="event.functions.length"
@@ -483,6 +488,14 @@ import NearbyEventsStrip from "@/components/NearbyEventsStrip.vue";
 const props = defineProps({
     event: { type: Object, required: true },
     nearbyEvents: { type: Array, default: () => [] },
+});
+
+const formattedComments = computed(() => {
+    const raw = props.event.comments || "";
+    return String(raw)
+        .replace(/\\r\\n/g, "\n")
+        .replace(/\\r/g, "\n")
+        .replace(/\\n/g, "\n");
 });
 
 const page = usePage();
@@ -911,6 +924,10 @@ main {
 .block-title svg {
     color: var(--color-brand);
     flex-shrink: 0;
+}
+
+.event-comments {
+    white-space: pre-line;
 }
 
 .function-list {
