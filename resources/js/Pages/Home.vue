@@ -20,6 +20,28 @@
 
      <HeroSlider :events="featuredEvents" :banners="banners" type="banners" />
 
+     <section class="categories-strip" aria-labelledby="categories-heading">
+     <div class="container">
+     <h2 id="categories-heading" class="strip-title">CATEGORÍAS</h2>
+     <ul role="list" class="categories-grid">
+     <li v-for="cat in categories" :key="cat.slug">
+                                        <a
+                                        :href="`/buscar?categoria=${cat.slug}`"
+                                        class="cat-card"
+                                        :class="`cat-card--${cat.color}`"
+                                            :aria-label="`Ver todos los eventos de ${cat.name}`"
+                                        >
+                                        <span class="cat-icon" aria-hidden="true">{{ cat.icon }}</span>
+                                            <span class="cat-name">{{ cat.name }}</span>
+                                                <span class="cat-count" aria-label="eventos disponibles">{{ cat.count }}</span>
+                                                    </a>
+                                                    </li>
+                                                    </ul>
+                                                    </div>
+                                                    </section>
+
+
+
      <EventSection
      title="Eventos en tu Zona"
      subtitle="Eventos cerca de ti"
@@ -52,36 +74,18 @@
      layout="grid"
      />
 
-     <section class="categories-strip" aria-labelledby="categories-heading">
-     <div class="container">
-     <h2 id="categories-heading" class="strip-title">CATEGORÍAS</h2>
-     <ul role="list" class="categories-grid">
-     <li v-for="cat in categories" :key="cat.slug">
-                                        <a
-                                        :href="`/buscar?categoria=${cat.slug}`"
-                                        class="cat-card"
-                                        :class="`cat-card--${cat.color}`"
-                                            :aria-label="`Ver todos los eventos de ${cat.name}`"
-                                        >
-                                        <span class="cat-icon" aria-hidden="true">{{ cat.icon }}</span>
-                                            <span class="cat-name">{{ cat.name }}</span>
-                                                <span class="cat-count" aria-label="eventos disponibles">{{ cat.count }}</span>
-                                                    </a>
-                                                    </li>
-                                                    </ul>
-                                                    </div>
-                                                    </section>
-                                                    </main>
 
-                                                    <SiteFooter />
-                                                    <MobileBottomNav @open-login="openLogin" />
+     </main>
 
-                                        <PhoneLoginModal :show="showPhoneLoginModal" @close="closePhoneLogin" @switch-to-login="switchPhoneToLogin" @switch-to-register="switchPhoneToRegister" @code-sent="handleCodeSent" />
-                                        <VerifyCodeModal :show="showVerifyCodeModal" :lada="verifyLada" :telefono="verifyTelefono" :canal="verifyCanal" @close="closeVerifyCode" @verified="handleVerified" @resend="handleResend" @switch-to-login="switchVerifyToLogin" @switch-to-register="switchVerifyToRegister" />
-                                                                                                                                                                  <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
-                                                                                                                                                                                                                                                                                        <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />
-                                                                                                                                                                                                                                       </div>
-                                                                                                                                                                                                                                       </template>
+     <SiteFooter />
+     <MobileBottomNav @open-login="openLogin" />
+
+     <PhoneLoginModal :show="showPhoneLoginModal" @close="closePhoneLogin" @switch-to-login="switchPhoneToLogin" @switch-to-register="switchPhoneToRegister" @code-sent="handleCodeSent" />
+     <VerifyCodeModal :show="showVerifyCodeModal" :lada="verifyLada" :telefono="verifyTelefono" :canal="verifyCanal" @close="closeVerifyCode" @verified="handleVerified" @resend="handleResend" @switch-to-login="switchVerifyToLogin" @switch-to-register="switchVerifyToRegister" />
+                                                                                                                               <LoginModal :show="showLoginModal" @close="closeLogin" @switch-to-register="switchLoginToRegister" />
+                                                                                                                                                                                                                                                     <RegisterModal :show="showRegisterModal" @close="closeRegister" @switch-to-login="switchRegisterToLogin" />
+                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                    </template>
 
                                                                                                                                                                                                                                        <script setup>
                                                                                                                                                                                                                                        import { computed, ref } from 'vue'
