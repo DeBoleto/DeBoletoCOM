@@ -1,26 +1,26 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import DialogModal from '@/components/DialogModal.vue';
-import InputError from '@/components/InputError.vue';
+import { useForm } from "@inertiajs/vue3";
+import DialogModal from "@/components/DialogModal.vue";
+import InputError from "@/components/InputError.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['close', 'switch-to-register']);
+const emit = defineEmits(["close", "switch-to-register"]);
 
 const form = useForm({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     remember: false,
 });
 
 const submit = () => {
-    form.transform(data => ({
+    form.transform((data) => ({
         ...data,
-        remember: form.remember ? 'on' : '',
-    })).post(route('login'), {
-        onFinish: () => form.reset('password'),
+        remember: form.remember ? "on" : "",
+    })).post(route("login"), {
+        onFinish: () => form.reset("password"),
         preserveState: (page) => Object.keys(page.props.errors).length > 0,
     });
 };
@@ -161,17 +161,31 @@ const submit = () => {
 <template>
     <DialogModal :show="show" max-width="md" @close="emit('close')">
         <template #title>
-            <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <button
+                class="close-btn"
+                @click="emit('close')"
+                aria-label="Cerrar"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
-            <img src="/logo_blanco.png" alt="Boleto" class="login-logo">
+            <img src="/logo_blanco.png" alt="Boleto" class="login-logo" />
         </template>
 
         <template #content>
-            <p class="login-subtitle">Ingresa tu correo y contraseña para acceder</p>
+            <p class="login-subtitle">
+                Ingresa tu correo y contraseña para acceder
+            </p>
 
             <form @submit.prevent="submit">
                 <div class="mb-4">
@@ -201,8 +215,8 @@ const submit = () => {
                     <InputError class="mt-2" :message="form.errors.password" />
                 </div>
 
-                <div style="display: none;">
-                    <label style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: none">
+                    <label style="display: flex; align-items: center; gap: 8px">
                         <input type="checkbox" v-model="form.remember" />
                         Recuérdame
                     </label>
@@ -215,17 +229,14 @@ const submit = () => {
                         :class="{ 'opacity-50': form.processing }"
                         :disabled="form.processing"
                     >
-                        {{ form.processing ? 'Entrando…' : 'ENTRAR' }}
+                        {{ form.processing ? "Entrando…" : "ENTRAR" }}
                     </button>
                 </div>
             </form>
         </template>
 
         <template #footer>
-            <a
-                :href="route('password.request')"
-                class="login-footer-link"
-            >
+            <a :href="route('password.request')" class="login-footer-link">
                 ¿Olvidaste tu contraseña?
             </a>
             <button

@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 
-const emit = defineEmits(['update:checked']);
+const emit = defineEmits(["update:checked"]);
 
 const props = defineProps({
     checked: {
@@ -20,7 +20,7 @@ const proxyChecked = computed({
     },
 
     set(val) {
-        emit('update:checked', val);
+        emit("update:checked", val);
     },
 });
 </script>
@@ -36,12 +36,11 @@ input[type="checkbox"]:focus {
 }
 </style>
 
-
 <template>
     <input
         v-model="proxyChecked"
         type="checkbox"
         :value="value"
         class="rounded shadow-sm"
-    >
+    />
 </template>

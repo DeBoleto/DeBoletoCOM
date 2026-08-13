@@ -1,42 +1,42 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import DialogModal from '@/components/DialogModal.vue'
+import { computed, onMounted, ref } from "vue";
+import DialogModal from "@/components/DialogModal.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const venues = ref([])
-const query = ref('')
-const loading = ref(true)
-const error = ref(false)
+const venues = ref([]);
+const query = ref("");
+const loading = ref(true);
+const error = ref(false);
 
 async function loadVenues() {
-    loading.value = true
-    error.value = false
+    loading.value = true;
+    error.value = false;
     try {
-        const response = await fetch('/api/venues')
-        if (!response.ok) throw new Error('bad status')
-        venues.value = await response.json()
+        const response = await fetch("/api/venues");
+        if (!response.ok) throw new Error("bad status");
+        venues.value = await response.json();
     } catch {
-        error.value = true
-        venues.value = []
+        error.value = true;
+        venues.value = [];
     } finally {
-        loading.value = false
+        loading.value = false;
     }
 }
 
 const filteredVenues = computed(() => {
-    const q = query.value.trim().toLowerCase()
-    if (!q) return venues.value
-    return venues.value.filter(v =>
-        `${v.name} ${v.city} ${v.state}`.toLowerCase().includes(q)
-    )
-})
+    const q = query.value.trim().toLowerCase();
+    if (!q) return venues.value;
+    return venues.value.filter((v) =>
+        `${v.name} ${v.city} ${v.state}`.toLowerCase().includes(q),
+    );
+});
 
-onMounted(loadVenues)
+onMounted(loadVenues);
 </script>
 
 <template>
@@ -44,8 +44,20 @@ onMounted(loadVenues)
         <template #title>
             <div class="venues-header">
                 <h2 class="venues-title">Recintos</h2>
-                <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <button
+                    class="close-btn"
+                    @click="emit('close')"
+                    aria-label="Cerrar"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                    >
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
@@ -56,8 +68,18 @@ onMounted(loadVenues)
         <template #content>
             <div class="venues-body">
                 <div class="venues-search-wrap">
-                    <svg class="venues-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    <svg
+                        class="venues-search-icon"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
                     </svg>
                     <input
                         v-model="query"
@@ -74,12 +96,24 @@ onMounted(loadVenues)
                 <p v-if="loading" class="venues-state">Cargando recintos…</p>
                 <div v-else-if="error" class="venues-state">
                     <p>No se pudieron cargar los recintos.</p>
-                    <button type="button" class="venues-retry" @click="loadVenues">Reintentar</button>
+                    <button
+                        type="button"
+                        class="venues-retry"
+                        @click="loadVenues"
+                    >
+                        Reintentar
+                    </button>
                 </div>
-                <p v-else-if="filteredVenues.length === 0" class="venues-state">Sin resultados</p>
+                <p v-else-if="filteredVenues.length === 0" class="venues-state">
+                    Sin resultados
+                </p>
 
                 <ul v-else class="venues-grid">
-                    <li v-for="venue in filteredVenues" :key="venue.slug" class="venues-grid-item">
+                    <li
+                        v-for="venue in filteredVenues"
+                        :key="venue.slug"
+                        class="venues-grid-item"
+                    >
                         <a
                             :href="`/recinto/${venue.slug}`"
                             class="venue-card"
@@ -96,9 +130,19 @@ onMounted(loadVenues)
                                 />
                             </div>
                             <div class="venue-card-info">
-                                <span class="venue-card-name">{{ venue.name }}</span>
+                                <span class="venue-card-name">{{
+                                    venue.name
+                                }}</span>
                                 <span class="venue-card-meta">
-                                    {{ venue.city }}<template v-if="venue.city && venue.state">, </template>{{ venue.state }} · {{ venue.eventCount }} {{ venue.eventCount === 1 ? 'evento' : 'eventos' }}
+                                    {{ venue.city
+                                    }}<template v-if="venue.city && venue.state"
+                                        >, </template
+                                    >{{ venue.state }} · {{ venue.eventCount }}
+                                    {{
+                                        venue.eventCount === 1
+                                            ? "evento"
+                                            : "eventos"
+                                    }}
                                 </span>
                             </div>
                         </a>
@@ -140,7 +184,9 @@ onMounted(loadVenues)
     background: none;
     border: none;
     cursor: pointer;
-    transition: color var(--transition-fast), background var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast);
 }
 
 .close-btn:hover {
@@ -181,7 +227,9 @@ onMounted(loadVenues)
     color: var(--color-text-primary);
     caret-color: var(--color-brand);
     outline: none;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .venues-search-input::placeholder {
@@ -214,7 +262,11 @@ onMounted(loadVenues)
     font-size: var(--text-sm);
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+    background: linear-gradient(
+        135deg,
+        var(--color-brand),
+        var(--color-accent)
+    );
     border: none;
     border-radius: var(--radius-xs);
     cursor: pointer;
@@ -242,13 +294,18 @@ onMounted(loadVenues)
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+    transition:
+        transform var(--transition-base),
+        border-color var(--transition-base),
+        box-shadow var(--transition-base);
 }
 
 .venue-card:hover {
     transform: scale(1.03) translateY(-4px);
     border-color: var(--color-border-strong);
-    box-shadow: 0 0 0 3px #4ecba0, 0 0 12px 4px rgba(78, 203, 160, 0.45);
+    box-shadow:
+        0 0 0 3px #4ecba0,
+        0 0 12px 4px rgba(78, 203, 160, 0.45);
 }
 
 .venue-card-image-wrap {

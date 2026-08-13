@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 const props = defineProps({
     show: {
@@ -8,7 +8,7 @@ const props = defineProps({
     },
     maxWidth: {
         type: String,
-        default: '2xl',
+        default: "2xl",
     },
     closeable: {
         type: Boolean,
@@ -16,32 +16,35 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(["close"]);
 const dialog = ref();
 const showSlot = ref(props.show);
 
-watch(() => props.show, () => {
-    if (props.show) {
-        document.body.style.overflow = 'hidden';
-        showSlot.value = true;
-        dialog.value?.showModal();
-    } else {
-        document.body.style.overflow = null;
-        setTimeout(() => {
-            dialog.value?.close();
-            showSlot.value = false;
-        }, 200);
-    }
-});
+watch(
+    () => props.show,
+    () => {
+        if (props.show) {
+            document.body.style.overflow = "hidden";
+            showSlot.value = true;
+            dialog.value?.showModal();
+        } else {
+            document.body.style.overflow = null;
+            setTimeout(() => {
+                dialog.value?.close();
+                showSlot.value = false;
+            }, 200);
+        }
+    },
+);
 
 const close = () => {
     if (props.closeable) {
-        emit('close');
+        emit("close");
     }
 };
 
 const closeOnEscape = (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
         e.preventDefault();
 
         if (props.show) {
@@ -50,30 +53,36 @@ const closeOnEscape = (e) => {
     }
 };
 
-onMounted(() => document.addEventListener('keydown', closeOnEscape));
+onMounted(() => document.addEventListener("keydown", closeOnEscape));
 
 onUnmounted(() => {
-    document.removeEventListener('keydown', closeOnEscape);
+    document.removeEventListener("keydown", closeOnEscape);
     document.body.style.overflow = null;
 });
 
 const maxWidthClass = computed(() => {
     return {
-        'sm': 'sm:max-w-sm',
-        'md': 'sm:max-w-md',
-        'lg': 'sm:max-w-lg',
-        'xl': 'sm:max-w-xl',
-        '2xl': 'sm:max-w-2xl',
-        '3xl': 'sm:max-w-3xl',
-        '4xl': 'sm:max-w-4xl',
-        '5xl': 'sm:max-w-5xl',
+        sm: "sm:max-w-sm",
+        md: "sm:max-w-md",
+        lg: "sm:max-w-lg",
+        xl: "sm:max-w-xl",
+        "2xl": "sm:max-w-2xl",
+        "3xl": "sm:max-w-3xl",
+        "4xl": "sm:max-w-4xl",
+        "5xl": "sm:max-w-5xl",
     }[props.maxWidth];
 });
 </script>
 
 <template>
-    <dialog class="fixed inset-0 z-[200] m-0 min-h-full min-w-full bg-transparent backdrop:bg-transparent" ref="dialog">
-        <div class="fixed inset-0 z-[200] flex min-h-full items-center justify-center px-4 sm:px-6 py-4 sm:py-6" scroll-region>
+    <dialog
+        class="fixed inset-0 z-[200] m-0 min-h-full min-w-full bg-transparent backdrop:bg-transparent"
+        ref="dialog"
+    >
+        <div
+            class="fixed inset-0 z-[200] flex min-h-full items-center justify-center px-4 sm:px-6 py-4 sm:py-6"
+            scroll-region
+        >
             <transition
                 enter-active-class="ease-out duration-300"
                 enter-from-class="opacity-0"
@@ -82,7 +91,11 @@ const maxWidthClass = computed(() => {
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
-                <div v-show="show" class="fixed inset-0 transform transition-all" @click="close">
+                <div
+                    v-show="show"
+                    class="fixed inset-0 transform transition-all"
+                    @click="close"
+                >
                     <div class="absolute inset-0 bg-neutral-950 opacity-70" />
                 </div>
             </transition>
@@ -95,8 +108,13 @@ const maxWidthClass = computed(() => {
                 leave-from-class="opacity-100 translate-y-0 sm:scale-100"
                 leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-                <div v-show="show" class="relative z-10 w-full mx-auto max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-lg shadow-xl transform transition-all" :class="maxWidthClass" style="background-color: var(--color-surface-1);">
-                    <slot v-if="showSlot"/>
+                <div
+                    v-show="show"
+                    class="relative z-10 w-full mx-auto max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-lg shadow-xl transform transition-all"
+                    :class="maxWidthClass"
+                    style="background-color: var(--color-surface-1)"
+                >
+                    <slot v-if="showSlot" />
                 </div>
             </transition>
         </div>

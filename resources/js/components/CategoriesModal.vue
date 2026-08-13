@@ -1,33 +1,33 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import DialogModal from '@/components/DialogModal.vue'
+import { onMounted, ref } from "vue";
+import DialogModal from "@/components/DialogModal.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const categories = ref([])
-const loading = ref(true)
-const error = ref(false)
+const categories = ref([]);
+const loading = ref(true);
+const error = ref(false);
 
 async function loadCategories() {
-    loading.value = true
-    error.value = false
+    loading.value = true;
+    error.value = false;
     try {
-        const response = await fetch('/api/categories')
-        if (!response.ok) throw new Error('bad status')
-        categories.value = await response.json()
+        const response = await fetch("/api/categories");
+        if (!response.ok) throw new Error("bad status");
+        categories.value = await response.json();
     } catch {
-        error.value = true
-        categories.value = []
+        error.value = true;
+        categories.value = [];
     } finally {
-        loading.value = false
+        loading.value = false;
     }
 }
 
-onMounted(loadCategories)
+onMounted(loadCategories);
 </script>
 
 <template>
@@ -35,8 +35,20 @@ onMounted(loadCategories)
         <template #title>
             <div class="categories-header">
                 <h2 class="categories-title">Categorías</h2>
-                <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <button
+                    class="close-btn"
+                    @click="emit('close')"
+                    aria-label="Cerrar"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                    >
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
@@ -46,15 +58,29 @@ onMounted(loadCategories)
 
         <template #content>
             <div class="categories-body">
-                <p v-if="loading" class="categories-state">Cargando categorías…</p>
+                <p v-if="loading" class="categories-state">
+                    Cargando categorías…
+                </p>
                 <div v-else-if="error" class="categories-state">
                     <p>No se pudieron cargar las categorías.</p>
-                    <button type="button" class="categories-retry" @click="loadCategories">Reintentar</button>
+                    <button
+                        type="button"
+                        class="categories-retry"
+                        @click="loadCategories"
+                    >
+                        Reintentar
+                    </button>
                 </div>
-                <p v-else-if="categories.length === 0" class="categories-state">Sin resultados</p>
+                <p v-else-if="categories.length === 0" class="categories-state">
+                    Sin resultados
+                </p>
 
                 <ul v-else class="categories-grid">
-                    <li v-for="cat in categories" :key="cat.slug" class="categories-grid-item">
+                    <li
+                        v-for="cat in categories"
+                        :key="cat.slug"
+                        class="categories-grid-item"
+                    >
                         <a
                             :href="`/buscar?categoria=${cat.slug}`"
                             class="category-card"
@@ -70,11 +96,14 @@ onMounted(loadCategories)
                                     decoding="async"
                                 />
                                 <div class="category-card-overlay"></div>
-                                <span class="category-card-name">{{ cat.name }}</span>
+                                <span class="category-card-name">{{
+                                    cat.name
+                                }}</span>
                             </div>
                             <div class="category-card-info">
                                 <span class="category-card-count">
-                                    {{ cat.count }} {{ cat.count === 1 ? 'evento' : 'eventos' }}
+                                    {{ cat.count }}
+                                    {{ cat.count === 1 ? "evento" : "eventos" }}
                                 </span>
                             </div>
                         </a>
@@ -116,7 +145,9 @@ onMounted(loadCategories)
     background: none;
     border: none;
     cursor: pointer;
-    transition: color var(--transition-fast), background var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast);
 }
 
 .close-btn:hover {
@@ -144,7 +175,11 @@ onMounted(loadCategories)
     font-size: var(--text-sm);
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+    background: linear-gradient(
+        135deg,
+        var(--color-brand),
+        var(--color-accent)
+    );
     border: none;
     border-radius: var(--radius-xs);
     cursor: pointer;
@@ -174,13 +209,18 @@ onMounted(loadCategories)
     border-radius: var(--radius-lg);
     overflow: hidden;
     text-decoration: none;
-    transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+    transition:
+        transform var(--transition-base),
+        border-color var(--transition-base),
+        box-shadow var(--transition-base);
 }
 
 .category-card:hover {
     transform: scale(1.03) translateY(-4px);
     border-color: var(--color-border-strong);
-    box-shadow: 0 0 0 3px #4ecba0, 0 0 12px 4px rgba(78, 203, 160, 0.45);
+    box-shadow:
+        0 0 0 3px #4ecba0,
+        0 0 12px 4px rgba(78, 203, 160, 0.45);
 }
 
 .category-card-image-wrap {

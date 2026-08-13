@@ -1,506 +1,607 @@
 <template>
+    <section class="hero-slider-section">
+        <div
+            class="hero-slider"
+            :aria-label="
+                type === 'banners'
+                    ? 'Banners promocionales'
+                    : 'Eventos destacados'
+            "
+            @mouseenter="pause"
+            @mouseleave="resume"
+            @focusin="pause"
+            @focusout="resume"
+            @touchstart.passive="onTouchStart"
+            @touchend.passive="onTouchEnd"
+        >
+            <div class="slides-wrapper" aria-live="polite">
+                <template v-if="type === 'banners'">
+                    <div
+                        v-for="(banner, index) in banners"
+                        :key="index"
+                        class="slide"
+                        :class="{
+                            'slide--active': index === currentIndex,
+                            'slide--leaving': index === previousIndex,
+                        }"
+                        :aria-hidden="
+                            index !== currentIndex && index !== previousIndex
+                        "
+                    >
+                        <img
+                            :src="banner.image"
+                            alt="Banner promocional"
+                            class="slide-bg"
+                            fetchpriority="high"
+                        />
 
-<section class="hero-slider-section">
-    <div
-      class="hero-slider"
-      :aria-label="type === 'banners' ? 'Banners promocionales' : 'Eventos destacados'"
-      @mouseenter="pause"
-      @mouseleave="resume"
-      @focusin="pause"
-      @focusout="resume"
-      @touchstart.passive="onTouchStart"
-      @touchend.passive="onTouchEnd"
-    >
-      <div class="slides-wrapper" aria-live="polite">
-        <template v-if="type === 'banners'">
-          <div
-            v-for="(banner, index) in banners"
-            :key="index"
-            class="slide"
-            :class="{
-              'slide--active': index === currentIndex,
-              'slide--leaving': index === previousIndex,
-            }"
-            :aria-hidden="index !== currentIndex && index !== previousIndex"
-          >
-            <img
-              :src="banner.image"
-              alt="Banner promocional"
-              class="slide-bg"
-              fetchpriority="high"
-            />
+                        <div class="slide-content slide-content--banner">
+                            <div class="slide-footer">
+                                <a :href="banner.url" class="slide-cta"
+                                    >COMPRAR</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </template>
 
-            <div class="slide-content slide-content--banner">
-              <div class="slide-footer">
-                 <a :href="banner.url" class="slide-cta">COMPRAR</a>
-              </div>
+                <template v-else>
+                    <article
+                        v-for="(event, index) in events"
+                        :key="event.id"
+                        class="slide"
+                        :class="{
+                            'slide--active': index === currentIndex,
+                            'slide--leaving': index === previousIndex,
+                        }"
+                        :aria-hidden="
+                            index !== currentIndex && index !== previousIndex
+                        "
+                    >
+                        <picture class="slide-picture">
+                            <source
+                                :srcset="event.image.replace('.png', '.webp')"
+                                type="image/webp"
+                            />
+                            <source
+                                :srcset="event.image.replace('.png', '.avif')"
+                                type="image/avif"
+                            />
+                            <img
+                                :src="event.image"
+                                :alt="`Fondo: ${event.title}`"
+                                class="slide-bg"
+                                fetchpriority="high"
+                            />
+                        </picture>
+
+                        <div class="slide-content">
+                            <div class="slide-text">
+                                <span
+                                    class="slide-category"
+                                    :class="`slide-category--${event.categoryColor}`"
+                                >
+                                    {{ event.category }}
+                                </span>
+                                <h2 class="slide-title">{{ event.title }}</h2>
+                                <p v-if="event.artist" class="slide-artist">
+                                    {{ event.artist }}
+                                </p>
+                            </div>
+
+                            <div class="slide-footer">
+                                <a
+                                    :href="`/evento/${event.slug}`"
+                                    class="slide-cta"
+                                    >COMPRAR BOLETOS</a
+                                >
+                            </div>
+                        </div>
+                    </article>
+                </template>
             </div>
-          </div>
-        </template>
 
-        <template v-else>
-          <article
-            v-for="(event, index) in events"
-            :key="event.id"
-            class="slide"
-            :class="{
-              'slide--active': index === currentIndex,
-              'slide--leaving': index === previousIndex,
-            }"
-            :aria-hidden="index !== currentIndex && index !== previousIndex"
-          >
-            <picture class="slide-picture">
-              <source :srcset="event.image.replace('.png', '.webp')" type="image/webp" />
-              <source :srcset="event.image.replace('.png', '.avif')" type="image/avif" />
-              <img
-                :src="event.image"
-                :alt="`Fondo: ${event.title}`"
-                class="slide-bg"
-                fetchpriority="high"
-              />
-            </picture>
-
-            <div class="slide-content">
-              <div class="slide-text">
-                <span
-                  class="slide-category"
-                  :class="`slide-category--${event.categoryColor}`"
+            <button
+                class="slider-arrow slider-arrow--prev"
+                aria-label="Anterior slide"
+                @click="prev"
+                @mouseenter="pause"
+                @mouseleave="resume"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
                 >
-                  {{ event.category }}
-                </span>
-                <h2 class="slide-title">{{ event.title }}</h2>
-                <p v-if="event.artist" class="slide-artist">{{ event.artist }}</p>
-              </div>
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+            </button>
 
-              <div class="slide-footer">
-                <a :href="`/evento/${event.slug}`" class="slide-cta">COMPRAR BOLETOS</a>
-              </div>
-            </div>
-          </article>
-        </template>
-      </div>
-
-      <button
-        class="slider-arrow slider-arrow--prev"
-        aria-label="Anterior slide"
-        @click="prev"
-        @mouseenter="pause"
-        @mouseleave="resume"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-
-      <button
-        class="slider-arrow slider-arrow--next"
-        aria-label="Siguiente slide"
-        @click="next"
-        @mouseenter="pause"
-        @mouseleave="resume"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </button>
-    </div>
-  </section>
-
+            <button
+                class="slider-arrow slider-arrow--next"
+                aria-label="Siguiente slide"
+                @click="next"
+                @mouseenter="pause"
+                @mouseleave="resume"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </button>
+        </div>
+    </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
-  events: {
-    type: Array,
-    default: () => [],
-  },
-  banners: {
-    type: Array,
-    default: () => [],
-  },
-  type: {
-    type: String,
-    default: 'events',
-  },
-})
+    events: {
+        type: Array,
+        default: () => [],
+    },
+    banners: {
+        type: Array,
+        default: () => [],
+    },
+    type: {
+        type: String,
+        default: "events",
+    },
+});
 
-const currentIndex = ref(0)
-const previousIndex = ref(-1)
-const isTransitioning = ref(false)
-const slides = computed(() => props.type === 'banners' ? props.banners : props.events)
-const totalSlides = computed(() => slides.value.length)
+const currentIndex = ref(0);
+const previousIndex = ref(-1);
+const isTransitioning = ref(false);
+const slides = computed(() =>
+    props.type === "banners" ? props.banners : props.events,
+);
+const totalSlides = computed(() => slides.value.length);
 
-let intervalId = null
-let isPaused = false
+let intervalId = null;
+let isPaused = false;
 
 function startAutoPlay() {
-  stopAutoPlay()
-  intervalId = setInterval(() => {
-    if (!isPaused && !isTransitioning.value) {
-      next()
-    }
-  }, 5000)
+    stopAutoPlay();
+    intervalId = setInterval(() => {
+        if (!isPaused && !isTransitioning.value) {
+            next();
+        }
+    }, 5000);
 }
 
 function stopAutoPlay() {
-  if (intervalId) {
-    clearInterval(intervalId)
-    intervalId = null
-  }
+    if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
 }
 
-function pause() { isPaused = true }
-function resume() { isPaused = false }
+function pause() {
+    isPaused = true;
+}
+function resume() {
+    isPaused = false;
+}
 
 function next() {
-  if (isTransitioning.value) return
-  goTo((currentIndex.value + 1) % totalSlides.value)
+    if (isTransitioning.value) return;
+    goTo((currentIndex.value + 1) % totalSlides.value);
 }
 
 function prev() {
-  if (isTransitioning.value) return
-  goTo((currentIndex.value - 1 + totalSlides.value) % totalSlides.value)
+    if (isTransitioning.value) return;
+    goTo((currentIndex.value - 1 + totalSlides.value) % totalSlides.value);
 }
 
 function goTo(index) {
-  if (isTransitioning.value || index === currentIndex.value) return
-  isTransitioning.value = true
-  previousIndex.value = currentIndex.value
-  currentIndex.value = index
+    if (isTransitioning.value || index === currentIndex.value) return;
+    isTransitioning.value = true;
+    previousIndex.value = currentIndex.value;
+    currentIndex.value = index;
 
-  setTimeout(() => {
-    previousIndex.value = -1
-    isTransitioning.value = false
-  }, 800)
+    setTimeout(() => {
+        previousIndex.value = -1;
+        isTransitioning.value = false;
+    }, 800);
 }
 
-let touchStartX = 0
+let touchStartX = 0;
 function onTouchStart(e) {
-  touchStartX = e.changedTouches[0].screenX
+    touchStartX = e.changedTouches[0].screenX;
 }
 function onTouchEnd(e) {
-  const diff = touchStartX - e.changedTouches[0].screenX
-  if (Math.abs(diff) > 50) {
-    if (diff > 0) next()
-    else prev()
-  }
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) next();
+        else prev();
+    }
 }
 
 function onKeyDown(e) {
-  if (e.key === 'ArrowLeft') { e.preventDefault(); prev() }
-  if (e.key === 'ArrowRight') { e.preventDefault(); next() }
+    if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prev();
+    }
+    if (e.key === "ArrowRight") {
+        e.preventDefault();
+        next();
+    }
 }
 
 onMounted(() => {
-  startAutoPlay()
-  document.addEventListener('keydown', onKeyDown)
-})
+    startAutoPlay();
+    document.addEventListener("keydown", onKeyDown);
+});
 
 onUnmounted(() => {
-  stopAutoPlay()
-  document.removeEventListener('keydown', onKeyDown)
-})
+    stopAutoPlay();
+    document.removeEventListener("keydown", onKeyDown);
+});
 </script>
 
 <style scoped>
 .hero-slider-section {
-  max-width: 100%;
-  padding-block: var(--space-8);
+    max-width: 100%;
+    padding-block: var(--space-8);
 }
 
 .hero-slider {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 5 / 2;
-  max-height: 680px;
-  min-height: 280px;
-  overflow: hidden;
-  background: var(--color-bg);
-  border-radius: var(--radius-sm);
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 2;
+    max-height: 680px;
+    min-height: 280px;
+    overflow: hidden;
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
 }
 
 .slides-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  clip-path: circle(0% at center);
-  transition: opacity 0.6s ease, clip-path 0.8s ease;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  min-width: 0;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    clip-path: circle(0% at center);
+    transition:
+        opacity 0.6s ease,
+        clip-path 0.8s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    min-width: 0;
 }
 
 .slide--active {
-  opacity: 1;
-  clip-path: circle(100% at center);
-  pointer-events: auto;
+    opacity: 1;
+    clip-path: circle(100% at center);
+    pointer-events: auto;
 }
 
 .slide--leaving {
-  opacity: 0;
-  clip-path: circle(0% at center);
-  pointer-events: none;
+    opacity: 0;
+    clip-path: circle(0% at center);
+    pointer-events: none;
 }
 
 .slide-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .slide-picture {
-  position: absolute;
-  inset: 0;
+    position: absolute;
+    inset: 0;
 }
 
 .slide-overlay {
-  position: absolute;
-  inset: 0;
-
+    position: absolute;
+    inset: 0;
 }
 
 .slide-content {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  padding-inline: var(--space-12);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-inline: var(--space-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
 }
 
 .slide-content--banner {
-  height: 100%;
-  justify-content: flex-end;
-  padding-bottom: var(--space-3);
+    height: 100%;
+    justify-content: flex-end;
+    padding-bottom: var(--space-3);
 }
 
 @media (max-width: 768px) {
-  .slide-content {
-    padding-inline: var(--space-6);
-  }
+    .slide-content {
+        padding-inline: var(--space-6);
+    }
 }
 
 @media (max-width: 852px) {
-  .slide-text { max-width: 480px; }
+    .slide-text {
+        max-width: 480px;
+    }
 }
 
 @media (min-width: 394px) and (max-width: 430px) {
-  .slide-content { padding-inline: var(--space-5); }
+    .slide-content {
+        padding-inline: var(--space-5);
+    }
 }
 
 @media (max-width: 393px) {
-  .slide-content { padding-inline: var(--space-3); }
+    .slide-content {
+        padding-inline: var(--space-3);
+    }
 }
 
 @media (max-width: 540px) {
-  .slide-content {
-    padding-inline: var(--space-4);
-  }
+    .slide-content {
+        padding-inline: var(--space-4);
+    }
 }
 
 .slide-text {
-  max-width: 560px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
 }
 
 @media (min-width: 1400px) {
-  .slide-text  { max-width: 640px; }
+    .slide-text {
+        max-width: 640px;
+    }
 }
 
 @media (min-width: 1600px) {
-  .slide-text  { max-width: 720px; }
+    .slide-text {
+        max-width: 720px;
+    }
 }
 
 @media (min-width: 1920px) {
-  .slide-text  { max-width: 800px; }
+    .slide-text {
+        max-width: 800px;
+    }
 }
 
 .slide-category {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+    display: inline-flex;
+    align-self: flex-start;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
-.slide-category--concert    { background: rgba(229, 53, 171, 0.9); color: #fff; }
-.slide-category--festival   { background: rgba(249, 115, 22, 0.9);  color: #fff; }
-.slide-category--conference { background: rgba(59, 130, 246, 0.9);  color: #fff; }
-.slide-category--theater    { background: rgba(168, 85, 247, 0.9);  color: #fff; }
-.slide-category--sports     { background: rgba(34, 197, 94, 0.9);   color: #fff; }
-.slide-category--edm        { background: rgba(6, 182, 212, 0.9);   color: #fff; }
+.slide-category--concert {
+    background: rgba(229, 53, 171, 0.9);
+    color: #fff;
+}
+.slide-category--festival {
+    background: rgba(249, 115, 22, 0.9);
+    color: #fff;
+}
+.slide-category--conference {
+    background: rgba(59, 130, 246, 0.9);
+    color: #fff;
+}
+.slide-category--theater {
+    background: rgba(168, 85, 247, 0.9);
+    color: #fff;
+}
+.slide-category--sports {
+    background: rgba(34, 197, 94, 0.9);
+    color: #fff;
+}
+.slide-category--edm {
+    background: rgba(6, 182, 212, 0.9);
+    color: #fff;
+}
 
 .slide-title {
-  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: var(--color-text-primary);
-  text-wrap: balance;
+    font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+    text-wrap: balance;
 }
 
 .slide-artist {
-  font-size: var(--text-lg);
-  color: var(--color-text-secondary);
-  font-weight: 500;
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    font-weight: 500;
 }
 
 .slide-footer {
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 }
 
 .slide-cta {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-xs);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  background: transparent;
-  color: #fff;
-  border: 2px solid #fff;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-xs);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .slide-cta:hover {
-
-  background-color: var(--color-brand);
-  border-color: #fff;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow:
-    0 0 0 3px var(--color-accent),
-    0 0 12px 4px rgba(78, 203, 160, 0.6),
-    0 0 30px 10px rgba(60, 175, 135, 0.22),
-    0 0 60px 18px rgba(43, 161, 124, 0.07);
+    background-color: var(--color-brand);
+    border-color: #fff;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 0 3px var(--color-accent),
+        0 0 12px 4px rgba(78, 203, 160, 0.6),
+        0 0 30px 10px rgba(60, 175, 135, 0.22),
+        0 0 60px 18px rgba(43, 161, 124, 0.07);
 }
 
 .slider-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        transform 0.2s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .slider-arrow:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: translateY(-50%) scale(1.08);
+    background: rgba(0, 0, 0, 0.7);
+    transform: translateY(-50%) scale(1.08);
 }
 
-.slider-arrow--prev { left: var(--space-4); }
-.slider-arrow--next { right: var(--space-4); }
+.slider-arrow--prev {
+    left: var(--space-4);
+}
+.slider-arrow--next {
+    right: var(--space-4);
+}
 
 @media (max-width: 768px) {
-  .slider-arrow {
-    width: 36px;
-    height: 36px;
-  }
-  .slider-arrow--prev { left: var(--space-2); }
-  .slider-arrow--next { right: var(--space-2); }
+    .slider-arrow {
+        width: 36px;
+        height: 36px;
+    }
+    .slider-arrow--prev {
+        left: var(--space-2);
+    }
+    .slider-arrow--next {
+        right: var(--space-2);
+    }
 }
 
 @media (max-width: 540px) {
-  .slider-arrow {
-    width: 32px;
-    height: 32px;
-  }
-  .slider-arrow svg {
-    width: 16px;
-    height: 16px;
-  }
+    .slider-arrow {
+        width: 32px;
+        height: 32px;
+    }
+    .slider-arrow svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
- @media (min-width: 769px) {
-     .hero-slider-section {
-    width: 98.5%;
-    max-width: 98.5%;
-	 margin-inline: auto;
-	 padding-block: 0;
+@media (min-width: 769px) {
+    .hero-slider-section {
+        width: 98.5%;
+        max-width: 98.5%;
+        margin-inline: auto;
+        padding-block: 0;
+    }
 
-     }
-
-  .hero-slider {
-    border-radius: var(--radius-sm);
-  }
+    .hero-slider {
+        border-radius: var(--radius-sm);
+    }
 }
 
 @media (max-width: 768px) {
-  .hero-slider {
-    min-height: 340px;
-  }
+    .hero-slider {
+        min-height: 340px;
+    }
 
-  .slide-overlay {
-    background: linear-gradient(
-      to bottom,
-      rgba(10, 10, 15, 0.3) 0%,
-      rgba(10, 10, 15, 0.75) 60%,
-      rgba(10, 10, 15, 0.9) 100%
-    );
-  }
+    .slide-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(10, 10, 15, 0.3) 0%,
+            rgba(10, 10, 15, 0.75) 60%,
+            rgba(10, 10, 15, 0.9) 100%
+        );
+    }
 
-  .slide-text {
-    max-width: 100%;
-    gap: var(--space-3);
-  }
+    .slide-text {
+        max-width: 100%;
+        gap: var(--space-3);
+    }
 
-  .slide-title {
-    font-size: var(--text-2xl);
-  }
+    .slide-title {
+        font-size: var(--text-2xl);
+    }
 
-  .slide-footer {
-    gap: var(--space-3);
-  }
-
+    .slide-footer {
+        gap: var(--space-3);
+    }
 }
 
 @media (max-width: 852px) {
-  .hero-slider { min-height: 300px; }
+    .hero-slider {
+        min-height: 300px;
+    }
 }
 
 @media (max-width: 393px) {
-  .hero-slider { min-height: 240px; }
-  .slide-content { padding-bottom: var(--space-8); }
+    .hero-slider {
+        min-height: 240px;
+    }
+    .slide-content {
+        padding-bottom: var(--space-8);
+    }
 }
 
 @media (max-width: 540px) {
-  .hero-slider {
-    min-height: 280px;
-  }
+    .hero-slider {
+        min-height: 280px;
+    }
 
-  .slide-content {
-    padding-bottom: var(--space-10);
-  }
+    .slide-content {
+        padding-bottom: var(--space-10);
+    }
 }
 </style>

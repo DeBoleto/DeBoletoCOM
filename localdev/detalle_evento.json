@@ -7,19 +7,14 @@
     "longitud": -92.9474,
     "tiene_promocion": true,
     "ventaWeb": true,
-    "promociones":
-    [
-        "General: 2x1"
-    ],
-    "funciones":
-    [
+    "promociones": ["General: 2x1"],
+    "funciones": [
         {
             "id": 1305,
             "fecha": "2026-07-25T19:00:00"
         }
     ],
-    "zonas":
-    [
+    "zonas": [
         {
             "id": 13248,
             "nombre": "Zona A",

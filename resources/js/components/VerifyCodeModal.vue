@@ -1,25 +1,31 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import DialogModal from '@/components/DialogModal.vue';
+import { useForm } from "@inertiajs/vue3";
+import DialogModal from "@/components/DialogModal.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
-    lada: { type: String, default: '52' },
-    telefono: { type: String, default: '' },
-    canal: { type: String, default: 'whatsapp' },
+    lada: { type: String, default: "52" },
+    telefono: { type: String, default: "" },
+    canal: { type: String, default: "whatsapp" },
 });
 
-const emit = defineEmits(['close', 'switch-to-login', 'switch-to-register', 'verified', 'resend']);
+const emit = defineEmits([
+    "close",
+    "switch-to-login",
+    "switch-to-register",
+    "verified",
+    "resend",
+]);
 
 const verifyForm = useForm({
-    codigo: '',
+    codigo: "",
 });
 
 const handleSubmit = () => {
-    verifyForm.post(route('login.verify'), {
+    verifyForm.post(route("login.verify"), {
         preserveState: true,
-        onSuccess: () => emit('verified'),
-        onFinish: () => verifyForm.reset('codigo'),
+        onSuccess: () => emit("verified"),
+        onFinish: () => verifyForm.reset("codigo"),
     });
 };
 </script>
@@ -178,25 +184,54 @@ const handleSubmit = () => {
 <template>
     <DialogModal :show="show" max-width="md" @close="emit('close')">
         <template #title>
-            <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <button
+                class="close-btn"
+                @click="emit('close')"
+                aria-label="Cerrar"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
-            <img src="/logo_blanco.png" alt="Boleto" class="login-logo">
+            <img src="/logo_blanco.png" alt="Boleto" class="login-logo" />
         </template>
 
         <template #content>
-            <p class="login-subtitle">Ingresa el código de verificación que te hemos enviado</p>
+            <p class="login-subtitle">
+                Ingresa el código de verificación que te hemos enviado
+            </p>
 
             <form @submit.prevent="handleSubmit">
                 <label class="login-label">Código de verificación</label>
                 <div class="login-code-group">
                     <div class="login-code-addon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="11"
+                                rx="2"
+                                ry="2"
+                            />
+                            <path d="M7 11V7a5 5 0 0110 0v4" />
                         </svg>
                     </div>
                     <input
@@ -210,19 +245,39 @@ const handleSubmit = () => {
                     />
                 </div>
 
-                <p class="mt-3 text-xs" style="color: var(--color-text-muted); line-height: 1.5;">
-                    Enviamos un código por {{ canal === 'sms' ? 'SMS' : 'WhatsApp' }} al número +{{ lada }} {{ telefono }}.
-                    <br>
-                    <button type="button" @click="emit('resend')" class="login-action-link bg-transparent border-none p-0 cursor-pointer text-xs">¿No te llegó? Reenviar código</button>
+                <p
+                    class="mt-3 text-xs"
+                    style="color: var(--color-text-muted); line-height: 1.5"
+                >
+                    Enviamos un código por
+                    {{ canal === "sms" ? "SMS" : "WhatsApp" }} al número +{{
+                        lada
+                    }}
+                    {{ telefono }}.
+                    <br />
+                    <button
+                        type="button"
+                        @click="emit('resend')"
+                        class="login-action-link bg-transparent border-none p-0 cursor-pointer text-xs"
+                    >
+                        ¿No te llegó? Reenviar código
+                    </button>
                 </p>
 
                 <div class="mt-5 sm:mt-6">
                     <button
                         type="submit"
                         class="btn-login"
-                        :disabled="verifyForm.processing || verifyForm.codigo.length === 0"
+                        :disabled="
+                            verifyForm.processing ||
+                            verifyForm.codigo.length === 0
+                        "
                     >
-                        {{ verifyForm.processing ? 'Verificando…' : 'VERIFICAR CÓDIGO' }}
+                        {{
+                            verifyForm.processing
+                                ? "Verificando…"
+                                : "VERIFICAR CÓDIGO"
+                        }}
                     </button>
                 </div>
             </form>

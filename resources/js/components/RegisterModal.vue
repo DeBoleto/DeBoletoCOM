@@ -1,27 +1,27 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import DialogModal from '@/components/DialogModal.vue';
-import InputError from '@/components/InputError.vue';
+import { useForm } from "@inertiajs/vue3";
+import DialogModal from "@/components/DialogModal.vue";
+import InputError from "@/components/InputError.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['close', 'switch-to-login']);
+const emit = defineEmits(["close", "switch-to-login"]);
 
 const form = useForm({
-    nombre: '',
-    apellido_paterno: '',
-    apellido_materno: '',
-    phone: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
+    nombre: "",
+    apellido_paterno: "",
+    apellido_materno: "",
+    phone: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
 });
 
 const submit = () => {
-    form.post(route('register'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
+    form.post(route("register"), {
+        onFinish: () => form.reset("password", "password_confirmation"),
         preserveState: (page) => Object.keys(page.props.errors).length > 0,
     });
 };
@@ -160,17 +160,31 @@ const submit = () => {
 <template>
     <DialogModal :show="show" max-width="md" @close="emit('close')">
         <template #title>
-            <button class="close-btn" @click="emit('close')" aria-label="Cerrar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <button
+                class="close-btn"
+                @click="emit('close')"
+                aria-label="Cerrar"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
-            <img src="/logo_blanco.png" alt="Boleto" class="login-logo">
+            <img src="/logo_blanco.png" alt="Boleto" class="login-logo" />
         </template>
 
         <template #content>
-            <p class="login-subtitle">Crea tu cuenta de DeBoleto para continuar</p>
+            <p class="login-subtitle">
+                Crea tu cuenta de DeBoleto para continuar
+            </p>
 
             <form @submit.prevent="submit">
                 <div class="mb-4">
@@ -197,7 +211,10 @@ const submit = () => {
                             placeholder="Ingresa tu apellido paterno"
                             required
                         />
-                        <InputError class="mt-2" :message="form.errors.apellido_paterno" />
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.apellido_paterno"
+                        />
                     </div>
                     <div class="flex-1 min-w-0">
                         <label class="login-label">Apellido materno</label>
@@ -207,7 +224,10 @@ const submit = () => {
                             class="login-input"
                             placeholder="Ingresa tu apellido materno"
                         />
-                        <InputError class="mt-2" :message="form.errors.apellido_materno" />
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.apellido_materno"
+                        />
                     </div>
                 </div>
 
@@ -261,7 +281,10 @@ const submit = () => {
                         required
                         autocomplete="new-password"
                     />
-                    <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                    <InputError
+                        class="mt-2"
+                        :message="form.errors.password_confirmation"
+                    />
                 </div>
 
                 <div class="mt-5 sm:mt-6">
@@ -271,19 +294,23 @@ const submit = () => {
                         :class="{ 'opacity-50': form.processing }"
                         :disabled="form.processing"
                     >
-                        {{ form.processing ? 'Creando cuenta…' : 'CREAR CUENTA!' }}
+                        {{
+                            form.processing
+                                ? "Creando cuenta…"
+                                : "CREAR CUENTA!"
+                        }}
                     </button>
                 </div>
             </form>
         </template>
 
         <template #footer>
-            <span class="login-footer-link" style="display: inline;">
+            <span class="login-footer-link" style="display: inline">
                 ¿Ya estás registrado?
                 <button
                     type="button"
                     class="login-footer-link underline"
-                    style="display: inline; text-decoration: underline;"
+                    style="display: inline; text-decoration: underline"
                     @click="emit('switch-to-login')"
                 >
                     Accede Aquí!

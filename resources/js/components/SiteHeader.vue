@@ -1,150 +1,195 @@
 <template>
-    <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }" role="banner">
-     <div class="header-inner container">
-     <a href="/" class="brand" aria-label="Boleto — Ir a inicio">
-     <picture>
-     <source srcset="/deboletoIcono.png" media="(max-width: 767px)">
-     <img src="/logo_blanco.png" alt="Boleto" class="brand-logo">
-     </picture>
-     </a>
+    <header
+        class="site-header"
+        :class="{ 'site-header--scrolled': isScrolled }"
+        role="banner"
+    >
+        <div class="header-inner container">
+            <a href="/" class="brand" aria-label="Boleto — Ir a inicio">
+                <picture>
+                    <source
+                        srcset="/deboletoIcono.png"
+                        media="(max-width: 767px)"
+                    />
+                    <img
+                        src="/logo_blanco.png"
+                        alt="Boleto"
+                        class="brand-logo"
+                    />
+                </picture>
+            </a>
 
-     <div class="search-col">
-     <SearchAutocomplete />
-     </div>
+            <div class="search-col">
+                <SearchAutocomplete />
+            </div>
 
-     <div class="header-right">
-     <nav class="primary-nav" aria-label="Navegación principal">
-     <ul role="list" class="nav-list">
+            <div class="header-right">
+                <nav class="primary-nav" aria-label="Navegación principal">
+                    <ul role="list" class="nav-list">
+                        <li><a href="#" class="nav-link">ORGANIZADORES</a></li>
+                    </ul>
+                </nav>
 
-     <li><a href="#" class="nav-link">ORGANIZADORES</a></li>
-                       </ul>
-     </nav>
+                <div class="header-actions">
+                    <template v-if="user">
+                        <a :href="route('dashboard')" class="btn-ghost"
+                            >DASHBOARD</a
+                        >
+                        <span class="user-name">{{ user.name }}</span>
+                        <a
+                            :href="route('logout')"
+                            class="btn-ghost"
+                            @click.prevent="logout"
+                            >SALIR</a
+                        >
+                    </template>
+                    <template v-else>
+                        <a
+                            href="#"
+                            class="btn-brand"
+                            @click.prevent="emit('open-login')"
+                            >INICIAR SESIÓN / REGISTRARSE</a
+                        >
+                    </template>
+                    <button
+                        class="hamburger"
+                        type="button"
+                        :aria-expanded="menuOpen"
+                        aria-controls="mobile-menu"
+                        aria-label="Abrir menú"
+                        @click="toggleMenu"
+                    >
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-     <div class="header-actions">
-     <template v-if="user">
-     <a :href="route('dashboard')" class="btn-ghost">DASHBOARD</a>
-          <span class="user-name">{{ user.name }}</span>
-              <a :href="route('logout')" class="btn-ghost" @click.prevent="logout">SALIR</a>
-          </template>
-          <template v-else>
-          <a href="#" class="btn-brand" @click.prevent="emit('open-login')">INICIAR SESIÓN / REGISTRARSE</a>
-          </template>
-          <button
-          class="hamburger"
-          type="button"
-          :aria-expanded="menuOpen"
-          aria-controls="mobile-menu"
-          aria-label="Abrir menú"
-          @click="toggleMenu"
-          >
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
-          </button>
-          </div>
-          </div>
-          </div>
+        <nav
+            id="mobile-menu"
+            class="mobile-menu"
+            :class="{ 'mobile-menu--open': menuOpen }"
+            aria-label="Menú móvil"
+        >
+            <ul role="list" class="mobile-nav-list">
+                <li><a href="#" class="mobile-nav-link">ORGANIZADORES</a></li>
+                <li class="mobile-actions">
+                    <template v-if="user">
+                        <a :href="route('dashboard')" class="btn-ghost w-full"
+                            >Dashboard</a
+                        >
+                        <a
+                            href="/logout"
+                            class="btn-ghost w-full"
+                            @click.prevent="logout"
+                            >Salir</a
+                        >
+                    </template>
+                    <template v-else>
+                        <a
+                            href="#"
+                            class="btn-ghost w-full"
+                            @click.prevent="emit('open-login')"
+                            >INICIAR SESIÓN</a
+                        >
+                        <a
+                            href="#"
+                            class="btn-brand w-full"
+                            @click.prevent="emit('open-register')"
+                            >CREAR CUENTA</a
+                        >
+                    </template>
+                </li>
+            </ul>
+        </nav>
 
-          <nav
-          id="mobile-menu"
-          class="mobile-menu"
-          :class="{ 'mobile-menu--open': menuOpen }"
-          aria-label="Menú móvil"
-          >
-          <ul role="list" class="mobile-nav-list">
-          <li><a href="#" class="mobile-nav-link">ORGANIZADORES</a></li>
-          <li class="mobile-actions">
-          <template v-if="user">
-          <a :href="route('dashboard')" class="btn-ghost w-full">Dashboard</a>
-               <a href="/logout" class="btn-ghost w-full" @click.prevent="logout">Salir</a>
-               </template>
-               <template v-else>
-               <a href="#" class="btn-ghost w-full" @click.prevent="emit('open-login')">INICIAR SESIÓN</a>
-               <a href="#" class="btn-brand w-full" @click.prevent="emit('open-register')">CREAR CUENTA</a>
-               </template>
-               </li>
-               </ul>
-               </nav>
+        <Teleport to="body">
+            <CategoriesModal
+                :show="showCategoriesModal"
+                @close="showCategoriesModal = false"
+            />
+            <VenueSearchModal
+                :show="showVenuesModal"
+                @close="showVenuesModal = false"
+            />
+        </Teleport>
+    </header>
+</template>
 
-               <Teleport to="body">
-               <CategoriesModal :show="showCategoriesModal" @close="showCategoriesModal = false" />
-               <VenueSearchModal :show="showVenuesModal" @close="showVenuesModal = false" />
-               </Teleport>
-               </header>
-               </template>
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { usePage, router } from "@inertiajs/vue3";
+import SearchAutocomplete from "@/components/SearchAutocomplete.vue";
+import VenueSearchModal from "@/components/VenueSearchModal.vue";
+import CategoriesModal from "@/components/CategoriesModal.vue";
 
-               <script setup>
-               import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-                   import { usePage, router } from '@inertiajs/vue3'
-                       import SearchAutocomplete from '@/components/SearchAutocomplete.vue'
-                       import VenueSearchModal from '@/components/VenueSearchModal.vue'
-                       import CategoriesModal from '@/components/CategoriesModal.vue'
+const emit = defineEmits(["open-login", "open-register"]);
 
-                       const emit = defineEmits(['open-login', 'open-register'])
+const user = computed(() => usePage().props.auth?.user ?? null);
 
-                                                                        const user = computed(() => usePage().props.auth?.user ?? null)
+const menuOpen = ref(false);
+const showVenuesModal = ref(false);
+const showCategoriesModal = ref(false);
 
-                                                                        const menuOpen = ref(false)
-                                                                        const showVenuesModal = ref(false)
-                                                                        const showCategoriesModal = ref(false)
-
-                                                                        function toggleMenu() {
-                                                                            menuOpen.value = !menuOpen.value
-                                                                                }
-                                                  function closeMenu() {
-                                                      menuOpen.value = false
-                                                          }
+function toggleMenu() {
+    menuOpen.value = !menuOpen.value;
+}
+function closeMenu() {
+    menuOpen.value = false;
+}
 function openCategories() {
-    closeMenu()
-        showCategoriesModal.value = true
-        }
+    closeMenu();
+    showCategoriesModal.value = true;
+}
 function openVenues() {
-    closeMenu()
-        showVenuesModal.value = true
-        }
+    closeMenu();
+    showVenuesModal.value = true;
+}
 
 function handleResize() {
-    if (window.innerWidth >= 768) closeMenu()
-                                      }
+    if (window.innerWidth >= 768) closeMenu();
+}
 
 function logout() {
-    router.post(route('logout'))
-        }
+    router.post(route("logout"));
+}
 
-const isScrolled = ref(false)
+const isScrolled = ref(false);
 
-                                                                        function handleScroll() {
-                                                                            const slider = document.querySelector('.hero-slider')
-                                                                                if (slider) {
-                                                                                    isScrolled.value = slider.getBoundingClientRect().bottom <= 0
-                                                                                        } else {
-                                                                                    isScrolled.value = window.scrollY > 0
-                                                                                        }
-                                                                        }
+function handleScroll() {
+    const slider = document.querySelector(".hero-slider");
+    if (slider) {
+        isScrolled.value = slider.getBoundingClientRect().bottom <= 0;
+    } else {
+        isScrolled.value = window.scrollY > 0;
+    }
+}
 
 onMounted(() => {
-        window.addEventListener('resize', handleResize)
-            window.addEventListener('scroll', handleScroll, { passive: true })
-            handleScroll()
-            })
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+});
 
-    onBeforeUnmount(() => {
-            window.removeEventListener('resize', handleResize)
-                window.removeEventListener('scroll', handleScroll)
-                })
-    </script>
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", handleResize);
+    window.removeEventListener("scroll", handleScroll);
+});
+</script>
 
-    <style scoped>
-    .site-header {
-     position: sticky;
-     top: 0;
-     z-index: 100;
-     background: rgba(10, 10, 15, 0.85);
-     backdrop-filter: blur(16px);
-     -webkit-backdrop-filter: blur(16px);
-     border-bottom: 1px solid var(--color-border);
-     height: var(--header-height);
-                                              }
+<style scoped>
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--color-border);
+    height: var(--header-height);
+}
 
 @media (min-width: 768px) {
     .site-header {
@@ -154,7 +199,7 @@ onMounted(() => {
         border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-        .site-header--scrolled {
+    .site-header--scrolled {
         background: rgba(10, 10, 15, 0.85);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
@@ -197,14 +242,15 @@ onMounted(() => {
     display: block;
 }
 
-.primary-nav { display: none; }
-
-@media (min-width: 768px) {
-    .primary-nav { display: flex; }
+.primary-nav {
+    display: none;
 }
 
-
-
+@media (min-width: 768px) {
+    .primary-nav {
+        display: flex;
+    }
+}
 
 .nav-list {
     display: flex;
@@ -219,7 +265,9 @@ onMounted(() => {
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast), background var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast);
 }
 
 .nav-link:hover {
@@ -248,7 +296,9 @@ onMounted(() => {
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast), background var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast);
     white-space: nowrap;
 }
 
@@ -258,7 +308,9 @@ onMounted(() => {
 }
 
 @media (min-width: 768px) {
-    .btn-ghost { display: block; }
+    .btn-ghost {
+        display: block;
+    }
 }
 
 .btn-brand {
@@ -267,9 +319,15 @@ onMounted(() => {
     font-size: var(--text-sm);
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, var(--color-brand), var(--color-accent));
+    background: linear-gradient(
+        135deg,
+        var(--color-brand),
+        var(--color-accent)
+    );
     border-radius: var(--radius-xs);
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    transition:
+        opacity var(--transition-fast),
+        transform var(--transition-fast);
     white-space: nowrap;
     box-shadow: var(--shadow-brand);
 }
@@ -280,7 +338,9 @@ onMounted(() => {
 }
 
 @media (min-width: 768px) {
-    .btn-brand { display: block; }
+    .btn-brand {
+        display: block;
+    }
 }
 
 .hamburger {
@@ -298,7 +358,9 @@ onMounted(() => {
     transition: background var(--transition-fast);
 }
 
-.hamburger:hover { background: var(--color-surface-2); }
+.hamburger:hover {
+    background: var(--color-surface-2);
+}
 
 .bar {
     display: block;
@@ -310,17 +372,28 @@ onMounted(() => {
 }
 
 @media (min-width: 768px) {
-    .hamburger { display: none; }
+    .hamburger {
+        display: none;
+    }
 }
 
 @media (max-width: 852px) {
-    .search-col { max-width: 240px; }
-        .btn-brand { font-size: var(--text-xs); padding-inline: var(--space-3); }
+    .search-col {
+        max-width: 240px;
+    }
+    .btn-brand {
+        font-size: var(--text-xs);
+        padding-inline: var(--space-3);
+    }
 }
 
 @media (max-width: 393px) {
-    .brand-logo { height: 22px; }
-        .header-inner { gap: var(--space-2); }
+    .brand-logo {
+        height: 22px;
+    }
+    .header-inner {
+        gap: var(--space-2);
+    }
 }
 
 .mobile-menu {
@@ -333,7 +406,9 @@ onMounted(() => {
     transform: translateY(-100%);
     opacity: 0;
     pointer-events: none;
-    transition: transform var(--transition-base), opacity var(--transition-base);
+    transition:
+        transform var(--transition-base),
+        opacity var(--transition-base);
     z-index: 99;
 }
 
@@ -358,7 +433,9 @@ onMounted(() => {
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast), background var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast);
 }
 
 .mobile-nav-link:hover {
@@ -376,10 +453,12 @@ onMounted(() => {
 }
 
 .mobile-actions .btn-ghost,
-    .mobile-actions .btn-brand {
+.mobile-actions .btn-brand {
     display: block;
     text-align: center;
 }
 
-.w-full { width: 100%; }
+.w-full {
+    width: 100%;
+}
 </style>

@@ -15,9 +15,7 @@
         "twitter": "https://twitter.com/evento",
         "youtube": "https://youtube.com/@evento"
     },
-    "promociones": [
-        "General: 2x1"
-    ],
+    "promociones": ["General: 2x1"],
     "funciones": [
         {
             "id": 1305,
