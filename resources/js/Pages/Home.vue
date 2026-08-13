@@ -83,6 +83,7 @@
                 :sidebar-events="sidebarEvents"
                 :activos-events="activosEvents"
             />
+            <NextEventsGrid :events="resolvedUpcomingEvents" />
             <EventSection
                 title="Próximos Eventos"
                 subtitle="No te pierdas lo que viene esta temporada"
@@ -147,6 +148,7 @@ import SiteHeader from "@/components/SiteHeader.vue";
 import HeroSlider from "@/components/HeroSlider.vue";
 import EventSection from "@/components/EventSection.vue";
 import NearbySection from "@/components/NearbySection.vue";
+import NextEventsGrid from "@/components/NextEventsGrid.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
 import PhoneLoginModal from "@/components/PhoneLoginModal.vue";
@@ -178,6 +180,10 @@ const props = defineProps({
         default: () => [],
     },
     activosEvents: {
+        type: Array,
+        default: () => [],
+    },
+    upcomingEvents: {
         type: Array,
         default: () => [],
     },
@@ -272,6 +278,11 @@ const resolvedZoneEvents = computed(() =>
 );
 const resolvedPopularEvents = computed(() =>
     props.popularEvents.length > 0 ? props.popularEvents : mockPopularEvents,
+);
+const resolvedUpcomingEvents = computed(() =>
+    props.upcomingEvents.length > 0
+        ? props.upcomingEvents
+        : [...mockNextEvents, ...mockPopularEvents],
 );
 
 const categories = [

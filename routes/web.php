@@ -104,6 +104,29 @@ Route::get('/', function () use ($getData, $imageUrl) {
         ])
         ->all();
 
+    // "Próximos Eventos" (NextEventsGrid): catálogo completo pre-cargado, el
+    // cliente pagina y filtra sin peticiones async.
+    $upcomingEvents = collect($events)
+        ->sortByDesc(fn ($e) => $e['id'] ?? 0)
+        ->values()
+        ->map(fn ($e) => [
+            'id' => $e['id'] ?? 0,
+            'slug' => $e['url'] ?? '',
+            'title' => $e['evento'] ?? '',
+            'image' => $imageUrl($e['imagen'] ?? ''),
+            'date' => $e['fecha'] ?? '',
+            'hora' => $e['hora'] ?? '',
+            'venue' => $e['escenario'] ?? '',
+            'city' => $e['ciudad'] ?? '',
+            'estado' => trim((string) ($e['estado'] ?? '')),
+            'price' => (float) ($e['desde'] ?? 0),
+            'priceFormatted' => ($e['desde'] ?? 0) > 0 ? '$'.number_format((float) $e['desde'], 0) : '',
+            'category' => $e['categoria'] ?? '',
+            'categoryName' => $e['categoria_nombre'] ?? '',
+            'promociones' => $e['promociones'] ?? [],
+        ])
+        ->all();
+
     // Banner del HeroSlider del Home.
     $bannersData = $getData('eventos_sidebar_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
@@ -146,6 +169,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
         'banners' => $banners,
         'sidebarEvents' => $sidebarEvents,
         'activosEvents' => $activosEvents,
+        'upcomingEvents' => $upcomingEvents,
     ]);
 })->name('home');
 
