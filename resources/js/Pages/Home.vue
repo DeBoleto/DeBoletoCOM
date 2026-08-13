@@ -105,6 +105,63 @@
                 :events="resolvedPopularEvents"
                 layout="grid"
             />
+
+            <section
+                class="promoter-banner"
+                aria-labelledby="promoter-heading"
+            >
+                <div class="container">
+                    <div class="banner-content">
+                        <div class="banner-icon" aria-hidden="true">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+                                />
+                                <path d="M13 5v2" />
+                                <path d="M13 17v2" />
+                                <path d="M13 11v2" />
+                            </svg>
+                        </div>
+                        <div class="banner-text">
+                            <h2 id="promoter-heading" class="banner-title">
+                                ¿ORGANIZAS UN EVENTO?
+                            </h2>
+                            <p class="banner-desc">
+                                Vende los boletos de tu evento con nosotros,
+                                la mejor plataforma de venta de boletos en
+                                México.
+                            </p>
+                        </div>
+                        <div class="banner-actions">
+                            <a href="/contacto" class="banner-cta-primary">
+                                contáctanos
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="m9 18 6-6-6-6" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <SiteFooter />
@@ -441,6 +498,18 @@ main {
     flex-wrap: wrap;
 }
 
+.banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-lg);
+    background: var(--color-brand-dim);
+    color: var(--color-brand);
+    flex-shrink: 0;
+}
+
 .banner-text {
     flex: 1;
     min-width: 280px;
@@ -504,7 +573,7 @@ main {
     color: #fff;
     font-size: var(--text-base);
     font-weight: 700;
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-full);
     box-shadow: var(--shadow-brand);
     transition:
         opacity var(--transition-fast),
