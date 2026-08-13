@@ -431,6 +431,8 @@
             </section>
         </main>
 
+        <NearbyEventsStrip :events="nearbyEvents" />
+
         <SiteFooter />
         <MobileBottomNav @open-login="openLogin" />
 
@@ -476,9 +478,11 @@ import VerifyCodeModal from "@/components/VerifyCodeModal.vue";
 import LoginModal from "@/components/LoginModal.vue";
 import RegisterModal from "@/components/RegisterModal.vue";
 import EventMap from "@/components/EventMap.vue";
+import NearbyEventsStrip from "@/components/NearbyEventsStrip.vue";
 
 const props = defineProps({
     event: { type: Object, required: true },
+    nearbyEvents: { type: Array, default: () => [] },
 });
 
 const page = usePage();

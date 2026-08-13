@@ -156,8 +156,53 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
 
     $event = json_decode($data, true);
 
+    // "Eventos Cercanos": eventos de la misma categoría del actual
+    // (fuente: clave Redis eventos_por_categoria, agrupada por categoría),
+    // excluyendo el evento actual.
+    $nearbyData = $getData('eventos_por_categoria');
+    $nearbyRaw = $nearbyData ? json_decode($nearbyData, true) : [];
+
+    $currentEventId = (int) ($event['id'] ?? 0);
+    $currentGroup = null;
+
+    if (is_array($nearbyRaw)) {
+        foreach ($nearbyRaw as $group) {
+            if (! is_array($group)) {
+                continue;
+            }
+
+            foreach ($group as $candidate) {
+                if (($candidate['url'] ?? '') === $slug
+                    || ((int) ($candidate['id'] ?? 0) !== 0
+                        && (int) ($candidate['id'] ?? 0) === $currentEventId)) {
+                    $currentGroup = $group;
+                    break 2;
+                }
+            }
+        }
+    }
+
+    $nearbyEvents = [];
+
+    if ($currentGroup !== null) {
+        $nearbyEvents = collect($currentGroup)
+            ->filter(fn ($e) => (int) ($e['id'] ?? 0) !== $currentEventId)
+            ->take(10)
+            ->values()
+            ->map(fn ($e) => [
+                'slug' => $e['url'] ?? '',
+                'title' => $e['evento'] ?? '',
+                'image' => $imageUrl($e['imagen'] ?? ''),
+                'date' => $e['fecha'] ?? '',
+                'city' => $e['ciudad'] ?? '',
+                'estado' => trim((string) ($e['estado'] ?? '')),
+            ])
+            ->all();
+    }
+
     return Inertia::render('EventDetail', [
         'slug' => $slug,
+        'nearbyEvents' => $nearbyEvents,
         'event' => [
             'id' => $event['id'],
             'name' => $event['nombre'],
