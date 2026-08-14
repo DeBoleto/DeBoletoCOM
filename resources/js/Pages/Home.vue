@@ -106,10 +106,7 @@
                 layout="grid"
             />
 
-            <section
-                class="promoter-banner"
-                aria-labelledby="promoter-heading"
-            >
+            <section class="promoter-banner" aria-labelledby="promoter-heading">
                 <div class="container">
                     <div class="banner-content">
                         <div class="banner-icon" aria-hidden="true">
@@ -136,9 +133,8 @@
                                 ¿ORGANIZAS UN EVENTO?
                             </h2>
                             <p class="banner-desc">
-                                Vende los boletos de tu evento con nosotros,
-                                la mejor plataforma de venta de boletos en
-                                México.
+                                Vende los boletos de tu evento con nosotros, la
+                                mejor plataforma de venta de boletos en México.
                             </p>
                         </div>
                         <div class="banner-actions">
