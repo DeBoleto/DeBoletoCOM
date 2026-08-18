@@ -21,7 +21,8 @@
         "typescript": "^5.9.3",
         "vite": "^8.0.0",
         "vue": "^3.3.13",
-        "vue-tsc": "^3.3.6"
+        "vue-tsc": "^3.3.6",
+        "prettier": "^3.9.6"
     },
     "dependencies": {
         "@vueuse/core": "^14.3.0",

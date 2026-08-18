@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\VenueNameNormalizer;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -180,37 +181,50 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
 
     $event = json_decode($data, true);
 
-    // "Eventos Cercanos": eventos de la misma categoría del actual
-    // (fuente: clave Redis eventos_por_categoria, agrupada por categoría),
+    // "Eventos Cercanos": eventos del mismo recinto del actual (fallback a
+    // ciudad/estado) desde el catálogo activo (eventos_activos_app),
     // excluyendo el evento actual.
-    $nearbyData = $getData('eventos_por_categoria');
-    $nearbyRaw = $nearbyData ? json_decode($nearbyData, true) : [];
+    $activosData = $getData('eventos_activos_app');
+    $activosRaw = $activosData ? json_decode($activosData, true) : [];
 
     $currentEventId = (int) ($event['id'] ?? 0);
-    $currentGroup = null;
+    $currentEvent = null;
 
-    if (is_array($nearbyRaw)) {
-        foreach ($nearbyRaw as $group) {
-            if (! is_array($group)) {
-                continue;
-            }
-
-            foreach ($group as $candidate) {
-                if (($candidate['url'] ?? '') === $slug
-                    || ((int) ($candidate['id'] ?? 0) !== 0
-                        && (int) ($candidate['id'] ?? 0) === $currentEventId)) {
-                    $currentGroup = $group;
-                    break 2;
-                }
+    if (is_array($activosRaw)) {
+        foreach ($activosRaw as $candidate) {
+            if (($candidate['url'] ?? '') === $slug
+                || ((int) ($candidate['id'] ?? 0) !== 0
+                    && (int) ($candidate['id'] ?? 0) === $currentEventId)) {
+                $currentEvent = $candidate;
+                break;
             }
         }
     }
 
     $nearbyEvents = [];
 
-    if ($currentGroup !== null) {
-        $nearbyEvents = collect($currentGroup)
-            ->filter(fn ($e) => (int) ($e['id'] ?? 0) !== $currentEventId)
+    if ($currentEvent !== null) {
+        $venueKey = VenueNameNormalizer::slugify((string) ($currentEvent['escenario'] ?? ''));
+        $city = trim((string) ($currentEvent['ciudad'] ?? ''));
+        $estado = trim((string) ($currentEvent['estado'] ?? ''));
+
+        $pool = collect($activosRaw)
+            ->filter(fn ($e) => (int) ($e['id'] ?? 0) !== $currentEventId);
+
+        $sameVenue = $venueKey !== ''
+            ? $pool->filter(fn ($e) => VenueNameNormalizer::slugify((string) ($e['escenario'] ?? '')) === $venueKey)
+            : collect();
+
+        $sameCity = $sameVenue->isNotEmpty()
+            ? $sameVenue
+            : $pool->filter(fn ($e) => trim((string) ($e['ciudad'] ?? '')) === $city
+                && trim((string) ($e['estado'] ?? '')) === $estado);
+
+        $nearbyPool = $sameCity->isNotEmpty()
+            ? $sameCity
+            : $pool->filter(fn ($e) => trim((string) ($e['estado'] ?? '')) === $estado);
+
+        $nearbyEvents = $nearbyPool
             ->take(10)
             ->values()
             ->map(fn ($e) => [

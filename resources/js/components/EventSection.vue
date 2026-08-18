@@ -70,6 +70,8 @@
                     type="button"
                     class="events-arrow events-arrow--prev"
                     aria-label="Ver anteriores"
+                    :disabled="!canPrev"
+                    :aria-disabled="!canPrev"
                     @click="scrollPrev"
                 >
                     <svg
@@ -90,6 +92,8 @@
                     type="button"
                     class="events-arrow events-arrow--next"
                     aria-label="Ver siguientes"
+                    :disabled="!canNext"
+                    :aria-disabled="!canNext"
                     @click="scrollNext"
                 >
                     <svg
@@ -112,10 +116,10 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import EventCard from "./EventCard.vue";
 
-defineProps({
+const props = defineProps({
     title: { type: String, required: true },
     subtitle: { type: String, default: "" },
     sectionId: { type: String, required: true },
@@ -127,10 +131,22 @@ defineProps({
 });
 
 const gridEl = ref(null);
+const canPrev = ref(false);
+const canNext = ref(false);
+
+function updateArrows() {
+    const el = gridEl.value;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    canPrev.value = el.scrollLeft > 2;
+    canNext.value = el.scrollLeft < max - 2;
+}
 
 function step() {
-    const item = gridEl.value?.querySelector(".grid-item");
-    return (item?.offsetWidth ?? 320) + 20;
+    const el = gridEl.value;
+    const item = el?.querySelector(".grid-item");
+    const gap = el ? parseFloat(getComputedStyle(el).gap) || 20 : 20;
+    return (item?.offsetWidth ?? 320) + gap;
 }
 
 function scrollPrev() {
@@ -140,6 +156,31 @@ function scrollPrev() {
 function scrollNext() {
     gridEl.value?.scrollBy({ left: step(), behavior: "smooth" });
 }
+
+let resizeObserver = null;
+
+onMounted(async () => {
+    await nextTick();
+    updateArrows();
+    gridEl.value?.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    resizeObserver = new ResizeObserver(updateArrows);
+    if (gridEl.value) resizeObserver.observe(gridEl.value);
+});
+
+onUnmounted(() => {
+    gridEl.value?.removeEventListener("scroll", updateArrows);
+    window.removeEventListener("resize", updateArrows);
+    resizeObserver?.disconnect();
+});
+
+watch(
+    () => props.events,
+    async () => {
+        await nextTick();
+        updateArrows();
+    },
+);
 </script>
 
 <style scoped>
@@ -278,6 +319,22 @@ function scrollNext() {
     transform: scale(1.08);
 }
 
+.events-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+    transform: none;
+}
+
+.events-arrow:disabled:hover {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+@media (min-width: 541px) and (max-width: 768px) {
+    .events-controls {
+        display: none;
+    }
+}
+
 @media (min-width: 769px) {
     .events-grid--grid,
     .events-grid--featured {
@@ -286,7 +343,7 @@ function scrollNext() {
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         gap: var(--space-5);
-        padding-bottom: var(--space-3);
+        padding-block: var(--space-5) var(--space-4);
         scrollbar-width: none;
     }
 
@@ -348,7 +405,7 @@ function scrollNext() {
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         gap: var(--space-4);
-        padding-bottom: var(--space-3);
+        padding-block: var(--space-5) var(--space-4);
         scrollbar-width: none;
     }
 
