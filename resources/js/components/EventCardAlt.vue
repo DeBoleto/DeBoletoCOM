@@ -80,12 +80,6 @@ const locationLine = computed(() =>
 
 .event-card-alt:hover {
     transform: scale(1.04) translateY(-6px);
-    box-shadow:
-        0 0 0 3px #4ecba0,
-        0 0 12px 4px rgba(78, 203, 160, 0.6),
-        0 0 30px 10px rgba(60, 175, 135, 0.22),
-        0 0 60px 18px rgba(43, 161, 124, 0.07),
-        0 10px 30px rgba(0, 0, 0, 0.45);
     text-decoration: none;
     color: inherit;
 }

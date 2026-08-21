@@ -9,27 +9,6 @@
                     </h2>
                 </div>
 
-                <div class="nearby-select-wrap">
-                    <label for="nearby-estado" class="visually-hidden">
-                        Filtrar eventos por estado
-                    </label>
-                    <select
-                        id="nearby-estado"
-                        v-model="selectedEstado"
-                        class="nearby-select"
-                    >
-                        <option
-                            v-for="estado in estadoOptions"
-                            :key="estado"
-                            :value="estado"
-                        >
-                            {{ estado }}
-                        </option>
-                    </select>
-                </div>
-
-                <div aria-hidden="true"></div>
-
                 <p
                     v-if="locationFailed"
                     class="nearby-location-warning"
@@ -172,6 +151,7 @@
                             <span class="ticket-date-day">{{
                                 dateParts(event.date).day
                             }}</span>
+
                             <span class="ticket-date-month">{{
                                 dateParts(event.date).month
                             }}</span>
@@ -186,6 +166,27 @@
                         </p>
                     </li>
                 </ul>
+            </div>
+
+            <div class="nearby-footer">
+                <div class="nearby-select-wrap">
+                    <label for="nearby-estado" class="visually-hidden">
+                        Filtrar eventos por estado
+                    </label>
+                    <select
+                        id="nearby-estado"
+                        v-model="selectedEstado"
+                        class="nearby-select"
+                    >
+                        <option
+                            v-for="estado in estadoOptions"
+                            :key="estado"
+                            :value="estado"
+                        >
+                            {{ estado }}
+                        </option>
+                    </select>
+                </div>
             </div>
         </div>
     </section>
@@ -265,7 +266,7 @@ const filteredSidebar = computed(() =>
 const filteredActivos = computed(() => {
     const events = props.activosEvents
         .filter((event) => event.estado === selectedEstado.value)
-        .slice(0, 4);
+        .slice(0, 6);
 
     return events.map((event) => ({
         ...event,
@@ -361,10 +362,6 @@ onMounted(() => {
 }
 
 .nearby-header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: var(--space-4);
     margin-bottom: var(--space-8);
 }
 
@@ -372,7 +369,6 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    justify-self: start;
 }
 
 .nearby-icon {
@@ -394,8 +390,14 @@ onMounted(() => {
     letter-spacing: -0.02em;
 }
 
+.nearby-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-6);
+}
+
 .nearby-select-wrap {
-    justify-self: center;
+    min-width: 220px;
 }
 
 .nearby-select {
@@ -427,8 +429,7 @@ onMounted(() => {
 }
 
 .nearby-location-warning {
-    grid-column: 1 / -1;
-    justify-self: center;
+    margin: var(--space-4) auto 0;
     text-align: center;
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
@@ -464,6 +465,8 @@ onMounted(() => {
     border-radius: var(--radius-lg);
     overflow: hidden;
     aspect-ratio: 16 / 9;
+    flex: 1;
+    min-height: 0;
     border: 1px solid var(--color-border);
     background: var(--color-surface-1);
     transition:
@@ -738,25 +741,15 @@ onMounted(() => {
     }
 }
 
-@media (max-width: 852px) {
-    .nearby-header {
-        grid-template-columns: 1fr auto;
-    }
-}
-
 @media (max-width: 768px) {
     .nearby-grid {
         grid-template-columns: 1fr;
     }
 
-    .nearby-header {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
-    }
-
-    .nearby-title-group,
     .nearby-select-wrap {
-        justify-self: stretch;
+        width: 100%;
+        min-width: 0;
+        max-width: 320px;
     }
 
     .nearby-select {

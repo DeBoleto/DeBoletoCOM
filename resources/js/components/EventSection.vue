@@ -341,8 +341,11 @@ watch(
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--space-3);
         -webkit-overflow-scrolling: touch;
         gap: var(--space-5);
+        padding-inline: var(--space-3);
+        margin-inline: calc(var(--space-3) * -1);
         padding-block: var(--space-5) var(--space-4);
         scrollbar-width: none;
     }
@@ -403,8 +406,11 @@ watch(
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--space-3);
         -webkit-overflow-scrolling: touch;
         gap: var(--space-4);
+        padding-inline: var(--space-3);
+        margin-inline: calc(var(--space-3) * -1);
         padding-block: var(--space-5) var(--space-4);
         scrollbar-width: none;
     }

@@ -79,21 +79,6 @@
                 :events="resolvedZoneEvents"
                 layout="featured"
             />
-            <NearbySection
-                :sidebar-events="sidebarEvents"
-                :activos-events="activosEvents"
-            />
-            <NextEventsGrid :events="resolvedUpcomingEvents" />
-            <EventSection
-                title="Próximos Eventos"
-                subtitle="No te pierdas lo que viene esta temporada"
-                section-id="events"
-                icon="📅"
-                accent-color="brand"
-                view-all-link="/eventos?filtro=proximos"
-                :events="resolvedNextEvents"
-                layout="grid"
-            />
 
             <EventSection
                 title="Eventos Populares"
@@ -105,6 +90,13 @@
                 :events="resolvedPopularEvents"
                 layout="grid"
             />
+
+            <NearbySection
+                :sidebar-events="sidebarEvents"
+                :activos-events="activosEvents"
+            />
+
+            <NextEventsGrid :events="resolvedUpcomingEvents" />
 
             <section class="promoter-banner" aria-labelledby="promoter-heading">
                 <div class="container">

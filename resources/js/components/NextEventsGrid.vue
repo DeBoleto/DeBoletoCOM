@@ -64,7 +64,7 @@
                         @click="loadMore"
                     >
                         <span class="more-plus" aria-hidden="true">+</span>
-                        <span class="more-label">Ver más</span>
+                        <span class="more-label">Ver más eventos</span>
                     </button>
                 </li>
             </ul>
@@ -241,6 +241,8 @@ watch(filter, () => {
 
 .grid-item {
     min-width: 0;
+    width: 90%;
+    justify-self: center;
 }
 
 .more-card {
