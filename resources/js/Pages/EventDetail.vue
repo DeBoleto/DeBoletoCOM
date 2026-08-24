@@ -9,7 +9,7 @@
             property="og:description"
             :content="`Compra boletos para ${event.name}. ${formattedMainDate}`"
         />
-        <meta property="og:image" :content="event.image" />
+        <meta property="og:image" :content="heroImage" />
         <link rel="canonical" :href="`/evento/${$page.props.slug}`" />
     </Head>
 
@@ -22,15 +22,15 @@
                     <div class="hero-frame">
                         <picture class="hero-picture">
                             <source
-                                :srcset="event.image.replace('.png', '.webp')"
+                                :srcset="heroImage.replace('.png', '.webp')"
                                 type="image/webp"
                             />
                             <source
-                                :srcset="event.image.replace('.png', '.avif')"
+                                :srcset="heroImage.replace('.png', '.avif')"
                                 type="image/avif"
                             />
                             <img
-                                :src="event.image"
+                                :src="heroImage"
                                 :alt="event.name"
                                 class="hero-image"
                             />
@@ -499,6 +499,10 @@ const formattedComments = computed(() => {
 });
 
 const page = usePage();
+
+const heroImage = computed(
+    () => props.event.sliderImage || props.event.image,
+);
 
 const selectedFunctionId = computed(() => {
     const url = new URL(page.url, window.location.origin);

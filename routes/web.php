@@ -201,6 +201,24 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         }
     }
 
+    $sidebarData = $getData('eventos_sidebar_app');
+    $sidebarRaw = $sidebarData ? json_decode($sidebarData, true) : [];
+
+    $sliderImage = null;
+
+    if (is_array($sidebarRaw)) {
+        foreach ($sidebarRaw as $candidate) {
+            if (($candidate['url'] ?? '') === $slug
+                || ((int) ($candidate['id'] ?? 0) !== 0
+                    && (int) ($candidate['id'] ?? 0) === $currentEventId)) {
+                $sliderImage = ! empty($candidate['imagen'])
+                    ? $imageUrl($candidate['imagen'], true)
+                    : null;
+                break;
+            }
+        }
+    }
+
     $nearbyEvents = [];
 
     if ($currentEvent !== null) {
@@ -247,6 +265,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             'desc' => $event['descripcion'],
             'comments' => $event['comentarios'],
             'image' => $imageUrl($event['imagen'] ?? ''),
+            'sliderImage' => $sliderImage,
             'hasPromotion' => $event['tiene_promocion'],
             'ventaWeb' => $event['ventaWeb'],
             'venueName' => $event['lugar'] ?? '',

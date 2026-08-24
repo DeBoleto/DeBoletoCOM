@@ -56,7 +56,11 @@
                 >
                     <EventCardAlt :event="event" />
                 </li>
-                <li v-if="hasMore" class="grid-item">
+                <li
+                    v-if="hasMore"
+                    class="grid-item"
+                    :class="{ 'grid-item--flush-end': isMoreCardAloneInRow }"
+                >
                     <button
                         type="button"
                         class="more-card"
@@ -101,6 +105,10 @@ const filteredAll = computed(() => {
 
 const displayedEvents = computed(() =>
     filteredAll.value.slice(0, loadedCount.value),
+);
+
+const isMoreCardAloneInRow = computed(
+    () => displayedEvents.value.length % 5 === 0,
 );
 
 const hasMore = computed(() => loadedCount.value < filteredAll.value.length);
@@ -243,6 +251,13 @@ watch(filter, () => {
     min-width: 0;
     width: 90%;
     justify-self: center;
+}
+
+@media (min-width: 853px) {
+    .grid-item--flush-end {
+        grid-column: 5;
+
+    }
 }
 
 .more-card {
