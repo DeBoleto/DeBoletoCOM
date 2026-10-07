@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\StageMapParser;
 use App\Support\VenueNameNormalizer;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
@@ -286,6 +287,37 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         ],
     ]);
 })->name('event.detail');
+
+Route::get('/evento/{slug}/asientos', function ($slug) use ($getData) {
+    $data = $getData('detalle_evento:'.$slug);
+    abort_unless($data, 404);
+
+    $event = json_decode($data, true);
+    $functionId = request()->query('function');
+
+    $zones = array_map(fn ($z) => [
+        'id' => $z['id'] ?? null,
+        'name' => $z['nombre'] ?? '',
+        'originalPrice' => $z['precio_original'] ?? null,
+        'discountPrice' => $z['precio_descuento'] ?? null,
+        'hasPromotion' => $z['tiene_promocion'] ?? false,
+    ], $event['zonas'] ?? []);
+
+    return Inertia::render('SeatSelection', [
+        'slug' => $slug,
+        'functionId' => is_scalar($functionId) ? (string) $functionId : null,
+        'event' => [
+            'id' => $event['id'],
+            'name' => $event['nombre'],
+            'venueName' => $event['lugar'] ?? '',
+            'functions' => array_map(fn ($f) => [
+                'id' => $f['id'],
+                'date' => $f['fecha'],
+            ], $event['funciones'] ?? []),
+        ],
+        'stage' => StageMapParser::parse(base_path('PosadaConSabor.xml'), $zones),
+    ]);
+})->name('event.seats');
 
 // Zona autenticada (Jetstream + verificación de email).
 Route::middleware([

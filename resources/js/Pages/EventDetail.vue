@@ -81,6 +81,7 @@
                             "
                             type="button"
                             class="btn-buy"
+                            @click="goToSeats"
                         >
                             COMPRAR BOLETO
                         </button>
@@ -209,7 +210,11 @@
                                         (!hasMultipleFunctions || isFiltered)
                                     "
                                 >
-                                    <button type="button" class="btn-buy">
+                                    <button
+                                        type="button"
+                                        class="btn-buy"
+                                        @click="goToSeats"
+                                    >
                                         COMPRAR BOLETO
                                     </button>
                                     <div class="event-info-label">
@@ -536,6 +541,14 @@ const displayFunctions = computed(() => {
     );
     return fn ? [fn] : props.event.functions;
 });
+
+function goToSeats() {
+    const query = {};
+    if (isFiltered.value && selectedFunctionId.value) {
+        query.function = selectedFunctionId.value;
+    }
+    router.get(route("event.seats", { slug: page.props.slug }), query);
+}
 
 function selectFunction(fn) {
     if (selectedFunctionId.value === String(fn.id)) {
