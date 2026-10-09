@@ -3,6 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "format": "prettier --write .",
+        "start": "concurrently -n vite,artisan -c \"#fdcdb5,#c4b5fd\" \"npm run dev\" \"php artisan serve\" --kill-others",
         "build": "vite build",
         "dev": "vite"
     },
@@ -17,17 +19,19 @@
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^3.1",
         "postcss": "^8.4.32",
+        "prettier": "^3.9.6",
         "tailwindcss": "^4.3.2",
         "typescript": "^5.9.3",
         "vite": "^8.0.0",
         "vue": "^3.3.13",
-        "vue-tsc": "^3.3.6",
-        "prettier": "^3.9.6"
+        "vue-tsc": "^3.3.6"
     },
     "dependencies": {
         "@vueuse/core": "^14.3.0",
+        "konva": "^10.7.1",
         "leaflet": "^1.9.4",
         "pinia": "^3.0.4",
-        "sharp": "^0.35.3"
+        "sharp": "^0.35.3",
+        "vue-konva": "^4.0.1"
     }
 }

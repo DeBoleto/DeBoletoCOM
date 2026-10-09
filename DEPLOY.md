@@ -34,17 +34,17 @@
 
 ## 1. Prerrequisitos del Servidor
 
-| Componente | Versión Mínima | Notas |
-|---|---|---|
-| SO | Ubuntu 22.04 / 24.04 LTS | x86_64 |
-| PHP | 8.3+ | Con FPM y extensiones listadas abajo |
-| MySQL | 8.0+ | Motor InnoDB, charset utf8mb4 |
-| Redis | 6.0+ | Para cache, sesiones, colas y Horizon |
-| Node.js | 20 LTS+ | Solo para build de assets (no en producción runtime) |
-| Composer | 2.x | PHP package manager |
-| Nginx | 1.24+ | Servidor web |
-| Supervisor | 4.x | Para gestionar Horizon como servicio |
-| Git | 2.x | Control de versiones |
+| Componente | Versión Mínima           | Notas                                                |
+| ---------- | ------------------------ | ---------------------------------------------------- |
+| SO         | Ubuntu 22.04 / 24.04 LTS | x86_64                                               |
+| PHP        | 8.3+                     | Con FPM y extensiones listadas abajo                 |
+| MySQL      | 8.0+                     | Motor InnoDB, charset utf8mb4                        |
+| Redis      | 6.0+                     | Para cache, sesiones, colas y Horizon                |
+| Node.js    | 20 LTS+                  | Solo para build de assets (no en producción runtime) |
+| Composer   | 2.x                      | PHP package manager                                  |
+| Nginx      | 1.24+                    | Servidor web                                         |
+| Supervisor | 4.x                      | Para gestionar Horizon como servicio                 |
+| Git        | 2.x                      | Control de versiones                                 |
 
 ### Extensiones PHP Requeridas
 
@@ -258,38 +258,38 @@ nano .env   # Editar con valores de producción
 
 ### Variables de Entorno — Producción
 
-| Variable | Valor Ejemplo | Notas |
-|---|---|---|
-| `APP_ENV` | `production` | |
-| `APP_DEBUG` | `false` | |
-| `APP_URL` | `https://deboleto.mx` | Con HTTPS |
-| `APP_KEY` | (generado) | Ejecutar `php artisan key:generate` |
-| `APP_LOCALE` | `es` | |
-| `APP_FALLBACK_LOCALE` | `es` | |
-| `DB_HOST` | `127.0.0.1` | |
-| `DB_DATABASE` | `deboleto` | |
-| `DB_USERNAME` | `deboleto` | |
-| `DB_PASSWORD` | `***` | |
-| `REDIS_HOST` | `127.0.0.1` | |
-| `REDIS_PASSWORD` | `null` o el configurado | |
-| `CACHE_STORE` | `redis` | |
-| `SESSION_DRIVER` | `redis` | |
-| `SESSION_LIFETIME` | `120` | |
-| `QUEUE_CONNECTION` | `redis` | |
-| `MAIL_MAILER` | `smtp` | |
-| `MAIL_HOST` | `mail.deboleto.mx` | |
-| `MAIL_FROM_ADDRESS` | `no-reply@deboleto.mx` | |
-| `STRIPE_KEY` | `pk_live_***` | |
-| `STRIPE_SECRET` | `sk_live_***` | |
-| `OPENPAY_MERCHANT_ID` | `m***` | |
-| `OPENPAY_PRIVATE_KEY` | `sk_***` | |
-| `OPENPAY_PUBLIC_KEY` | `pk_***` | |
-| `OPENPAY_PRODUCTION` | `true` | |
-| `TWILIO_SID` | `AC***` | |
-| `TWILIO_TOKEN` | `***` | |
-| `TWILIO_FROM` | `+52***` | |
-| `TWILIO_WHATSAPP_FROM` | `+14155238886` | Número de Twilio para WhatsApp |
-| `VITE_APP_NAME` | `"${APP_NAME}"` | |
+| Variable               | Valor Ejemplo           | Notas                               |
+| ---------------------- | ----------------------- | ----------------------------------- |
+| `APP_ENV`              | `production`            |                                     |
+| `APP_DEBUG`            | `false`                 |                                     |
+| `APP_URL`              | `https://deboleto.mx`   | Con HTTPS                           |
+| `APP_KEY`              | (generado)              | Ejecutar `php artisan key:generate` |
+| `APP_LOCALE`           | `es`                    |                                     |
+| `APP_FALLBACK_LOCALE`  | `es`                    |                                     |
+| `DB_HOST`              | `127.0.0.1`             |                                     |
+| `DB_DATABASE`          | `deboleto`              |                                     |
+| `DB_USERNAME`          | `deboleto`              |                                     |
+| `DB_PASSWORD`          | `***`                   |                                     |
+| `REDIS_HOST`           | `127.0.0.1`             |                                     |
+| `REDIS_PASSWORD`       | `null` o el configurado |                                     |
+| `CACHE_STORE`          | `redis`                 |                                     |
+| `SESSION_DRIVER`       | `redis`                 |                                     |
+| `SESSION_LIFETIME`     | `120`                   |                                     |
+| `QUEUE_CONNECTION`     | `redis`                 |                                     |
+| `MAIL_MAILER`          | `smtp`                  |                                     |
+| `MAIL_HOST`            | `mail.deboleto.mx`      |                                     |
+| `MAIL_FROM_ADDRESS`    | `no-reply@deboleto.mx`  |                                     |
+| `STRIPE_KEY`           | `pk_live_***`           |                                     |
+| `STRIPE_SECRET`        | `sk_live_***`           |                                     |
+| `OPENPAY_MERCHANT_ID`  | `m***`                  |                                     |
+| `OPENPAY_PRIVATE_KEY`  | `sk_***`                |                                     |
+| `OPENPAY_PUBLIC_KEY`   | `pk_***`                |                                     |
+| `OPENPAY_PRODUCTION`   | `true`                  |                                     |
+| `TWILIO_SID`           | `AC***`                 |                                     |
+| `TWILIO_TOKEN`         | `***`                   |                                     |
+| `TWILIO_FROM`          | `+52***`                |                                     |
+| `TWILIO_WHATSAPP_FROM` | `+14155238886`          | Número de Twilio para WhatsApp      |
+| `VITE_APP_NAME`        | `"${APP_NAME}"`         |                                     |
 
 ```bash
 php artisan key:generate
@@ -563,14 +563,14 @@ php artisan storage:link
 
 ### Directorios con Permisos de Escritura
 
-| Directorio | Propósito |
-|---|---|
-| `storage/framework/cache/data/` | Cache de Laravel |
-| `storage/framework/sessions/` | Fallback de sesiones (si no usa Redis) |
-| `storage/framework/views/` | Vistas Blade compiladas |
-| `storage/logs/` | Logs de aplicación |
-| `public/events/` | Imágenes de eventos |
-| `public/build/` | Assets compilados por Vite |
+| Directorio                      | Propósito                              |
+| ------------------------------- | -------------------------------------- |
+| `storage/framework/cache/data/` | Cache de Laravel                       |
+| `storage/framework/sessions/`   | Fallback de sesiones (si no usa Redis) |
+| `storage/framework/views/`      | Vistas Blade compiladas                |
+| `storage/logs/`                 | Logs de aplicación                     |
+| `public/events/`                | Imágenes de eventos                    |
+| `public/build/`                 | Assets compilados por Vite             |
 
 ```bash
 chown -R www-data:www-data storage bootstrap/cache public/events public/build
@@ -590,13 +590,13 @@ node scripts/generate-og.mjs
 
 ## 14. Servicios Externos
 
-| Servicio | Variables | Modo Producción | Verificación Post-Deploy |
-|---|---|---|---|
-| **Openpay** | `OPENPAY_MERCHANT_ID`, `OPENPAY_PRIVATE_KEY`, `OPENPAY_PUBLIC_KEY` | `OPENPAY_PRODUCTION=true` | Realizar compra de prueba con tarjeta real |
-| **Stripe** (backup) | `STRIPE_KEY`, `STRIPE_SECRET` | Usar claves `live_` | Probar webhook con CLI de Stripe |
-| **Twilio** | `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`, `TWILIO_WHATSAPP_FROM` | Claves del proyecto live | Enviar SMS/WhatsApp de prueba |
-| **SMTP** | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` | `MAIL_ENCRYPTION=tls`, puerto 587 | Enviar correo de prueba |
-| **Search Console** | — | Verificar dominio vía DNS TXT | Enviar sitemap |
+| Servicio            | Variables                                                           | Modo Producción                   | Verificación Post-Deploy                   |
+| ------------------- | ------------------------------------------------------------------- | --------------------------------- | ------------------------------------------ |
+| **Openpay**         | `OPENPAY_MERCHANT_ID`, `OPENPAY_PRIVATE_KEY`, `OPENPAY_PUBLIC_KEY`  | `OPENPAY_PRODUCTION=true`         | Realizar compra de prueba con tarjeta real |
+| **Stripe** (backup) | `STRIPE_KEY`, `STRIPE_SECRET`                                       | Usar claves `live_`               | Probar webhook con CLI de Stripe           |
+| **Twilio**          | `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`, `TWILIO_WHATSAPP_FROM` | Claves del proyecto live          | Enviar SMS/WhatsApp de prueba              |
+| **SMTP**            | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`  | `MAIL_ENCRYPTION=tls`, puerto 587 | Enviar correo de prueba                    |
+| **Search Console**  | —                                                                   | Verificar dominio vía DNS TXT     | Enviar sitemap                             |
 
 ---
 
@@ -802,10 +802,10 @@ Acceder en `https://deboleto.mx/horizon` (protegido con basic auth). Muestra:
 
 ### Logs
 
-| Archivo | Propósito | Rotación |
-|---|---|---|
-| `storage/logs/laravel.log` | Log general de la aplicación | Diaria (LOG_CHANNEL=daily) |
-| `storage/logs/horizon.log` | Salida de Horizon | Administrada por Supervisor |
+| Archivo                    | Propósito                    | Rotación                    |
+| -------------------------- | ---------------------------- | --------------------------- |
+| `storage/logs/laravel.log` | Log general de la aplicación | Diaria (LOG_CHANNEL=daily)  |
+| `storage/logs/horizon.log` | Salida de Horizon            | Administrada por Supervisor |
 
 ### Activity Log (Spatie)
 
@@ -887,23 +887,24 @@ php artisan up
 
 ## 22. Solución de Problemas Comunes
 
-| Problema | Causa Posible | Solución |
-|---|---|---|
-| Error 503 en deploy | `php artisan down` activo | Ejecutar `php artisan up` |
-| Error 419 en formularios | CSRF token inválido | Limpiar cookies o verificar `SESSION_DRIVER` |
-| Error 500 después de cache | Cache desactualizado | `php artisan config:clear && php artisan route:clear && php artisan view:clear` |
-| Horizon no inicia | Redis no disponible | Verificar `redis-cli ping` y credenciales en `.env` |
-| Jobs no se ejecutan | Worker detenido | `supervisorctl status` y `supervisorctl restart horizon` |
-| `view_eventos` no existe | DB legada no configurada | Verificar que `deboletox` existe y es accesible con el mismo usuario |
-| Imágenes no cargan | Enlace simbólico faltante | `php artisan storage:link` |
-| Build de Vite falla | Versión de Node.js incorrecta | Verificar `node -v` ≥20 |
-| Error de permisos en storage | www-data no es dueño | `chown -R www-data:www-data storage bootstrap/cache` |
-| Openpay rechaza cargo | Modo producción desactivado | Verificar `OPENPAY_PRODUCTION=true` y llaves live |
-| Webhook no recibido | CSRF bloqueando | Verificar `except` en `bootstrap/app.php` |
+| Problema                     | Causa Posible                 | Solución                                                                        |
+| ---------------------------- | ----------------------------- | ------------------------------------------------------------------------------- |
+| Error 503 en deploy          | `php artisan down` activo     | Ejecutar `php artisan up`                                                       |
+| Error 419 en formularios     | CSRF token inválido           | Limpiar cookies o verificar `SESSION_DRIVER`                                    |
+| Error 500 después de cache   | Cache desactualizado          | `php artisan config:clear && php artisan route:clear && php artisan view:clear` |
+| Horizon no inicia            | Redis no disponible           | Verificar `redis-cli ping` y credenciales en `.env`                             |
+| Jobs no se ejecutan          | Worker detenido               | `supervisorctl status` y `supervisorctl restart horizon`                        |
+| `view_eventos` no existe     | DB legada no configurada      | Verificar que `deboletox` existe y es accesible con el mismo usuario            |
+| Imágenes no cargan           | Enlace simbólico faltante     | `php artisan storage:link`                                                      |
+| Build de Vite falla          | Versión de Node.js incorrecta | Verificar `node -v` ≥20                                                         |
+| Error de permisos en storage | www-data no es dueño          | `chown -R www-data:www-data storage bootstrap/cache`                            |
+| Openpay rechaza cargo        | Modo producción desactivado   | Verificar `OPENPAY_PRODUCTION=true` y llaves live                               |
+| Webhook no recibido          | CSRF bloqueando               | Verificar `except` en `bootstrap/app.php`                                       |
 
 ---
 
 > **Documentos Relacionados:**
+>
 > - `docs/NEXT-STEPS.md` — Checklist post-deploy detallado
 > - `docs/database-erd.md` — Diagrama entidad-relación
 > - `docs/database-erd.sql` — DDL completo de la base de datos

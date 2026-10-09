@@ -30,70 +30,13 @@
                     <h2>Seleccione una zona</h2>
                     <div class="map-frame">
                         <div class="viewport viewport--zones">
-                            <div
-                                class="viewport-scaler"
-                                :style="{ width: `${zoneZoom * 100}%` }"
-                            >
-                                <svg
-                                    class="zone-svg"
-                                    :viewBox="zoneFrame.viewBox"
-                                    role="img"
-                                    aria-label="Diagrama del recinto"
-                                >
-                                    <rect
-                                        v-if="zoneFrame.stageBar"
-                                        :x="zoneFrame.stageBar.x"
-                                        :y="zoneFrame.stageBar.y"
-                                        :width="zoneFrame.stageBar.width"
-                                        :height="zoneFrame.stageBar.height"
-                                        fill="#1d4ed8"
-                                        rx="4"
-                                    />
-                                    <text
-                                        v-if="zoneFrame.stageBar"
-                                        :x="zoneFrame.stageBar.x + zoneFrame.stageBar.width / 2"
-                                        :y="zoneFrame.stageBar.y + zoneFrame.stageBar.height / 2"
-                                        text-anchor="middle"
-                                        dominant-baseline="central"
-                                        fill="#ffffff"
-                                        font-weight="700"
-                                        :font-size="zoneFrame.stageBar.height * 0.34"
-                                    >
-                                        ESCENARIO
-                                    </text>
-                                    <g
-                                        v-for="section in stage.sections"
-                                        :key="section.key"
-                                    >
-                                        <polygon
-                                            v-if="section.polygon.length >= 3"
-                                            :points="polygonPoints(section.polygon)"
-                                            :fill="section.areaColor"
-                                            :stroke="section.key === activeKey ? '#4ecba0' : '#334155'"
-                                            :stroke-width="section.key === activeKey ? 16 : 4"
-                                            role="button"
-                                            tabindex="0"
-                                            :aria-pressed="section.key === activeKey"
-                                            :aria-label="zoneAriaLabel(section)"
-                                            @click="selectSection(section.key)"
-                                            @keydown.enter.prevent="selectSection(section.key)"
-                                            @keydown.space.prevent="selectSection(section.key)"
-                                        />
-                                        <text
-                                            v-if="section.polygon.length >= 3"
-                                            :x="centroid(section.polygon).x"
-                                            :y="centroid(section.polygon).y"
-                                            text-anchor="middle"
-                                            dominant-baseline="central"
-                                            font-weight="700"
-                                            :font-size="labelSize(section)"
-                                            :fill="fillTextColor(section.areaColor)"
-                                        >
-                                            {{ section.name }}
-                                        </text>
-                                    </g>
-                                </svg>
-                            </div>
+                            <ZoneCanvas
+                                :sections="stage.sections"
+                                :active-key="activeKey"
+                                :zoom="zoneZoom"
+                                :canvas-size="stage.canvas"
+                                @select="selectSection"
+                            />
                         </div>
                         <div class="zoom-controls" aria-label="Zoom del mapa de zonas">
                             <button
@@ -136,99 +79,12 @@
 
                     <div v-if="activeSection && activeSection.rows.length" class="map-frame">
                         <div class="viewport viewport--seats">
-                            <svg
-                                class="seat-svg"
-                                :viewBox="seatLayout.viewBox"
-                                :width="seatLayout.width * seatZoom"
-                                :height="seatLayout.height * seatZoom"
-                                role="group"
-                                aria-label="Asientos de la zona seleccionada"
-                            >
-                                <g v-if="activeSection.stage">
-                                    <rect
-                                        :x="activeSection.stage.x1 * UNIT"
-                                        :y="activeSection.stage.y1 * UNIT"
-                                        :width="(activeSection.stage.x2 - activeSection.stage.x1) * UNIT"
-                                        :height="18"
-                                        fill="#f59e0b"
-                                        rx="3"
-                                    />
-                                    <text
-                                        :x="((activeSection.stage.x1 + activeSection.stage.x2) / 2) * UNIT"
-                                        :y="activeSection.stage.y1 * UNIT + 9"
-                                        text-anchor="middle"
-                                        dominant-baseline="central"
-                                        fill="#ffffff"
-                                        font-size="12"
-                                        font-weight="700"
-                                    >
-                                        ESCENARIO
-                                    </text>
-                                </g>
-                                <g
-                                    v-for="(label, index) in seatLayout.labels"
-                                    :key="`label-${index}`"
-                                >
-                                    <rect
-                                        :x="label.x * UNIT - LABEL_SIZE / 2"
-                                        :y="label.y * UNIT - LABEL_SIZE / 2"
-                                        :width="LABEL_SIZE"
-                                        :height="LABEL_SIZE"
-                                        fill="#1f2937"
-                                        rx="2"
-                                    />
-                                    <text
-                                        :x="label.x * UNIT"
-                                        :y="label.y * UNIT"
-                                        text-anchor="middle"
-                                        dominant-baseline="central"
-                                        fill="#ffffff"
-                                        font-size="12"
-                                        font-weight="700"
-                                    >
-                                        {{ label.name }}
-                                    </text>
-                                </g>
-                                <g
-                                    v-for="row in activeSection.rows"
-                                    :key="row.fila"
-                                >
-                                    <g
-                                        v-for="seat in row.seats"
-                                        :key="seat.id"
-                                        :class="{ 'is-selectable': seat.status === 'disponible' }"
-                                        :role="seat.status === 'disponible' ? 'button' : 'img'"
-                                        :tabindex="seat.status === 'disponible' ? 0 : undefined"
-                                        :aria-pressed="seat.status === 'disponible' ? isSelected(activeSection, seat) : undefined"
-                                        :aria-label="`${seat.id}, ${statusLabel(seat.status)}`"
-                                        @click="toggleSeat(activeSection, seat)"
-                                        @keydown.enter.prevent="toggleSeat(activeSection, seat)"
-                                        @keydown.space.prevent="toggleSeat(activeSection, seat)"
-                                    >
-                                        <rect
-                                            :x="seat.x * UNIT - SEAT_W / 2"
-                                            :y="seat.y * UNIT - SEAT_H / 2"
-                                            :width="SEAT_W"
-                                            :height="SEAT_H"
-                                            :fill="isSelected(activeSection, seat) ? '#166534' : statusColor(seat.status)"
-                                            :stroke="isSelected(activeSection, seat) ? '#4ecba0' : 'transparent'"
-                                            :stroke-width="isSelected(activeSection, seat) ? 3 : 0"
-                                            rx="2"
-                                        />
-                                        <text
-                                            :x="seat.x * UNIT"
-                                            :y="seat.y * UNIT"
-                                            text-anchor="middle"
-                                            dominant-baseline="central"
-                                            :fill="seatTextColor(seat, activeSection)"
-                                            font-size="9"
-                                            font-weight="700"
-                                        >
-                                            {{ seat.id }}
-                                        </text>
-                                    </g>
-                                </g>
-                            </svg>
+                            <SeatCanvas
+                                :section="activeSection"
+                                :zoom="seatZoom"
+                                :selected-keys="selectedKeys"
+                                @toggle="toggleSeat(activeSection, $event)"
+                            />
                         </div>
                         <div class="zoom-controls" aria-label="Zoom del mapa de asientos">
                             <button
@@ -352,6 +208,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { Head, router } from "@inertiajs/vue3";
+import { registerKonva } from "@/components/seat-map/registerKonva.js";
+import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
+import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -361,6 +220,8 @@ import VerifyCodeModal from "@/components/VerifyCodeModal.vue";
 import LoginModal from "@/components/LoginModal.vue";
 import RegisterModal from "@/components/RegisterModal.vue";
 
+registerKonva();
+
 const props = defineProps({
     slug: { type: String, required: true },
     functionId: { type: String, default: null },
@@ -368,28 +229,10 @@ const props = defineProps({
     stage: { type: Object, required: true },
 });
 
-const UNIT = 10;
-const SEAT_W = 34;
-const SEAT_H = 22;
-const LABEL_SIZE = 22;
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 2.5;
 const ZOOM_STEP = 0.25;
 const HOLD_SECONDS = 7 * 60;
-
-const STATUS_COLOR = {
-    disponible: "#22c55e",
-    no_disponible: "#9ca3af",
-    vendido: "#ef4444",
-    en_proceso: "#f97316",
-};
-
-const STATUS_LABEL = {
-    disponible: "Disponible",
-    no_disponible: "No disponible",
-    vendido: "Vendido",
-    en_proceso: "En proceso de compra",
-};
 
 const zoneZoom = ref(1);
 const seatZoom = ref(1);
@@ -432,91 +275,6 @@ const eventMeta = computed(() => {
     return parts.join(" · ");
 });
 
-const zoneFrame = computed(() => {
-    const sections = props.stage.sections.filter((section) => section.polygon.length >= 3);
-    if (!sections.length) {
-        const size = props.stage.canvas || 2000;
-        return { viewBox: `0 0 ${size} ${size}`, stageBar: null };
-    }
-
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    for (const section of sections) {
-        for (const point of section.polygon) {
-            minX = Math.min(minX, point.x);
-            minY = Math.min(minY, point.y);
-            maxX = Math.max(maxX, point.x);
-            maxY = Math.max(maxY, point.y);
-        }
-    }
-
-    const span = Math.max(maxX - minX, 200);
-    const barWidth = Math.min(span * 0.46, 640);
-    const barHeight = Math.max(80, span * 0.09);
-    const barX = (minX + maxX) / 2 - barWidth / 2;
-    const barY = minY - barHeight - span * 0.05;
-    const pad = span * 0.045;
-    const frameMinX = Math.min(minX, barX) - pad;
-    const frameMinY = barY - pad;
-    const frameMaxX = Math.max(maxX, barX + barWidth) + pad;
-    const frameMaxY = maxY + pad;
-
-    return {
-        viewBox: `${frameMinX} ${frameMinY} ${frameMaxX - frameMinX} ${frameMaxY - frameMinY}`,
-        stageBar: { x: barX, y: barY, width: barWidth, height: barHeight },
-    };
-});
-
-const seatLayout = computed(() => {
-    const section = activeSection.value;
-    const labels = (section?.labels ?? []).filter((label) => !/^\d+$/.test(String(label.name)));
-    let minX = 0;
-    let minY = 0;
-    let maxX = 40;
-    let maxY = 40;
-
-    const consider = (x, y, halfW, halfH) => {
-        minX = Math.min(minX, x - halfW);
-        minY = Math.min(minY, y - halfH);
-        maxX = Math.max(maxX, x + halfW);
-        maxY = Math.max(maxY, y + halfH);
-    };
-
-    if (section?.stage) {
-        consider(section.stage.x1 * UNIT, section.stage.y1 * UNIT, 0, 0);
-        consider(
-            section.stage.x2 * UNIT,
-            section.stage.y1 * UNIT + 18,
-            0,
-            0,
-        );
-    }
-
-    for (const label of labels) {
-        consider(label.x * UNIT, label.y * UNIT, LABEL_SIZE / 2, LABEL_SIZE / 2);
-    }
-
-    for (const row of section?.rows ?? []) {
-        for (const seat of row.seats) {
-            consider(seat.x * UNIT, seat.y * UNIT, SEAT_W / 2, SEAT_H / 2);
-        }
-    }
-
-    const pad = 12;
-    const width = maxX - minX + pad * 2;
-    const height = maxY - minY + pad * 2;
-
-    return {
-        labels,
-        width,
-        height,
-        viewBox: `${minX - pad} ${minY - pad} ${width} ${height}`,
-    };
-});
-
 const selectedDetails = computed(() => {
     const items = [];
 
@@ -547,56 +305,6 @@ const totalLabel = computed(() => {
     return formatMoney(prices.reduce((sum, price) => sum + price, 0));
 });
 
-function polygonPoints(polygon) {
-    return polygon.map((point) => `${point.x},${point.y}`).join(" ");
-}
-
-function centroid(polygon) {
-    const total = polygon.reduce(
-        (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-        { x: 0, y: 0 },
-    );
-    return {
-        x: total.x / polygon.length,
-        y: total.y / polygon.length,
-    };
-}
-
-function labelSize(section) {
-    const xs = section.polygon.map((point) => point.x);
-    const ys = section.polygon.map((point) => point.y);
-    const width = Math.max(...xs) - Math.min(...xs);
-    const height = Math.max(...ys) - Math.min(...ys);
-    const byWidth = (width / Math.max(section.name.length, 1)) * 1.35;
-    const byHeight = height * 0.18;
-    return Math.max(18, Math.min(64, byWidth, byHeight));
-}
-
-function fillTextColor(hex) {
-    const value = String(hex || "").replace("#", "");
-    if (value.length !== 6) return "#ffffff";
-    const red = parseInt(value.slice(0, 2), 16);
-    const green = parseInt(value.slice(2, 4), 16);
-    const blue = parseInt(value.slice(4, 6), 16);
-    const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
-    return luminance > 0.62 ? "#111827" : "#ffffff";
-}
-
-function statusColor(status) {
-    return STATUS_COLOR[status] || STATUS_COLOR.no_disponible;
-}
-
-function statusLabel(status) {
-    return STATUS_LABEL[status] || status;
-}
-
-function seatTextColor(seat, section) {
-    if (isSelected(section, seat) || seat.status !== "no_disponible") {
-        return "#ffffff";
-    }
-    return "#1f2937";
-}
-
 function zonePriceLabel(section) {
     if (!section?.price) return "Precio no disponible";
     const current = section.price.discountPrice ?? section.price.originalPrice;
@@ -623,16 +331,8 @@ function formatFunctionDate(iso) {
     }).format(date);
 }
 
-function zoneAriaLabel(section) {
-    return `Zona ${section.name}, ${zonePriceLabel(section)}`;
-}
-
 function selectSection(key) {
     activeKey.value = key;
-}
-
-function isSelected(section, seat) {
-    return selectedKeys.value.includes(`${section.key}:${seat.id}`);
 }
 
 function toggleSeat(section, seat) {
@@ -882,38 +582,11 @@ main {
 }
 
 .viewport--zones {
-    max-height: 280px;
+    height: 280px;
 }
 
 .viewport--seats {
     max-height: 360px;
-}
-
-.viewport-scaler {
-    min-width: 100%;
-}
-
-.zone-svg {
-    display: block;
-    width: 100%;
-    height: auto;
-}
-
-.seat-svg {
-    display: block;
-}
-
-.seat-svg text,
-.zone-svg text {
-    pointer-events: none;
-}
-
-.zone-svg polygon {
-    cursor: pointer;
-}
-
-.is-selectable {
-    cursor: pointer;
 }
 
 .zoom-controls {
@@ -1068,7 +741,7 @@ main {
 
 @media (min-width: 768px) {
     .viewport--zones {
-        max-height: 520px;
+        height: calc(100dvh - 15rem);
     }
 
     .viewport--seats {
