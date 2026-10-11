@@ -804,6 +804,15 @@ main {
     padding-block: var(--space-8) var(--space-4);
 }
 
+@media (min-width: 769px) {
+    .hero-section .container {
+        width: 98.5%;
+        max-width: 98.5%;
+        margin-inline: auto;
+        padding-inline: 0;
+    }
+}
+
 .hero-frame {
     border-radius: var(--radius-sm);
     overflow: hidden;

@@ -215,6 +215,15 @@ onBeforeUnmount(() => {
     gap: var(--space-4);
 }
 
+@media (min-width: 769px) {
+    .header-inner {
+        width: 98.5%;
+        max-width: 98.5%;
+        margin-inline: auto;
+        padding-inline: 0;
+    }
+}
+
 .search-col {
     display: flex;
     justify-content: left;
