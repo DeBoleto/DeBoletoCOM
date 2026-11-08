@@ -3,17 +3,41 @@
 namespace App\Support;
 
 use RuntimeException;
+use SimpleXMLElement;
 
 class StageMapParser
 {
+    public const ACCESSIBLE_SEAT = 'disability';
+
     public static function parse(string $path, array $zones = []): array
     {
-        $xml = simplexml_load_file($path);
+        $xml = simplexml_load_file($path, null, LIBXML_NONET);
 
         if ($xml === false) {
             throw new RuntimeException('No se pudo leer el mapa del escenario.');
         }
 
+        return self::build($xml, $zones, fn (int $index) => self::demoStatus($index));
+    }
+
+    /**
+     * Interpreta el XML del mapa guardado en base de datos (escenario_xml).
+     * Todos los asientos inician como disponibles; el estado real se resuelve
+     * después contra los boletos emitidos.
+     */
+    public static function parseXml(string $xml, array $zones = []): array
+    {
+        $document = trim($xml) === '' ? false : simplexml_load_string($xml, null, LIBXML_NONET | LIBXML_NOCDATA);
+
+        if ($document === false) {
+            throw new RuntimeException('El mapa del escenario no es un XML válido.');
+        }
+
+        return self::build($document, $zones, fn () => 'disponible');
+    }
+
+    private static function build(SimpleXMLElement $xml, array $zones, callable $statusFor): array
+    {
         $seatIndex = 0;
         $sectionIndex = 0;
         $sections = [];
@@ -28,11 +52,15 @@ class StageMapParser
                     $rowY = (int) $row['y'];
 
                     foreach ($row->seat as $seat) {
+                        $seatId = (string) $seat['seat_id'];
+                        $accessible = $seatId === self::ACCESSIBLE_SEAT;
+
                         $seats[] = [
-                            'id' => (string) $seat['seat_id'],
+                            'id' => $accessible ? self::ACCESSIBLE_SEAT.'-'.$seatIndex : $seatId,
                             'x' => (int) $seat['x'],
                             'y' => $rowY,
-                            'status' => self::demoStatus($seatIndex),
+                            'status' => $accessible ? 'no_disponible' : $statusFor($seatIndex),
+                            'selectable' => ! $accessible,
                         ];
                         $seatIndex++;
                     }
@@ -96,6 +124,7 @@ class StageMapParser
                 'stage' => $stage,
                 'labels' => $labels,
                 'rows' => $rows,
+                'capacity' => isset($section['capacity']) ? (int) $section['capacity'] : null,
                 'price' => self::matchPrice($localityId, $zones),
             ];
             $sectionIndex++;

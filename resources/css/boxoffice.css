@@ -1,0 +1,79 @@
+/* =========================================================
+   Taquilla (boxoffice) — espacio de trabajo claro para mostrador
+   ========================================================= */
+
+@theme {
+    --color-bo-paper: #f4f6f5;
+    --color-bo-card: #ffffff;
+    --color-bo-ink: #16202b;
+    --color-bo-ink-2: #243241;
+    --color-bo-slate: #5a6672;
+    --color-bo-muted: #8a949d;
+    --color-bo-line: #dce2df;
+    --color-bo-green: #1f8f6b;
+    --color-bo-green-dark: #176f53;
+    --color-bo-green-soft: #e3f3ec;
+    --color-bo-sold: #c9423f;
+    --color-bo-sold-soft: #fbe9e8;
+    --color-bo-pending: #d9822b;
+    --color-bo-blocked: #a7b0b8;
+    --font-bo: "Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+
+body:has(.bo-root) {
+    background-color: var(--color-bo-paper);
+    color: var(--color-bo-ink);
+}
+
+.bo-root {
+    font-family: var(--font-bo);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-bo-ink);
+    background-color: var(--color-bo-paper);
+}
+
+.bo-root h1,
+.bo-root h2,
+.bo-root h3,
+.bo-root h4 {
+    color: inherit;
+    letter-spacing: -0.01em;
+}
+
+.bo-root :focus-visible {
+    outline: 2px solid var(--color-bo-green);
+    outline-offset: 2px;
+}
+
+.bo-root .tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Talón de boleto: muescas laterales y línea perforada */
+.bo-stub {
+    --notch: 14px;
+    position: relative;
+    background: var(--color-bo-card);
+    border-radius: 14px;
+    -webkit-mask:
+        radial-gradient(circle var(--notch) at 0 var(--stub-cut, 70%), #0000 98%, #000) left / 51% 100% no-repeat,
+        radial-gradient(circle var(--notch) at 100% var(--stub-cut, 70%), #0000 98%, #000) right / 51% 100% no-repeat;
+    mask:
+        radial-gradient(circle var(--notch) at 0 var(--stub-cut, 70%), #0000 98%, #000) left / 51% 100% no-repeat,
+        radial-gradient(circle var(--notch) at 100% var(--stub-cut, 70%), #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+.bo-perforation {
+    border-top: 2px dashed var(--color-bo-line);
+    margin-inline: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bo-root *,
+    .bo-root *::before,
+    .bo-root *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

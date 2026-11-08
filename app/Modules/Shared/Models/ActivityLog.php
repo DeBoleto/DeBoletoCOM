@@ -4,9 +4,6 @@ namespace App\Modules\Shared\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use DB;
-use Auth;
-
 
 class ActivityLog extends Model
 {
@@ -39,6 +36,4 @@ class ActivityLog extends Model
     protected $casts = [
         'context' => 'array', // Convierte automáticamente el JSON a un array de PHP
     ];
-
-
 }

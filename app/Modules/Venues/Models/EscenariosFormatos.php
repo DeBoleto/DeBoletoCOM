@@ -2,34 +2,42 @@
 
 namespace App\Modules\Venues\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use DB;
+use Illuminate\Database\Eloquent\Model;
 
 class EscenariosFormatos extends Model
 {
-    protected $table = "escenarios_formatos";
+    protected $table = 'escenarios_formatos';
+
     public $timestamps = false;
+
     protected $primaryKey = 'pk_escenario_formato';
 
     protected $fillable = ['escenario_formato', 'escenario_xml', 'creacion_pk_usuario', 'creacion_fecha'];
 
-     static public function view() {
+    public static function view()
+    {
         $retorno = DB::table('view_escenarios_formatos');
+
         return $retorno;
     }
 
-    static public function viewFind($pk_escenario_formato) {
+    public static function viewFind($pk_escenario_formato)
+    {
         $retorno = DB::table('view_escenarios_formatos');
         $retorno->where('pk_escenario_formato', '=', $pk_escenario_formato);
+
         return $retorno->get()->first();
     }
 
-    public function save(array $options = array()) {
+    public function save(array $options = [])
+    {
         return parent::save($options);
     }
 
-    public function create(array $options = array()) {
-        if( $this['pk_escenario_formato'] === null) {
+    public function create(array $options = [])
+    {
+        if ($this['pk_escenario_formato'] === null) {
             $this['creacion_pk_usuario'] = 1;
             $this['creacion_fecha'] = date('Y-m-d H:i:s');
 
@@ -38,5 +46,4 @@ class EscenariosFormatos extends Model
             return false;
         }
     }
-
 }

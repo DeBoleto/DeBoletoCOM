@@ -2,57 +2,38 @@
 
 namespace App\Modules\Events\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use DB;
-use Auth;
+use App\Modules\Shared\Models\LegacyModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EventosLocalidadesEspeciales extends Model
+/**
+ * Variante de precio dentro de una localidad (p. ej. "Niño", "INAPAM").
+ *
+ * @property int $pk_evento_localidad_especiales
+ * @property int $pk_evento_localidad
+ * @property string $evento_localidad
+ * @property float $precio
+ * @property float $comision
+ * @property float $comisionWeb
+ */
+class EventosLocalidadesEspeciales extends LegacyModel
 {
-    protected $table = "eventos_localidades_especiales";
-    public $timestamps = false;
+    protected $table = 'eventos_localidades_especiales';
+
     protected $primaryKey = 'pk_evento_localidad_especiales';
 
-    protected $fillable = [
-        'pk_evento_localidad', 'evento_localidad', 'precio', 'creacion_pk_usuario', 'creacion_fecha', 'modificacion_pk_usuario',
-        'modificacion_fecha', 'eliminado'
-    ];
-
-    public function creacionUsuario() {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'creacion_pk_usuario');
+    protected function casts(): array
+    {
+        return [
+            'pk_evento_localidad' => 'integer',
+            'precio' => 'float',
+            'comision' => 'float',
+            'comisionWeb' => 'float',
+            'eliminado' => 'boolean',
+        ];
     }
 
-    public function save(array $options = array()) {
-
-        $this['modificacion_pk_usuario'] = Auth::user()->pk_usuario;
-        $this['modificacion_fecha'] = date('Y-m-d H:i:s');
-
-        return parent::save($options);
+    public function localidad(): BelongsTo
+    {
+        return $this->belongsTo(EventosLocalidades::class, 'pk_evento_localidad', 'pk_evento_localidad');
     }
-
-    public function create(array $options = array()) {
-        if( $this['pk_usuario_documento'] === null) {
-            $this['creacion_pk_usuario'] = Auth::user()->pk_usuario;
-            $this['creacion_fecha'] = date('Y-m-d H:i:s');
-            return save($options);
-        } else {
-            return false;
-        }
-    }
-
-    public function update(array $attributes = array(), array $options = array()) {
-        return save($options);
-    }
-
-    public function delete() {
-        if( $this['eliminado'] == 0) {
-            $this['modificacion_pk_usuario'] = Auth::user()->pk_usuario;
-            $this['modificacion_fecha'] = date('Y-m-d H:i:s');
-            $this['eliminado'] = 1;
-            return save();
-        } else {
-            return false;
-        }
-    }
-
-
 }

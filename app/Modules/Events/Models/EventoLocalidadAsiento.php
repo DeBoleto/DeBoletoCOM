@@ -3,26 +3,55 @@
 namespace App\Modules\Events\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use DB;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Configuración de venta por mesa: cada lugar vendido se divide en N asientos.
+ *
+ * @property int $pk_evento_localidad_asiento
+ * @property int $pk_evento
+ * @property int $pk_evento_localidad
+ * @property int $cantidad_asientos
+ * @property bool $es_numero
+ */
 class EventoLocalidadAsiento extends Model
 {
-    protected $table = "eventos_localidades_asientos";
+    public $timestamps = false;
+
+    protected $table = 'eventos_localidades_asientos';
 
     protected $primaryKey = 'pk_evento_localidad_asiento';
 
-    protected $fillable = [
-        'pk_evento_localidad_asiento',
-        'pk_evento',
-        'pk_evento_localidad',
-        'cantidad_asientos',
-        'es_numero',
-        'separador',
-    ];
+    protected $guarded = ['pk_evento_localidad_asiento'];
 
-    static public function viewFind($pk_evento_localidad) {
-        $retorno = DB::table('eventos_localidades_asientos');
-        $retorno->where('pk_evento_localidad', '=', $pk_evento_localidad);
-        return $retorno->get()->first();
+    protected function casts(): array
+    {
+        return [
+            'pk_evento' => 'integer',
+            'pk_evento_localidad' => 'integer',
+            'cantidad_asientos' => 'integer',
+            'es_numero' => 'boolean',
+        ];
+    }
+
+    public function localidad(): BelongsTo
+    {
+        return $this->belongsTo(EventosLocalidades::class, 'pk_evento_localidad', 'pk_evento_localidad');
+    }
+
+    /**
+     * Etiquetas de los asientos de una mesa: 1..N o A..N.
+     *
+     * @return list<string>
+     */
+    public function seatLabels(): array
+    {
+        $labels = [];
+
+        for ($i = 0; $i < $this->cantidad_asientos; $i++) {
+            $labels[] = $this->es_numero ? (string) ($i + 1) : chr(ord('A') + $i);
+        }
+
+        return $labels;
     }
 }

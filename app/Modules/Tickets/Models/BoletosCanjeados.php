@@ -2,43 +2,43 @@
 
 namespace App\Modules\Tickets\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use DB;
-use Auth;
+use App\Modules\Shared\Models\LegacyModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BoletosCanjeados extends Model
+/**
+ * Bitácora de cambios: boleto original reemplazado por uno nuevo.
+ *
+ * @property int $pk_boleto_canjeado
+ * @property int $folio_boleto_anterior
+ * @property int $folio_boleto_actual
+ * @property string $tipo_canje
+ */
+class BoletosCanjeados extends LegacyModel
 {
-    protected $table = "boletos_canjeados";
-    public $timestamps = false;
+    public const UPDATED_AT = null;
+
+    public const CREATED_BY = 'creacion_usuario';
+
+    public const UPDATED_BY = null;
+
+    public const TYPE_BOX_OFFICE = 'Taquilla';
+
+    protected $table = 'boletos_canjeados';
+
     protected $primaryKey = 'pk_boleto_canjeado';
 
-    protected $fillable = ['pk_boleto_canjeado', 'folio_boleto_anterior', 'folio_boleto_actual', 'creacion_fecha', 'creacion_usuario', 'tipo_canje'];
-
-    /* RELATIONSHIPS - INICIO */
-    public function eventosfuncionesboletos() {
-        return $this->belongsTo('App\Modules\Tickets\Models\EventosFuncionesBoletos', 'pk_evento_funcion_boleto', 'folio_boleto_anterior');
+    protected function casts(): array
+    {
+        return ['folio_boleto_anterior' => 'integer', 'folio_boleto_actual' => 'integer'];
     }
 
-
-
-    /* RELATIONSHIPS - FIN */
-
-    public function save(array $options = array()) {
-
-         $this['creacion_fecha'] = date('Y-m-d H:i:s');
-        $this['creacion_usuario'] = Auth::user()->pk_usuario;
-         return parent::save($options);
+    public function anterior(): BelongsTo
+    {
+        return $this->belongsTo(EventosFuncionesBoletos::class, 'folio_boleto_anterior', 'pk_evento_funcion_boleto');
     }
 
-    public function create(array $options = array()) {
-        if( $this['pk_boleto_canjeado'] === null) {
-            $this['creacion_fecha'] = date('Y-m-d H:i:s');
-            $this['creacion_usuario'] = Auth::user()->pk_usuario;
-            return save($options);
-        } else {
-            return false;
-        }
+    public function actual(): BelongsTo
+    {
+        return $this->belongsTo(EventosFuncionesBoletos::class, 'folio_boleto_actual', 'pk_evento_funcion_boleto');
     }
-
-
 }

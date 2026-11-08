@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class CortesCajas extends Model
 {
-    protected $table = "cortes_cajas";
+    protected $table = 'cortes_cajas';
+
     public $timestamps = false;
+
     protected $primaryKey = 'pk_corte_caja';
 
     protected $fillable = [
@@ -19,15 +21,17 @@ class CortesCajas extends Model
         'total_fisico',
         'diferencia',
         'estatus',
-        'observaciones'
+        'observaciones',
     ];
 
     /* RELATIONSHIP - INICIO */
-    public function usuario() {
+    public function usuario()
+    {
         return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'pk_usuario');
     }
 
-    public function compras() {
+    public function compras()
+    {
         return $this->hasMany('App\Modules\Orders\Models\EventosCompras', 'pk_corte_caja', 'pk_corte_caja');
     }
     /* RELATIONSHIP - FIN */
