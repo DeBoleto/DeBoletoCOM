@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout :title="`Vender — ${event.name}`">
+    <BackOfficeLayout :title="`Vender — ${event.name}`">
         <template #header>
             <div class="flex min-w-0 items-center gap-4">
                 <h1 class="truncate text-lg font-semibold">{{ event.name }}</h1>
@@ -182,17 +182,17 @@
                 </div>
             </aside>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { Link, useForm } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import StepIndicator from "@/Components/BoxOffice/StepIndicator.vue";
-import QuantityStepper from "@/Components/BoxOffice/QuantityStepper.vue";
-import SeatPicker from "@/Components/BoxOffice/SeatPicker.vue";
-import { money } from "@/Components/BoxOffice/format.js";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import StepIndicator from "@/components/BoxOffice/StepIndicator.vue";
+import QuantityStepper from "@/components/BoxOffice/QuantityStepper.vue";
+import SeatPicker from "@/components/BoxOffice/SeatPicker.vue";
+import { money } from "@/components/BoxOffice/format.js";
 
 const props = defineProps({
     event: { type: Object, required: true },

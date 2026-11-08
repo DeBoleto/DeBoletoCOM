@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Contador de entradas">
+    <BackOfficeLayout title="Contador de entradas">
         <div class="flex max-w-3xl flex-wrap items-end gap-4 rounded-xl border border-bo-line bg-bo-card p-5">
             <label class="min-w-64 flex-1 text-sm font-medium">
                 <span class="mb-1.5 block">Evento</span>
@@ -36,13 +36,13 @@
                 <li v-if="!totals.localities.length" class="px-5 py-3 text-sm text-bo-slate">Aún no hay accesos registrados.</li>
             </ul>
         </section>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 
 defineProps({ events: { type: Array, required: true } });
 

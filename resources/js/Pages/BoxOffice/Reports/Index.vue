@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Reportes">
+    <BackOfficeLayout title="Reportes">
         <form class="mb-6 flex max-w-md gap-3" @submit.prevent="router.get(route('boxoffice.reports.index'), { evento: term }, { preserveState: true })">
             <label class="relative flex-1">
                 <span class="sr-only">Buscar evento</span>
@@ -32,15 +32,15 @@
                 </div>
             </li>
         </ul>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import EmptyState from "@/Components/BoxOffice/EmptyState.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import EmptyState from "@/components/BoxOffice/EmptyState.vue";
 
 const props = defineProps({
     search: { type: String, default: "" },

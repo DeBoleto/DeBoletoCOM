@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Canje de boletos">
+    <BackOfficeLayout title="Canje de boletos">
         <div class="max-w-3xl">
             <p class="mb-5 text-sm text-bo-slate">Imprime en taquilla los boletos de una compra hecha en línea o en otro punto de venta.</p>
 
@@ -67,14 +67,14 @@
                 </footer>
             </article>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 
 const props = defineProps({
     folio: { type: Number, default: null },

@@ -14,17 +14,21 @@ use Illuminate\Support\Str;
  */
 class MenuBuilder
 {
-    private const SESSION_KEY = 'boxoffice.menu';
+    private const SESSION_KEY = 'backoffice.menu.';
+
+    private const AREAS = ['boxoffice', 'admin'];
 
     public function __construct(private readonly Session $session) {}
 
     /**
      * @return list<array{label: string, icon: ?string, items: list<array{label: string, url: string, section: string}>}>
      */
-    public function for(Usuarios $user): array
+    public function for(Usuarios $user, string $area = 'boxoffice'): array
     {
-        if ($this->session->has(self::SESSION_KEY)) {
-            return $this->session->get(self::SESSION_KEY);
+        $key = self::SESSION_KEY.$area;
+
+        if ($this->session->has($key)) {
+            return $this->session->get($key);
         }
 
         $privileges = $user->privilegios()->menu()->orderBy('menu_orden')->get();
@@ -41,14 +45,14 @@ class MenuBuilder
                 ->where('pk_privilegio_categoria', $category->pk_privilegio_categoria)
                 ->map(fn (Privilegios $privilege) => [
                     'label' => $privilege->etiqueta,
-                    'url' => '/boxoffice/'.ltrim((string) $privilege->menu_url, '/'),
+                    'url' => "/{$area}/".ltrim((string) $privilege->menu_url, '/'),
                     'section' => self::sectionOf((string) $privilege->menu_url),
                 ])
                 ->values()
                 ->all(),
         ])->values()->all();
 
-        $this->session->put(self::SESSION_KEY, $menu);
+        $this->session->put($key, $menu);
 
         return $menu;
     }
@@ -69,7 +73,9 @@ class MenuBuilder
 
     public function forget(): void
     {
-        $this->session->forget(self::SESSION_KEY);
+        foreach (self::AREAS as $area) {
+            $this->session->forget(self::SESSION_KEY.$area);
+        }
     }
 
     public static function sectionOf(string $url): string

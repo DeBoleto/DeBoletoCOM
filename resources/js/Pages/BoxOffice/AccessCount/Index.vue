@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Control de acceso">
+    <BackOfficeLayout title="Control de acceso">
         <div class="mx-auto max-w-2xl">
             <form @submit.prevent="scan">
                 <label for="code" class="mb-2 block text-sm font-medium">Escanea o escribe el código del boleto</label>
@@ -44,13 +44,13 @@
                 </ul>
             </section>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { nextTick, onMounted, ref } from "vue";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 
 const input = ref(null);
 const code = ref("");

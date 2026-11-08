@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Cambio de boletos">
+    <BackOfficeLayout title="Cambio de boletos">
         <div class="max-w-xl">
             <p class="mb-5 text-sm text-bo-slate">
                 Cambia un boleto de un evento cancelado por boletos de otro evento. Se cobra la diferencia y el boleto original queda registrado como cambiado.
@@ -26,12 +26,12 @@
                 </button>
             </form>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { useForm } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 
 const form = useForm({ folio: "" });
 </script>

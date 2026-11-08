@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout :title="`${title} — ${event.name}`">
+    <BackOfficeLayout :title="`${title} — ${event.name}`">
         <template #header>
             <div class="min-w-0">
                 <p class="text-xs text-bo-slate">{{ title }}</p>
@@ -86,15 +86,15 @@
                 </div>
             </aside>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Link, useForm } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import SeatPicker from "@/Components/BoxOffice/SeatPicker.vue";
-import { money } from "@/Components/BoxOffice/format.js";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import SeatPicker from "@/components/BoxOffice/SeatPicker.vue";
+import { money } from "@/components/BoxOffice/format.js";
 
 const props = defineProps({
     title: { type: String, required: true },

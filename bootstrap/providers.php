@@ -13,6 +13,7 @@ return [
     App\Modules\Venues\VenuesServiceProvider::class,
     App\Modules\Users\UsersServiceProvider::class,
     App\Modules\BoxOffice\BoxOfficeServiceProvider::class,
+    App\Modules\Dashboard\DashboardServiceProvider::class,
     App\Modules\Payments\PaymentsServiceProvider::class,
     App\Modules\Notifications\NotificationsServiceProvider::class,
     App\Modules\Reports\ReportsServiceProvider::class,

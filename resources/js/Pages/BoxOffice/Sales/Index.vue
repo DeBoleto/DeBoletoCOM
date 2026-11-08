@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Ventas y cortes de caja">
+    <BackOfficeLayout title="Ventas y cortes de caja">
         <template #actions>
             <Link
                 :href="route('boxoffice.sales.mail')"
@@ -74,15 +74,15 @@
                 </tbody>
             </table>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Link } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import EmptyState from "@/Components/BoxOffice/EmptyState.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import EmptyState from "@/components/BoxOffice/EmptyState.vue";
 
 const props = defineProps({
     events: { type: Array, required: true },

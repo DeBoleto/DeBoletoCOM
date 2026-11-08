@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout :title="`Confirmar cortesías — ${event.name}`">
+    <BackOfficeLayout :title="`Confirmar cortesías — ${event.name}`">
         <div class="mx-auto grid max-w-4xl gap-8 lg:grid-cols-[1fr_340px]">
             <article class="bo-stub border border-bo-line" :style="{ '--stub-cut': 'calc(100% - 76px)' }" aria-label="Cortesías a crear">
                 <header class="p-6">
@@ -64,14 +64,14 @@
                 </Link>
             </form>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import { Link, useForm } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 
 const props = defineProps({
     event: { type: Object, required: true },

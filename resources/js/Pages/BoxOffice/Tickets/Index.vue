@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout :title="title">
+    <BackOfficeLayout :title="title">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <p class="text-sm text-bo-slate">
                 <span class="tabular font-semibold text-bo-ink">{{ filtered.length }}</span>
@@ -46,16 +46,16 @@
                 </Link>
             </li>
         </ul>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Link } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import EventThumb from "@/Components/BoxOffice/EventThumb.vue";
-import EmptyState from "@/Components/BoxOffice/EmptyState.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import EventThumb from "@/components/BoxOffice/EventThumb.vue";
+import EmptyState from "@/components/BoxOffice/EmptyState.vue";
 
 const props = defineProps({
     events: { type: Array, required: true },

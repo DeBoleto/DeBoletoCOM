@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Inicio">
+    <BackOfficeLayout title="Inicio">
         <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-semibold">Hola, {{ firstName }}</h2>
@@ -106,17 +106,17 @@
                 </ul>
             </Deferred>
         </section>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Deferred, usePage } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import EventThumb from "@/Components/BoxOffice/EventThumb.vue";
-import EmptyState from "@/Components/BoxOffice/EmptyState.vue";
-import { money } from "@/Components/BoxOffice/format.js";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import EventThumb from "@/components/BoxOffice/EventThumb.vue";
+import EmptyState from "@/components/BoxOffice/EmptyState.vue";
+import { money } from "@/components/BoxOffice/format.js";
 
 const props = defineProps({
     events: { type: Array, required: true },
@@ -133,7 +133,7 @@ const tabs = [
 const activeTab = ref("active");
 const page = usePage();
 
-const firstName = computed(() => (page.props.boxoffice?.user?.name ?? "").split(" ")[0]);
+const firstName = computed(() => (page.props.backoffice?.user?.name ?? "").split(" ")[0]);
 
 const dateFormat = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 

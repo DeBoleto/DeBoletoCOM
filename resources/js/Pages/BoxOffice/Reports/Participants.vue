@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Participantes de carreras">
+    <BackOfficeLayout title="Participantes de carreras">
         <form class="flex max-w-3xl flex-wrap items-end gap-4 rounded-xl border border-bo-line bg-bo-card p-5" @submit.prevent="download">
             <label class="min-w-64 flex-1 text-sm font-medium">
                 <span class="mb-1.5 block">Carrera</span>
@@ -21,12 +21,12 @@
             </button>
         </form>
         <p class="mt-3 max-w-3xl text-sm text-bo-slate">Sin fechas se exportan todos los registros. Los boletos sin registro aparecen al final con su folio.</p>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 
 defineProps({
     events: { type: Array, required: true },

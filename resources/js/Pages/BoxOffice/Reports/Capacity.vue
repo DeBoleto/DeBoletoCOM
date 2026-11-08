@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Aforo por localidad">
+    <BackOfficeLayout title="Aforo por localidad">
         <label class="mb-6 block max-w-md text-sm font-medium">
             <span class="mb-1.5 block">Evento</span>
             <select v-model="eventId" class="block w-full rounded-lg border-bo-line py-2.5 focus:border-bo-green focus:ring-bo-green" @change="load">
@@ -40,13 +40,13 @@
                 </ul>
             </section>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import ZoneCanvas from "@/Components/seat-map/ZoneCanvas.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
 
 defineProps({ events: { type: Array, required: true } });
 

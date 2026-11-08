@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout :title="`${title} — ${event.name}`">
+    <BackOfficeLayout :title="`${title} — ${event.name}`">
         <div class="mx-auto max-w-2xl">
             <div class="bo-stub border border-bo-line" :style="{ '--stub-cut': 'calc(100% - 88px)' }">
                 <div class="p-8 text-center">
@@ -50,14 +50,14 @@
                 </Link>
             </div>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Link } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 
 const props = defineProps({
     title: { type: String, required: true },

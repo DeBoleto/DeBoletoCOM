@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Ventas del día">
+    <BackOfficeLayout title="Ventas del día">
         <form class="flex max-w-2xl flex-wrap items-end gap-4 rounded-xl border border-bo-line bg-bo-card p-5" @submit.prevent="open">
             <label class="min-w-64 flex-1 text-sm font-medium">
                 <span class="mb-1.5 block">Evento</span>
@@ -16,12 +16,12 @@
                 Generar PDF
             </button>
         </form>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { ref } from "vue";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 
 const props = defineProps({
     events: { type: Array, required: true },

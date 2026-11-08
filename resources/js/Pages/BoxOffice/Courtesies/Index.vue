@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Cortesías">
+    <BackOfficeLayout title="Cortesías">
         <template #actions>
             <Link
                 :href="route('boxoffice.courtesies.create.index')"
@@ -100,15 +100,15 @@
                 </tbody>
             </table>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { Link, router } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import EmptyState from "@/Components/BoxOffice/EmptyState.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import EmptyState from "@/components/BoxOffice/EmptyState.vue";
 
 const props = defineProps({
     events: { type: Array, required: true },

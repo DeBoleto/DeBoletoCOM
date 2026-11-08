@@ -18,11 +18,11 @@
             aria-label="Menú de taquilla"
         >
             <div class="flex h-16 items-center justify-between px-5">
-                <Link :href="route('boxoffice.dashboard')" class="flex items-center gap-2.5 text-white">
+                <Link :href="route(config.home)" class="flex items-center gap-2.5 text-white">
                     <img src="/deboletoIcono.png" alt="" class="size-8 rounded-md" />
                     <span class="text-[15px] leading-tight font-semibold">
                         DeBoleto
-                        <span class="block text-xs font-normal text-white/50">Taquilla</span>
+                        <span class="block text-xs font-normal text-white/50">{{ config.label }}</span>
                     </span>
                 </Link>
                 <button type="button" class="rounded p-1.5 text-white/60 hover:text-white lg:hidden" aria-label="Cerrar menú" @click="menuOpen = false">
@@ -32,9 +32,9 @@
 
             <nav class="flex-1 overflow-y-auto px-3 pb-4">
                 <Link
-                    :href="route('boxoffice.dashboard')"
+                    :href="route(config.home)"
                     class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm"
-                    :class="isActive('/boxoffice/inicio') ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
+                    :class="isActive(`/${area}/inicio`) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
                 >
                     <BoIcon name="home" :size="18" />
                     Inicio
@@ -45,24 +45,15 @@
                         <BoIcon :name="iconForMenu(group.icon)" :size="14" />
                         {{ group.label }}
                     </p>
-                    <template v-for="item in group.items" :key="item.url">
-                        <Link
-                            v-if="isPorted(item.url)"
-                            :href="item.url"
-                            class="flex items-center rounded-lg px-3 py-1.5 pl-9 text-sm"
-                            :class="isActive(item.url) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
-                        >
-                            {{ item.label }}
-                        </Link>
-                        <span
-                            v-else
-                            class="flex cursor-not-allowed items-center justify-between gap-2 rounded-lg px-3 py-1.5 pl-9 text-sm text-white/35"
-                            title="Esta sección aún se usa en el sistema anterior"
-                        >
-                            {{ item.label }}
-                            <span class="rounded bg-white/5 px-1.5 py-0.5 text-[11px]">Pronto</span>
-                        </span>
-                    </template>
+                    <Link
+                        v-for="item in group.items"
+                        :key="item.url"
+                        :href="item.url"
+                        class="flex items-center rounded-lg px-3 py-1.5 pl-9 text-sm"
+                        :class="isActive(item.url) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
+                    >
+                        {{ item.label }}
+                    </Link>
                 </div>
             </nav>
 
@@ -72,7 +63,7 @@
                     <p class="truncate text-xs text-white/50">{{ user?.email }}</p>
                 </div>
                 <Link
-                    :href="route('boxoffice.logout')"
+                    :href="route(config.logout)"
                     method="post"
                     as="button"
                     class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-white/5 hover:text-white"
@@ -118,8 +109,8 @@
 <script setup>
 import { computed, onUnmounted, ref } from "vue";
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
-import BoIcon from "@/Components/BoxOffice/BoIcon.vue";
-import { iconForMenu } from "@/Components/BoxOffice/format.js";
+import BoIcon from "@/components/BoxOffice/BoIcon.vue";
+import { iconForMenu } from "@/components/BoxOffice/format.js";
 
 defineProps({
     title: { type: String, required: true },
@@ -128,33 +119,49 @@ defineProps({
 const page = usePage();
 const menuOpen = ref(false);
 
-const user = computed(() => page.props.boxoffice?.user);
-const menu = computed(() => page.props.boxoffice?.menu ?? []);
+const AREAS = {
+    boxoffice: {
+        label: "Taquilla",
+        home: "boxoffice.dashboard",
+        logout: "boxoffice.logout",
+        sections: [
+            "inicio",
+            "tickets",
+            "ventas",
+            "boletos-venta",
+            "tickets-courtesy",
+            "tickets-courtesy-create",
+            "tickets-exchange",
+            "tickets-count",
+            "tickets-change",
+            "reportes",
+            "reportes-por-dia",
+            "reportes-contador-entradas",
+            "reportes-por-categoria",
+            "escenarios",
+        ],
+    },
+    admin: {
+        label: "Administración",
+        home: "admin.home",
+        logout: "admin.logout",
+        sections: ["inicio", "administradores", "monitores", "empresarios", "puntoventa", "usuarios"],
+    },
+};
+
+const area = computed(() => page.props.backoffice?.area ?? "boxoffice");
+const config = computed(() => AREAS[area.value]);
+const user = computed(() => page.props.backoffice?.user);
 const flash = computed(() => page.props.flash ?? {});
 
-const PORTED_SECTIONS = [
-    "inicio",
-    "tickets",
-    "ventas",
-    "boletos-venta",
-    "tickets-courtesy",
-    "tickets-courtesy-create",
-    "tickets-exchange",
-    "tickets-count",
-    "tickets-change",
-    "reportes",
-    "reportes-por-dia",
-    "reportes-contador-entradas",
-    "reportes-por-categoria",
-    "escenarios",
-];
+const menu = computed(() =>
+    (page.props.backoffice?.menu ?? [])
+        .map((group) => ({ ...group, items: group.items.filter((item) => config.value.sections.includes(section(item.url))) }))
+        .filter((group) => group.items.length),
+);
 
 function section(url) {
-    return url.replace(/^\/boxoffice\/?/, "").split(/[/?]/)[0];
-}
-
-function isPorted(url) {
-    return PORTED_SECTIONS.includes(section(url));
+    return url.replace(/^\/(boxoffice|admin)\/?/, "").split(/[/?]/)[0];
 }
 
 function isActive(url) {

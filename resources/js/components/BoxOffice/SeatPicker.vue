@@ -74,8 +74,8 @@
 import { computed, ref, watch } from "vue";
 import BoIcon from "./BoIcon.vue";
 import QuantityStepper from "./QuantityStepper.vue";
-import ZoneCanvas from "@/Components/seat-map/ZoneCanvas.vue";
-import SeatCanvas from "@/Components/seat-map/SeatCanvas.vue";
+import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
+import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
 import { money } from "./format.js";
 
 /**

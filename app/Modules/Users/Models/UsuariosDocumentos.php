@@ -2,88 +2,56 @@
 
 namespace App\Modules\Users\Models;
 
-use Auth;
-use DB;
-use Illuminate\Database\Eloquent\Model;
+use App\Modules\Shared\Models\LegacyModel;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UsuariosDocumentos extends Model
+/**
+ * Documento adjunto a un usuario del back-office (identificación, contrato…).
+ * El archivo vive en el disco local, carpeta usuarios_documentos.
+ *
+ * @property int $pk_usuario_documento
+ * @property int $pk_usuario
+ * @property string $documento
+ * @property string|null $descripcion
+ * @property string $fichero
+ * @property bool $privado
+ * @property bool $notificar
+ * @property bool $vigencia
+ */
+class UsuariosDocumentos extends LegacyModel
 {
-    protected $table = 'usuarios_documentos';
+    public const DIRECTORY = 'usuarios_documentos';
 
-    public $timestamps = false;
+    protected $table = 'usuarios_documentos';
 
     protected $primaryKey = 'pk_usuario_documento';
 
-    protected $fillable = ['pk_usuario', 'documento', 'descripcion', 'fichero', 'privado', 'notificar', 'vigencia', 'expedicion_fecha', 'vencimiento_fecha', 'creacion_pk_usuario', 'creacion_fecha', 'modificacion_pk_usuario', 'modificacion_fecha', 'eliminado'];
-
-    /* RELATIONSHIPS - INICIO */
-    public function usuario()
+    protected function casts(): array
     {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'pk_usuario');
+        return [
+            'pk_usuario' => 'integer',
+            'privado' => 'boolean',
+            'notificar' => 'boolean',
+            'vigencia' => 'boolean',
+            'eliminado' => 'boolean',
+            'expedicion_fecha' => 'date',
+            'vencimiento_fecha' => 'date',
+        ];
     }
 
-    public function creacionUsuario()
+    public function usuario(): BelongsTo
     {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'creacion_pk_usuario');
+        return $this->belongsTo(Usuarios::class, 'pk_usuario', 'pk_usuario');
     }
 
-    public function modificacionUsuario()
+    public function scopeActivos(Builder $query): Builder
     {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'modificacion_pk_usuario');
-    }
-    /* RELATIONSHIPS - FIN */
-
-    public static function view()
-    {
-        $retorno = DB::table('view_usuarios_documentos');
-
-        return $retorno;
+        return $query->where('eliminado', 0);
     }
 
-    public static function viewFind($pk_usuario)
+    public function path(): string
     {
-        $retorno = DB::table('view_usuarios_documentos');
-        $retorno->where('pk_usuario', '=', $pk_usuario);
-
-        return $retorno->get()->first();
-    }
-
-    public function save(array $options = [])
-    {
-
-        $this['modificacion_pk_usuario'] = Auth::user()->pk_usuario;
-        $this['modificacion_fecha'] = date('Y-m-d H:i:s');
-
-        return parent::save($options);
-    }
-
-    public function create(array $options = [])
-    {
-        if ($this['pk_usuario_documento'] === null) {
-            $this['creacion_pk_usuario'] = Auth::user()->pk_usuario;
-            $this['creacion_fecha'] = date('Y-m-d H:i:s');
-
-            return save($options);
-        } else {
-            return false;
-        }
-    }
-
-    public function update(array $attributes = [], array $options = [])
-    {
-        return save($options);
-    }
-
-    public function delete()
-    {
-        if ($this['eliminado'] == 0) {
-            $this['modificacion_pk_usuario'] = Auth::user()->pk_usuario;
-            $this['modificacion_fecha'] = date('Y-m-d H:i:s');
-            $this['eliminado'] = 1;
-
-            return save();
-        } else {
-            return false;
-        }
+        return self::DIRECTORY.'/'.basename($this->fichero);
     }
 }

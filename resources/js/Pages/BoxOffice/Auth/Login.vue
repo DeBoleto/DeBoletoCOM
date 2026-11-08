@@ -1,5 +1,5 @@
 <template>
-    <Head title="Taquilla — Iniciar sesión">
+    <Head :title="`${areaLabel} — Iniciar sesión`">
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link href="https://fonts.bunny.net/css?family=archivo:400,500,600,700&display=swap" rel="stylesheet" />
     </Head>
@@ -13,13 +13,13 @@
 
             <div class="bo-stub max-w-md p-0 text-bo-ink" style="--stub-cut: calc(100% - 92px)">
                 <div class="p-8">
-                    <p class="text-sm text-bo-slate">Punto de venta</p>
-                    <p class="mt-1 text-3xl leading-tight font-semibold">Vende, imprime y cierra caja desde un solo lugar.</p>
+                    <p class="text-sm text-bo-slate">{{ areaLabel }}</p>
+                    <p class="mt-1 text-3xl leading-tight font-semibold">{{ tagline }}</p>
                 </div>
                 <div class="bo-perforation" />
                 <div class="flex items-center justify-between px-8 py-6 text-sm text-bo-slate">
-                    <span>Taquilla</span>
-                    <span>Corte de caja al día</span>
+                    <span>{{ areaLabel }}</span>
+                    <span>{{ footnote }}</span>
                 </div>
             </div>
 
@@ -30,11 +30,11 @@
             <form class="w-full max-w-sm" novalidate @submit.prevent="submit">
                 <div class="mb-8 flex items-center gap-3 lg:hidden">
                     <img src="/deboletoIcono.png" alt="" class="size-9 rounded-lg" />
-                    <span class="text-lg font-semibold">DeBoleto Taquilla</span>
+                    <span class="text-lg font-semibold">DeBoleto {{ areaLabel }}</span>
                 </div>
 
                 <h1 class="text-2xl font-semibold">Inicia sesión</h1>
-                <p class="mt-1 text-sm text-bo-slate">Usa tu cuenta de taquilla.</p>
+                <p class="mt-1 text-sm text-bo-slate">Usa tu cuenta de {{ areaLabel.toLowerCase() }}.</p>
 
                 <div class="mt-8 space-y-5">
                     <div>
@@ -94,6 +94,13 @@
 import { ref } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 
+const props = defineProps({
+    areaLabel: { type: String, default: "Taquilla" },
+    tagline: { type: String, default: "Vende, imprime y cierra caja desde un solo lugar." },
+    footnote: { type: String, default: "Corte de caja al día" },
+    submitRoute: { type: String, default: "boxoffice.login.store" },
+});
+
 const showPassword = ref(false);
 
 const form = useForm({
@@ -102,7 +109,7 @@ const form = useForm({
 });
 
 function submit() {
-    form.post(route("boxoffice.login.store"), {
+    form.post(route(props.submitRoute), {
         onFinish: () => form.reset("password"),
     });
 }

@@ -1,5 +1,5 @@
 <template>
-    <BoxOfficeLayout title="Reenviar boletos por correo">
+    <BackOfficeLayout title="Reenviar boletos por correo">
         <div class="max-w-xl">
             <p class="mb-6 text-sm text-bo-slate">
                 Envía de nuevo el PDF de una compra de tus eventos. El folio aparece en la pantalla de venta registrada y en cada boleto.
@@ -40,12 +40,12 @@
                 </button>
             </form>
         </div>
-    </BoxOfficeLayout>
+    </BackOfficeLayout>
 </template>
 
 <script setup>
 import { useForm } from "@inertiajs/vue3";
-import BoxOfficeLayout from "@/Layouts/BoxOfficeLayout.vue";
+import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 
 const form = useForm({ folio: "", email: "" });
 

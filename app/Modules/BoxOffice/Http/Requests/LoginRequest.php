@@ -44,7 +44,7 @@ class LoginRequest extends FormRequest
             'eliminado' => 0,
         ];
 
-        if (! Auth::guard('boxoffice')->attempt($credentials)) {
+        if (! Auth::guard($this->guard())->attempt($credentials)) {
             RateLimiter::hit($this->throttleKey(), 60);
 
             throw ValidationException::withMessages([
@@ -53,6 +53,11 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    protected function guard(): string
+    {
+        return 'boxoffice';
     }
 
     private function ensureIsNotRateLimited(): void
@@ -72,6 +77,6 @@ class LoginRequest extends FormRequest
 
     private function throttleKey(): string
     {
-        return 'boxoffice-login|'.Str::transliterate(Str::lower($this->string('correo')->value()).'|'.$this->ip());
+        return $this->guard().'-login|'.Str::transliterate(Str::lower($this->string('correo')->value()).'|'.$this->ip());
     }
 }
