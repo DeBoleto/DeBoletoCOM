@@ -56,7 +56,7 @@ class CourtesyCheckoutController extends Controller
         return Inertia::render('BoxOffice/Tickets/Index', [
             'title' => 'Crear cortesías',
             'actionLabel' => 'Crear cortesías',
-            'actionRoute' => 'boxoffice.courtesies.create.selection',
+            'actionRoute' => $this->routeName('selection'),
             'events' => $events->map(fn (UsuarioEventoVista $event) => [
                 'id' => $event->pk_evento,
                 'name' => $event->evento,
@@ -76,9 +76,9 @@ class CourtesyCheckoutController extends Controller
 
         return Inertia::render('BoxOffice/Shared/PickSeats', $props->for($event) + [
             'title' => 'Crear cortesías',
-            'submitRoute' => 'boxoffice.courtesies.create.selection.store',
-            'stageRoute' => 'boxoffice.courtesies.create.stage',
-            'cancelRoute' => 'boxoffice.courtesies.create.index',
+            'submitRoute' => $this->routeName('selection.store'),
+            'stageRoute' => $this->routeName('stage'),
+            'cancelRoute' => $this->routeName('index'),
             'submitLabel' => 'Revisar cortesías',
             'showPrices' => false,
         ]);
@@ -110,7 +110,7 @@ class CourtesyCheckoutController extends Controller
             $locality->pk_evento_localidad, $section['sectionId'], $section['capacity'],
         ));
 
-        return redirect()->route('boxoffice.courtesies.create.confirm', $evento);
+        return redirect()->route($this->routeName('confirm'), $evento);
     }
 
     public function confirm(int $evento): Response|RedirectResponse
@@ -119,11 +119,11 @@ class CourtesyCheckoutController extends Controller
         $state = $this->store->get($evento);
 
         if ($state === null) {
-            return redirect()->route('boxoffice.courtesies.create.selection', $evento);
+            return redirect()->route($this->routeName('selection'), $evento);
         }
 
         if ($state->isPurchased()) {
-            return redirect()->route('boxoffice.courtesies.create.done', $evento);
+            return redirect()->route($this->routeName('done'), $evento);
         }
 
         $function = EventoFuncionVista::query()->findOrFail($state->functionId);
@@ -136,6 +136,8 @@ class CourtesyCheckoutController extends Controller
                 'locality' => $line->localityName,
             ], $state->lines, array_keys($state->lines)),
             'confirmToken' => (string) Str::uuid(),
+            'storeRoute' => $this->routeName('store'),
+            'backRoute' => $this->routeName('selection'),
         ]);
     }
 
@@ -145,7 +147,7 @@ class CourtesyCheckoutController extends Controller
         $state = $this->store->get($evento);
 
         if ($state === null) {
-            return redirect()->route('boxoffice.courtesies.create.selection', $evento);
+            return redirect()->route($this->routeName('selection'), $evento);
         }
 
         $cost = (float) $request->validated('costo');
@@ -161,7 +163,7 @@ class CourtesyCheckoutController extends Controller
                 fn () => $purchases->purchase($priced, $event, $request->user(), $request->validated('comentario'), expandTables: false)->pk_evento_compra,
             );
         } catch (SeatsUnavailableException $exception) {
-            return redirect()->route('boxoffice.courtesies.create.selection', $evento)->with('error', $exception->getMessage());
+            return redirect()->route($this->routeName('selection'), $evento)->with('error', $exception->getMessage());
         }
 
         if ($purchaseId === ConfirmationGuard::IN_PROGRESS) {
@@ -170,7 +172,7 @@ class CourtesyCheckoutController extends Controller
 
         $this->store->put($priced->withPurchase($purchaseId));
 
-        return redirect()->route('boxoffice.courtesies.create.done', $evento);
+        return redirect()->route($this->routeName('done'), $evento);
     }
 
     public function done(TicketPrintService $printing, int $evento): Response|RedirectResponse
@@ -179,7 +181,7 @@ class CourtesyCheckoutController extends Controller
         $state = $this->store->get($evento);
 
         if ($state === null || ! $state->isPurchased()) {
-            return redirect()->route('boxoffice.courtesies.create.selection', $evento);
+            return redirect()->route($this->routeName('selection'), $evento);
         }
 
         return Inertia::render('BoxOffice/Shared/Delivered', [
@@ -187,10 +189,10 @@ class CourtesyCheckoutController extends Controller
             'event' => SeatPickerProps::event($event),
             'purchaseId' => $state->purchaseId,
             'tickets' => count($state->lines),
-            'printRoute' => 'boxoffice.courtesies.create.print',
+            'printRoute' => $this->routeName('print'),
             'formats' => $printing->catalog(),
             'defaultFormat' => $event->pk_boleto_formato_tipo,
-            'finishRoute' => 'boxoffice.courtesies.create.finish',
+            'finishRoute' => $this->routeName('finish'),
         ]);
     }
 
@@ -210,7 +212,17 @@ class CourtesyCheckoutController extends Controller
     {
         $this->store->forget($evento);
 
-        return redirect()->route('boxoffice.courtesies.create.index')->with('success', 'Cortesías listas.');
+        return redirect()->route($this->routeName('index'))->with('success', 'Cortesías listas.');
+    }
+
+    /**
+     * El asistente se usa desde taquilla y desde administración.
+     */
+    private function routeName(string $name): string
+    {
+        $prefix = request()->routeIs('admin.*') ? 'admin.events.courtesies.' : 'boxoffice.courtesies.create.';
+
+        return $prefix.$name;
     }
 
     private function event(int $eventId): EventoVista

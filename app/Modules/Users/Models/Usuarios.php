@@ -115,6 +115,11 @@ class Usuarios extends Authenticatable
         return $this->privilegios()->where('privilegios.pk_privilegio', $privilegeId)->exists();
     }
 
+    public function isAdministrator(): bool
+    {
+        return $this->pk_usuario_tipo === 1;
+    }
+
     public function isPromoter(): bool
     {
         return $this->pk_usuario_tipo <= self::MAX_PROMOTER_TYPE;

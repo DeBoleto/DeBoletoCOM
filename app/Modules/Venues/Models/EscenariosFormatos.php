@@ -2,48 +2,59 @@
 
 namespace App\Modules\Venues\Models;
 
-use DB;
-use Illuminate\Database\Eloquent\Model;
+use App\Modules\Shared\Models\LegacyModel;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EscenariosFormatos extends Model
+/**
+ * Configuración de mapa (XML) de un recinto: secciones, localidades y asientos.
+ *
+ * @property int $pk_escenario_formato
+ * @property int $pk_escenario
+ * @property string $escenario_formato
+ * @property string $escenario_xml
+ */
+class EscenariosFormatos extends LegacyModel
 {
     protected $table = 'escenarios_formatos';
 
-    public $timestamps = false;
-
     protected $primaryKey = 'pk_escenario_formato';
 
-    protected $fillable = ['escenario_formato', 'escenario_xml', 'creacion_pk_usuario', 'creacion_fecha'];
+    protected $hidden = ['escenario_xml'];
 
-    public static function view()
+    protected function casts(): array
     {
-        $retorno = DB::table('view_escenarios_formatos');
-
-        return $retorno;
+        return ['pk_escenario' => 'integer', 'eliminado' => 'boolean'];
     }
 
-    public static function viewFind($pk_escenario_formato)
+    public function escenario(): BelongsTo
     {
-        $retorno = DB::table('view_escenarios_formatos');
-        $retorno->where('pk_escenario_formato', '=', $pk_escenario_formato);
-
-        return $retorno->get()->first();
+        return $this->belongsTo(Escenarios::class, 'pk_escenario', 'pk_escenario');
     }
 
-    public function save(array $options = [])
+    public function scopeActivos(Builder $query): Builder
     {
-        return parent::save($options);
+        return $query->where('eliminado', 0);
     }
 
-    public function create(array $options = [])
+    /**
+     * Localidades declaradas en el XML: [locality_id => nombre].
+     *
+     * @return array<int, string>
+     */
+    public function localities(): array
     {
-        if ($this['pk_escenario_formato'] === null) {
-            $this['creacion_pk_usuario'] = 1;
-            $this['creacion_fecha'] = date('Y-m-d H:i:s');
+        $xml = simplexml_load_string((string) $this->escenario_xml, null, LIBXML_NONET | LIBXML_NOCDATA);
 
-            return parent::save($options);
-        } else {
-            return false;
+        if ($xml === false || ! isset($xml->localities)) {
+            return [];
         }
+
+        $localities = [];
+        foreach ($xml->localities->locality as $locality) {
+            $localities[(int) $locality['locality_id']] = (string) $locality['name'];
+        }
+
+        return $localities;
     }
 }

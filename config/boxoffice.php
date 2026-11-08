@@ -27,6 +27,7 @@ return [
         'courtesies' => 39,
         'reports_admin' => 50,
         'whatsapp_report' => 64,
+        'events_create' => 33,
     ],
 
     // Si es true, cada sección (primer segmento después de /boxoffice) exige
@@ -235,6 +236,27 @@ return [
         // Eventos que imprimen la leyenda adicional en los formatos membretados.
         'legend_events' => [504],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Administración: valores con los que legacy daba de alta un evento
+    |--------------------------------------------------------------------------
+    */
+
+    'new_event' => [
+        'status' => 3,
+        'commission_type' => 2,
+        'commission' => 30,
+        'ticket_format' => 13,
+        'category' => 0,
+        // Usuarios que reciben automáticamente cada evento nuevo.
+        'assigned_users' => [57, 1],
+    ],
+
+    // Disco y carpeta donde se guardan las imágenes subidas desde administración.
+    'images_disk' => env('BOXOFFICE_IMAGES_DISK', 'public'),
+    'event_images_dir' => 'images/eventos',
+    'venue_images_dir' => 'images/escenarios',
 
     /*
     |--------------------------------------------------------------------------

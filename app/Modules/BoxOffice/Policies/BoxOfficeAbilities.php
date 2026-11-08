@@ -28,6 +28,10 @@ class BoxOfficeAbilities
 
     public static function accessEvent(Usuarios $user, int $eventId): bool
     {
+        if ($user->isAdministrator()) {
+            return true;
+        }
+
         return UsuariosEventos::query()
             ->activas()
             ->where('pk_usuario', $user->pk_usuario)

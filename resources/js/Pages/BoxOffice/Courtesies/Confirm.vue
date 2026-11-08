@@ -58,7 +58,7 @@
                 >
                     {{ form.processing ? "Creando…" : `Crear ${lines.length} cortesías` }}
                 </button>
-                <Link :href="route('boxoffice.courtesies.create.selection', event.id)" class="inline-flex items-center gap-1 text-sm font-medium text-bo-slate hover:text-bo-ink">
+                <Link :href="route(backRoute, event.id)" class="inline-flex items-center gap-1 text-sm font-medium text-bo-slate hover:text-bo-ink">
                     <BoIcon name="chevronLeft" :size="16" />
                     Cambiar asientos
                 </Link>
@@ -78,12 +78,14 @@ const props = defineProps({
     function: { type: Object, required: true },
     lines: { type: Array, required: true },
     confirmToken: { type: String, required: true },
+    storeRoute: { type: String, default: "boxoffice.courtesies.create.store" },
+    backRoute: { type: String, default: "boxoffice.courtesies.create.selection" },
 });
 
 const functionInfo = computed(() => props.function);
 const form = useForm({ comentario: "", costo: 0, acepto: false, token: props.confirmToken });
 
 function submit() {
-    form.post(route("boxoffice.courtesies.create.store", props.event.id));
+    form.post(route(props.storeRoute, props.event.id));
 }
 </script>

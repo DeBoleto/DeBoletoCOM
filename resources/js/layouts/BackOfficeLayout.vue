@@ -145,7 +145,18 @@ const AREAS = {
         label: "Administración",
         home: "admin.home",
         logout: "admin.logout",
-        sections: ["inicio", "administradores", "monitores", "empresarios", "puntoventa", "usuarios"],
+        sections: [
+            "inicio",
+            "administradores",
+            "monitores",
+            "empresarios",
+            "puntoventa",
+            "usuarios",
+            "eventos",
+            "escenarios",
+            "tickets-unlock",
+            "actualizar",
+        ],
     },
 };
 
