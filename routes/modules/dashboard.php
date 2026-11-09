@@ -84,7 +84,7 @@ Route::middleware(['web', ShareBoxOfficeData::class.':admin'])
 
             Route::middleware(EnsureMenuPrivilege::class.':tickets-unlock,eventos')
                 ->get('tickets-unlock', fn () => redirect()->route('admin.events.index')->with('success', 'Abre un evento y entra a "Boletos" para desbloquear su impresión.'))
-                ->name('tickets.unlock');
+                ->name('tickets.unlock-menu');
 
             Route::middleware(EnsureMenuPrivilege::class.':actualizar,eventos')->prefix('actualizar')->name('purchases.')->group(function () {
                 Route::get('/', [PurchasesController::class, 'index'])->name('index');
