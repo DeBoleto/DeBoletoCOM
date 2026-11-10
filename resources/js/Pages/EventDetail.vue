@@ -83,7 +83,7 @@
                             class="btn-buy"
                             @click="buy()"
                         >
-                            {{ chosenFunction ? "COMPRAR BOLETO" : "ELEGIR FECHA" }}
+                            COMPRAR BOLETO
                         </button>
                     </div>
                 </div>
@@ -207,19 +207,6 @@
                                                 />
                                             </svg>
                                         </a>
-                                        <button
-                                            v-if="event.ventaWeb"
-                                            type="button"
-                                            class="btn-fn-buy"
-                                            :class="{
-                                                'btn-fn-buy--push':
-                                                    !hasMultipleFunctions,
-                                            }"
-                                            :aria-label="`Comprar boletos para el ${formatDateLabel(fn.date)}`"
-                                            @click="buy(fn)"
-                                        >
-                                            Comprar
-                                        </button>
                                     </li>
                                 </ul>
                             </div>
@@ -231,7 +218,7 @@
                                         class="btn-buy"
                                         @click="buy()"
                                     >
-                                        {{ chosenFunction ? "COMPRAR BOLETO" : "ELEGIR FECHA" }}
+                                        COMPRAR BOLETO
                                     </button>
                                     <div class="event-info-label">
                                         <span
@@ -581,10 +568,6 @@ function buy(fn = chosenFunction.value) {
     router.get(route("event.seats", { slug: page.props.slug }), {
         function: fn.id,
     });
-}
-
-function formatDateLabel(date) {
-    return `${getDay(date)} de ${getMonth(date).toLowerCase()}, ${formatTime(date)}`;
 }
 
 function selectFunction(fn) {
@@ -1050,28 +1033,6 @@ main {
     color: var(--color-brand);
 }
 
-.btn-fn-buy {
-    flex-shrink: 0;
-    padding: var(--space-2) var(--space-4);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    color: #fff;
-    background: var(--color-brand);
-    border: none;
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    transition: opacity var(--transition-fast);
-}
-
-.btn-fn-buy--push {
-    margin-left: auto;
-}
-
-.btn-fn-buy:hover {
-    opacity: 0.9;
-}
-
-.btn-fn-buy:focus-visible,
 .btn-buy:focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 2px;
