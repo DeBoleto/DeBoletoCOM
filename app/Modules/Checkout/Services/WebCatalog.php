@@ -26,7 +26,7 @@ class WebCatalog
 
     public function eventBySlug(string $slug): EventoVista
     {
-        $event = EventoVista::query()->where('url', $slug)->first();
+        $event = EventoVista::query()->where('friendly_url', $slug)->first();
 
         abort_unless($event !== null && $this->isSellable($event), 404);
 

@@ -204,7 +204,7 @@ class SeatsController extends Controller
         $this->holds->releaseAll($this->carts->owner());
         $this->carts->forget($evento);
 
-        return redirect()->route('event.detail', (string) $event->getAttribute('url'));
+        return redirect()->route('event.detail', (string) $event->getAttribute('friendly_url'));
     }
 
     /**

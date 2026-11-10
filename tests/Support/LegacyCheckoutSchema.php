@@ -36,7 +36,7 @@ trait LegacyCheckoutSchema
             Schema::create($name, function (Blueprint $table) use ($name) {
                 $table->integer('pk_evento')->primary();
                 $table->string('evento');
-                $table->string('url')->nullable();
+                $table->string('friendly_url')->nullable();
                 $table->string('imagen')->nullable();
                 $table->integer('pk_escenario')->nullable();
                 $table->integer('pk_evento_status')->default(2);
@@ -270,7 +270,7 @@ trait LegacyCheckoutSchema
         $base = [
             'pk_evento' => 10,
             'evento' => 'Concierto de prueba',
-            'url' => 'concierto-de-prueba',
+            'friendly_url' => 'concierto-de-prueba',
             'pk_evento_comision_tipo' => 2,
             'pk_evento_status' => 2,
         ] + $event;

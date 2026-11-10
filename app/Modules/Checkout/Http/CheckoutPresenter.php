@@ -15,7 +15,7 @@ final class CheckoutPresenter
     {
         return [
             'id' => $event->pk_evento,
-            'slug' => (string) $event->getAttribute('url'),
+            'slug' => (string) $event->getAttribute('friendly_url'),
             'name' => $event->evento,
             'image' => EventImage::url($event->imagen),
             'venue' => $event->direccionVisible(),
