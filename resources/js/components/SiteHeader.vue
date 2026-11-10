@@ -127,7 +127,9 @@ import CategoriesModal from "@/components/CategoriesModal.vue";
 
 const emit = defineEmits(["open-login", "open-register"]);
 
-const user = computed(() => usePage().props.auth?.user ?? null);
+const page = usePage();
+const customer = computed(() => page.props.customer ?? null);
+const user = computed(() => customer.value ?? page.props.auth?.user ?? null);
 
 const menuOpen = ref(false);
 const showVenuesModal = ref(false);
@@ -153,7 +155,7 @@ function handleResize() {
 }
 
 function logout() {
-    router.post(route("logout"));
+    router.post(route(customer.value ? "customer.logout" : "logout"));
 }
 
 const isScrolled = ref(false);

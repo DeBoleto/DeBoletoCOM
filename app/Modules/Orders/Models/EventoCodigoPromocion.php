@@ -2,160 +2,68 @@
 
 namespace App\Modules\Orders\Models;
 
-use App\Exceptions\ApplicationException;
-use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
+/**
+ * Código promocional de compra web. Tabla legacy `eventos_codigo_promocion`.
+ *
+ * @property int $pk_evento_codigo_promocion
+ * @property int|null $pk_evento
+ * @property int|null $pk_localidad
+ * @property string $codigo_promocion
+ * @property int $tipo
+ * @property float $promocion
+ * @property int|null $boletos Mínimo de boletos para aplicar el código.
+ * @property Carbon|null $fecha_caducidad
+ */
 class EventoCodigoPromocion extends Model
 {
-    protected $table = 'eventos_codigo_promocion';
+    public const TYPE_PERCENTAGE = 1;
 
-    public $timestamps = false;
+    public const TYPE_FIXED = 2;
+
+    public const TYPE_FREE_TICKETS = 3;
+
+    public const CREATED_AT = 'fecha_registro';
+
+    public const UPDATED_AT = null;
+
+    protected $table = 'eventos_codigo_promocion';
 
     protected $primaryKey = 'pk_evento_codigo_promocion';
 
-    protected $fillable = ['pk_usuario', 'pk_evento', 'codigo_promocion', 'fecha_registro', 'fecha_caducidad', 'tipo', 'promocion', 'boletos'];
+    protected $fillable = ['pk_usuario', 'pk_evento', 'pk_localidad', 'codigo_promocion', 'fecha_caducidad', 'tipo', 'promocion', 'boletos'];
 
-    public function save(array $options = [])
+    protected function casts(): array
     {
-        return parent::save($options);
-    }
-
-    public function create($innerTransaction = true)
-    {
-        if ($innerTransaction) {
-            DB::beginTransaction();
-        }
-        try {
-            if ($this['pk_evento_codigo_promocion'] === null) {
-                $this['fecha_registro'] = date('Y-m-d H:i:s');
-                $this->save();
-                if ($innerTransaction) {
-                    DB::commit();
-                }
-
-                return true;
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            if ($innerTransaction) {
-                DB::rollBack();
-            }
-            throw $exception;
-        }
-    }
-
-    public function update(array $attributes = [], array $options = [])
-    {
-        try {
-            if ($this['pk_evento_codigo_promocion'] != null) {
-                $this->save();
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            throw $exception;
-        }
-    }
-
-    public static function getCodeValidate($codigo, $evento = null, $localidad = null, $boletos = null)
-    {
-        if ($evento != null) {
-            $evento = (int) $evento;
-        }
-        $promocion = 0;
-        $tipo = 0;
-        $cantidadBoletos = null;
-        $id_promocion = 0;
-        $promociones = EventoCodigoPromocion::where('codigo_promocion', $codigo)->get();
-
-        Log::info('Promo: '.print_r($promociones, true));
-
-        for ($i = 0; $i < count($promociones); $i++) {
-            $promocion = $promociones[$i]->promocion;
-            $tipo = $promociones[$i]->tipo;
-            $cantidadBoletos = $promociones[$i]->boletos;
-            $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-            if (isset($promociones[$i]->pk_evento)) {
-                if ($promociones[$i]->pk_evento == $evento) {
-                    $promocion = $promociones[$i]->promocion;
-                    $tipo = $promociones[$i]->tipo;
-                    $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-                } else {
-                    $promocion = 0;
-                    $tipo = 0;
-                    $id_promocion = 0;
-                }
-            }
-            if (isset($promociones[$i]->pk_localidad)) {
-                if ($promociones[$i]->pk_localidad == $localidad) {
-                    $promocion = $promociones[$i]->promocion;
-                    $tipo = $promociones[$i]->tipo;
-                    $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-                    break;
-                } else {
-                    $promocion = 0;
-                    $tipo = 0;
-                    $id_promocion = 0;
-                }
-            }
-        }
-
         return [
-            'id_promocion' => $id_promocion,
-            'promocion' => $promocion,
-            'tipo' => $tipo,
+            'pk_evento' => 'integer',
+            'pk_localidad' => 'integer',
+            'tipo' => 'integer',
+            'promocion' => 'float',
+            'boletos' => 'integer',
+            'fecha_caducidad' => 'date',
         ];
     }
 
-    public static function getCodeValidateEvento($codigo, $evento = null, $localidad = null, $boletos = null)
+    public function scopeVigentes(Builder $query, Carbon $today): Builder
     {
-        if ($evento != null) {
-            $evento = (int) $evento;
-        }
-        $promocion = 0;
-        $tipo = 0;
-        $cantidadBoletos = null;
-        $id_promocion = 0;
-        $promociones = EventoCodigoPromocion::where('codigo_promocion', $codigo)->get();
+        return $query->where(fn (Builder $query) => $query
+            ->whereNull('fecha_caducidad')
+            ->orWhereDate('fecha_caducidad', '>=', $today->toDateString()));
+    }
 
-        for ($i = 0; $i < count($promociones); $i++) {
-            $promocion = $promociones[$i]->promocion;
-            $tipo = $promociones[$i]->tipo;
-            $cantidadBoletos = $promociones[$i]->boletos;
-            $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-            if (isset($promociones[$i]->pk_evento)) {
-                if ($promociones[$i]->pk_evento == $evento) {
-                    $promocion = $promociones[$i]->promocion;
-                    $tipo = $promociones[$i]->tipo;
-                    $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-                    break;
-                } else {
-                    $promocion = 0;
-                    $tipo = 0;
-                    $id_promocion = 0;
-                }
-            }
-            if (isset($promociones[$i]->pk_localidad)) {
-                if ($promociones[$i]->pk_localidad == $localidad) {
-                    $promocion = $promociones[$i]->promocion;
-                    $tipo = $promociones[$i]->tipo;
-                    $id_promocion = $promociones[$i]->pk_evento_codigo_promocion;
-                    break;
-                } else {
-                    $promocion = 0;
-                    $tipo = 0;
-                    $id_promocion = 0;
-                }
-            }
+    /**
+     * Un código sin evento o sin localidad aplica a cualquiera.
+     */
+    public function appliesTo(int $eventId, ?int $localityId): bool
+    {
+        if ($this->pk_evento !== null && $this->pk_evento !== $eventId) {
+            return false;
         }
 
-        return [
-            'id_promocion' => $id_promocion,
-            'promocion' => $promocion,
-            'tipo' => $tipo,
-        ];
+        return $this->pk_localidad === null || $this->pk_localidad === $localityId;
     }
 }

@@ -16,12 +16,11 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.transform((data) => ({
-        ...data,
-        remember: form.remember ? "on" : "",
-    })).post(route("login"), {
+    form.post(route("customer.login"), {
+        preserveScroll: true,
+        onSuccess: () => emit("close"),
         onFinish: () => form.reset("password"),
-        preserveState: (page) => Object.keys(page.props.errors).length > 0,
+        preserveState: true,
     });
 };
 </script>

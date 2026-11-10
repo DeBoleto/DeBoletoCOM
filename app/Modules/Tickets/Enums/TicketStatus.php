@@ -12,6 +12,7 @@ enum TicketStatus: int
     case Blocked = 3;
     case Pending = 4;
     case Replaced = 5;
+    case ChargedBack = 7;
 
     public function isTaken(): bool
     {

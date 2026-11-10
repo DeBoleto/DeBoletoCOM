@@ -24,10 +24,15 @@ const codeForm = useForm({
 const telefonoValido = computed(() => codeForm.telefono.length === 10);
 
 const handleSubmit = () => {
-    emit("code-sent", {
-        lada: codeForm.lada,
-        telefono: codeForm.telefono,
-        canal: codeForm.canal,
+    codeForm.post(route("login.code"), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () =>
+            emit("code-sent", {
+                lada: codeForm.lada,
+                telefono: codeForm.telefono,
+                canal: codeForm.canal,
+            }),
     });
 };
 </script>
@@ -313,7 +318,9 @@ const handleSubmit = () => {
                         <label class="login-label">Número de teléfono</label>
                         <input
                             v-model="codeForm.telefono"
-                            type="text"
+                            type="tel"
+                            inputmode="numeric"
+                            autocomplete="tel-national"
                             maxlength="10"
                             class="login-input"
                             placeholder="1234567890"

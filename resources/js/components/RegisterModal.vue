@@ -20,9 +20,11 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route("register"), {
+    form.post(route("customer.register"), {
+        preserveScroll: true,
+        onSuccess: () => emit("close"),
         onFinish: () => form.reset("password", "password_confirmation"),
-        preserveState: (page) => Object.keys(page.props.errors).length > 0,
+        preserveState: true,
     });
 };
 </script>

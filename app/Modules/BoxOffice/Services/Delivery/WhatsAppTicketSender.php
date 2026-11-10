@@ -25,9 +25,22 @@ class WhatsAppTicketSender
     public function __construct(private readonly TicketPrintService $printing) {}
 
     /**
+     * Envío desde taquilla: además marca los boletos como entregados.
+     *
      * @throws RuntimeException cuando el proveedor no está configurado o rechaza el envío.
      */
     public function send(EventosCompras $purchase, string $phone, Usuarios $seller): void
+    {
+        $this->sendLink($purchase, $phone);
+        $this->printing->markDelivered($purchase->boletos(), $seller, printed: true);
+    }
+
+    /**
+     * Envía el enlace del boleto digital sin modificar los boletos.
+     *
+     * @throws RuntimeException cuando el proveedor no está configurado o rechaza el envío.
+     */
+    public function sendLink(EventosCompras $purchase, string $phone): void
     {
         $config = config('services.ultramsg');
 
@@ -63,7 +76,6 @@ class WhatsAppTicketSender
         }
 
         $this->log($purchase, $phone, (string) $messageId);
-        $this->printing->markDelivered($purchase->boletos(), $seller, printed: true);
     }
 
     private function caption(EventoVista $event, EventoFuncionVista $function, EventosCompras $purchase, bool $isBond): string

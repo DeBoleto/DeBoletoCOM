@@ -26,6 +26,7 @@ class TicketPricing
      * @param  list<string>  $seats  Ids de asiento o "NA_NA" por cada boleto de cupo general.
      * @param  array<string, int>  $specials  asiento => pk_evento_localidad_especiales.
      * @param  list<string>  $extraChairs  Asientos (mesas) con silla adicional.
+     * @param  float  $volumeDiscount  Pesos que se rebajan a cada boleto por compra de volumen (solo venta web).
      */
     public function forSeatMap(
         EventoVista $event,
@@ -36,6 +37,7 @@ class TicketPricing
         ?int $discount,
         array $specials = [],
         array $extraChairs = [],
+        float $volumeDiscount = 0.0,
     ): PricedSelection {
         $rules = config('boxoffice.rules');
         $promotionDisabled = in_array($event->pk_evento, $rules['promotion_disabled_events'], true);
@@ -51,7 +53,8 @@ class TicketPricing
 
         $specialModels = $this->specialsFor($locality, $specials);
         $paymentModel = $this->paymentModel($paymentType);
-        $boxOffice = $paymentType !== PaymentType::Terminal;
+        $boxOffice = ! in_array($paymentType, [PaymentType::Terminal, PaymentType::Web], true);
+        $online = $paymentType === PaymentType::Web;
         $fourForTwo = (int) config('boxoffice.four_for_two_code', 42);
         $promoBlockLimit = intdiv(count($seats), 4) * 4;
         $extraChair = $this->extraChairRule($event, $locality);
@@ -62,7 +65,7 @@ class TicketPricing
 
         foreach (array_values($seats) as $index => $seatId) {
             $seat = $seatId === 'NA_NA' ? 'NA_NA'.$index : $seatId;
-            $price = $this->seatMapPrice($event, $locality, $eventPercent, $promotionDisabled, $discount);
+            $price = $this->seatMapPrice($event, $locality, $eventPercent, $promotionDisabled, $discount, $promotion === 0 ? $volumeDiscount : 0.0);
             $special = $specialModels->get($seatId === 'NA_NA' ? 'Boleto'.($index + 1) : $seatId);
 
             if ($special) {
@@ -70,7 +73,7 @@ class TicketPricing
             }
 
             if ($promotion === 0) {
-                $fees = $this->fees($event, $locality, $paymentModel, $price, $special, $boxOffice, online: false);
+                $fees = $this->fees($event, $locality, $paymentModel, $price, $special, $boxOffice, $online);
                 $lines[] = new TicketLine(
                     $locality->pk_evento_localidad, $locality->evento_localidad, $seat, $price,
                     $fees['service'], $fees['payment'], false, $special?->pk_evento_localidad_especiales,
@@ -107,7 +110,7 @@ class TicketPricing
                 continue;
             }
 
-            $fees = $this->fees($event, $locality, $paymentModel, $price, $special, $boxOffice, online: false);
+            $fees = $this->fees($event, $locality, $paymentModel, $price, $special, $boxOffice, $online);
             $lines[] = new TicketLine(
                 $locality->pk_evento_localidad, $locality->evento_localidad, $seat, $price,
                 $fees['service'], $fees['payment'], false, $special?->pk_evento_localidad_especiales,
@@ -135,6 +138,7 @@ class TicketPricing
         $basePromotion = $this->basePromotion($event, $applyPromotion);
         $paidPromotionPrice = config('boxoffice.rules.promotion_paid_price')[$event->pk_evento] ?? null;
         $paymentModel = $this->paymentModel($paymentType);
+        $boxOffice = $paymentType !== PaymentType::Web;
 
         $lines = [];
         $counter = 0;
@@ -157,7 +161,7 @@ class TicketPricing
 
                     if ($isCourtesy) {
                         if ($paidPromotionPrice !== null) {
-                            $fees = $this->fees($event, $locality, $paymentModel, (float) $paidPromotionPrice, null, true, online: true);
+                            $fees = $this->fees($event, $locality, $paymentModel, (float) $paidPromotionPrice, null, $boxOffice, online: true);
                             $lines[] = new TicketLine(
                                 $locality->pk_evento_localidad, $locality->evento_localidad, 'NA_NA',
                                 (float) $paidPromotionPrice, $fees['service'], $fees['payment'],
@@ -170,7 +174,7 @@ class TicketPricing
                     }
                 }
 
-                $fees = $this->fees($event, $locality, $paymentModel, $price, null, true, online: true);
+                $fees = $this->fees($event, $locality, $paymentModel, $price, null, $boxOffice, online: true);
                 $lines[] = new TicketLine(
                     $locality->pk_evento_localidad, $locality->evento_localidad, 'NA_NA', $price,
                     $fees['service'], $fees['payment'],
@@ -179,6 +183,26 @@ class TicketPricing
         }
 
         return new PricedSelection($lines, $basePromotion, $promotionText);
+    }
+
+    /**
+     * Precio por boleto que se muestra en el mapa: precio de lista con los
+     * porcentajes de promoción del evento y de la localidad.
+     */
+    public function listPrice(EventoVista $event, EventosLocalidades $locality): float
+    {
+        $promotionDisabled = in_array($event->pk_evento, config('boxoffice.rules.promotion_disabled_events'), true);
+        $eventPercent = $promotionDisabled ? 0.0 : (float) Eventos::query()->whereKey($event->pk_evento)->value('promocion_porcentaje');
+
+        return $this->seatMapPrice($event, $locality, $eventPercent, $promotionDisabled, null);
+    }
+
+    /**
+     * Promoción "N+1 x N" vigente para la localidad (0 = sin promoción).
+     */
+    public function promotionFor(EventoVista $event, EventosLocalidades $locality): int
+    {
+        return $locality->promocion > 0 ? $locality->promocion : $this->basePromotion($event, false);
     }
 
     private function basePromotion(EventoVista $event, bool $applyPromotion): int
@@ -194,9 +218,9 @@ class TicketPricing
         return (int) $event->promocion;
     }
 
-    private function seatMapPrice(EventoVista $event, EventosLocalidades $locality, float $eventPercent, bool $promotionDisabled, ?int $discount): float
+    private function seatMapPrice(EventoVista $event, EventosLocalidades $locality, float $eventPercent, bool $promotionDisabled, ?int $discount, float $volumeDiscount = 0.0): float
     {
-        $price = $locality->precio;
+        $price = max(0.0, $locality->precio - $volumeDiscount);
 
         if ($eventPercent > 0) {
             $price -= $price * ($eventPercent / 100);

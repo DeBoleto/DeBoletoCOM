@@ -15,6 +15,7 @@ return [
     App\Modules\BoxOffice\BoxOfficeServiceProvider::class,
     App\Modules\Dashboard\DashboardServiceProvider::class,
     App\Modules\Payments\PaymentsServiceProvider::class,
+    App\Modules\Checkout\CheckoutServiceProvider::class,
     App\Modules\Notifications\NotificationsServiceProvider::class,
     App\Modules\Reports\ReportsServiceProvider::class,
 ];

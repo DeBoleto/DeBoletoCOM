@@ -2,56 +2,39 @@
 
 namespace App\Modules\Events\Models;
 
-use Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Descuento por volumen de una localidad: al comprar `num_boleto` boletos o
+ * más, cada boleto se rebaja `promocion` pesos. Tabla `eventos_localidades_promos`.
+ *
+ * @property int $pk_localidad_promo
+ * @property int $pk_evento_localidad
+ * @property float $promocion
+ * @property int $num_boleto
+ */
 class EventosLocalidadesPromos extends Model
 {
-    protected $table = 'eventos_localidades_promos';
-
     public $timestamps = false;
+
+    protected $table = 'eventos_localidades_promos';
 
     protected $primaryKey = 'pk_localidad_promo';
 
-    protected $fillable = [
-        'pk_evento_localidad', 'promocion', 'num_boleto', 'pk_usuario', 'fecha_inicio', 'fecha_termino',
-    ];
+    protected $fillable = ['pk_evento_localidad', 'promocion', 'num_boleto', 'pk_usuario', 'fecha_inicio', 'fecha_termino'];
 
-    public function creacionUsuario()
+    protected function casts(): array
     {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'pk_usuario');
+        return [
+            'pk_evento_localidad' => 'integer',
+            'promocion' => 'float',
+            'num_boleto' => 'integer',
+        ];
     }
 
-    public function save(array $options = [])
+    public function localidad(): BelongsTo
     {
-
-        $this['pk_usuario'] = Auth::user()->pk_usuario;
-
-        return parent::save($options);
-    }
-
-    public function create(array $options = [])
-    {
-        if ($this['pk_localidad_promo'] === null) {
-            $this['pk_usuario'] = Auth::user()->pk_usuario;
-
-            return save($options);
-        } else {
-            return false;
-        }
-    }
-
-    public function update(array $attributes = [], array $options = [])
-    {
-        return save($options);
-    }
-
-    public function delete()
-    {
-        if ($this['eliminado'] == 0) {
-            return save();
-        } else {
-            return false;
-        }
+        return $this->belongsTo(EventosLocalidades::class, 'pk_evento_localidad', 'pk_evento_localidad');
     }
 }

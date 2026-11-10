@@ -44,4 +44,29 @@ return [
         'country_code' => env('ULTRAMSG_COUNTRY_CODE', '+52'),
     ],
 
+    'stytch' => [
+        'project_id' => env('STYTCH_PROJECT_ID'),
+        'secret' => env('STYTCH_SECRET'),
+        'base_url' => env('STYTCH_BASE_URL', 'https://api.stytch.com/v1'),
+        'code_minutes' => 5,
+    ],
+
+    'openpay' => [
+        'merchant_id' => env('OPENPAY_MERCHANT_ID'),
+        'private_key' => env('OPENPAY_PRIVATE_KEY'),
+        'public_key' => env('OPENPAY_PUBLIC_KEY'),
+        'production' => (bool) env('OPENPAY_PRODUCTION', false),
+        'webhook_user' => env('OPENPAY_WEBHOOK_USER'),
+        'webhook_password' => env('OPENPAY_WEBHOOK_PASSWORD'),
+    ],
+
+    'facebook' => [
+        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v21.0'),
+    ],
+
+    'ligamx' => [
+        'url' => env('LIGA_MX_URL'),
+        'contact_list' => env('LIGA_ID'),
+    ],
+
 ];

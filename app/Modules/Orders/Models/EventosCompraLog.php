@@ -2,67 +2,34 @@
 
 namespace App\Modules\Orders\Models;
 
-use App\Exceptions\ApplicationException;
-use Auth;
-use DB;
+use App\Modules\Shared\Models\LegacyModel;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
+/**
+ * Bitácora de cada intento de cobro en línea. Tabla legacy `eventos_compras_logs`.
+ *
+ * @property int $pk_evento_compra_log
+ * @property int $pk_usuario
+ * @property string|null $pk_openpay
+ * @property string|null $json_compra
+ * @property string|null $json_openpay
+ * @property string|null $json_respuesta
+ */
 class EventosCompraLog extends Model
 {
-    protected $table = 'eventos_compras_logs';
+    public const CREATED_AT = 'creacion_fecha';
 
-    public $timestamps = false;
+    public const UPDATED_AT = null;
+
+    protected $table = 'eventos_compras_logs';
 
     protected $primaryKey = 'pk_evento_compra_log';
 
-    protected $fillable = ['pk_usuario', 'pk_openpay', 'json_compra', 'json_openpay', 'json_respuesta', 'creacion_fecha', 'msi', 'type'];
+    protected $fillable = ['pk_usuario', 'pk_openpay', 'json_compra', 'json_openpay', 'json_respuesta', 'msi', 'type', 'promo_id', 'promo_total'];
 
-    public function creacionUsuario()
+    public function freshTimestamp(): Carbon
     {
-        return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'creacion_pk_usuario');
-    }
-
-    public function save(array $options = [])
-    {
-        return parent::save($options);
-    }
-
-    public function create($innerTransaction = true)
-    {
-        if ($innerTransaction) {
-            DB::beginTransaction();
-        }
-        try {
-            if ($this['pk_evento_compra_log'] === null) {
-                $this->pk_usuario = Auth::user()->pk_usuario;
-                $this['creacion_fecha'] = date('Y-m-d H:i:s');
-                $this->save();
-                if ($innerTransaction) {
-                    DB::commit();
-                }
-
-                return true;
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            if ($innerTransaction) {
-                DB::rollBack();
-            }
-            throw $exception;
-        }
-    }
-
-    public function update(array $attributes = [], array $options = [])
-    {
-        try {
-            if ($this['pk_evento_compra_log'] != null) {
-                $this->save();
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            throw $exception;
-        }
+        return Carbon::now(LegacyModel::legacyTimezone());
     }
 }

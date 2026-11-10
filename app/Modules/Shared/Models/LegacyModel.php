@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Auth;
  * - Las fechas de auditoría se guardan en la zona horaria del sistema legacy,
  *   no en la de la aplicación, porque ambos sistemas comparten la base de datos.
  * - Las columnas de autor (creacion_pk_usuario / modificacion_pk_usuario) se
- *   llenan con el usuario autenticado del guard de taquilla.
+ *   llenan con el usuario autenticado de taquilla, administración o, en la
+ *   compra web, con el cliente.
  */
 abstract class LegacyModel extends Model
 {
@@ -63,7 +64,9 @@ abstract class LegacyModel extends Model
 
     protected static function currentUserId(): ?int
     {
-        $id = Auth::guard('boxoffice')->id() ?? Auth::id();
+        $id = Auth::guard('boxoffice')->id()
+            ?? Auth::guard('admin')->id()
+            ?? Auth::guard('customer')->id();
 
         return $id === null ? null : (int) $id;
     }

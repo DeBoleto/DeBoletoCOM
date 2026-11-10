@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $correo
  * @property string|null $telefono
  * @property int|null $pk_formato_boleto
+ * @property string|null $pk_customer Id del cliente en OpenPay.
  * @property bool $eliminado
  */
 class Usuarios extends Authenticatable
@@ -48,7 +49,7 @@ class Usuarios extends Authenticatable
         'correo', 'password', 'telefono', 'nacimiento_fecha', 'req_update',
     ];
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'pk_customer'];
 
     protected function casts(): array
     {
@@ -104,6 +105,11 @@ class Usuarios extends Authenticatable
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('eliminado', 0);
+    }
+
+    public function scopeConTelefono(Builder $query, string $phone): Builder
+    {
+        return $query->where('telefono', $phone);
     }
 
     public function hasPrivilege(int $privilegeId): bool

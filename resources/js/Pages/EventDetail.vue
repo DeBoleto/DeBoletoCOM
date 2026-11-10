@@ -17,6 +17,9 @@
         <SiteHeader @open-login="openLogin" @open-register="openRegister" />
 
         <main id="main-content">
+            <div v-if="$page.props.flash?.error" class="container">
+                <p class="flash-error" role="alert">{{ $page.props.flash.error }}</p>
+            </div>
             <section class="hero-section">
                 <div class="container">
                     <div class="hero-frame">
@@ -75,15 +78,12 @@
                             </p>
                         </div>
                         <button
-                            v-if="
-                                event.ventaWeb &&
-                                (!hasMultipleFunctions || isFiltered)
-                            "
+                            v-if="canBuy"
                             type="button"
                             class="btn-buy"
-                            @click="goToSeats"
+                            @click="buy()"
                         >
-                            COMPRAR BOLETO
+                            {{ chosenFunction ? "COMPRAR BOLETO" : "ELEGIR FECHA" }}
                         </button>
                     </div>
                 </div>
@@ -108,6 +108,7 @@
                             </div>
                             <div
                                 v-if="event.functions.length"
+                                id="fechas"
                                 class="detail-block"
                             >
                                 <h2 class="block-title">
@@ -134,6 +135,13 @@
                                     </svg>
                                     Fechas del evento
                                 </h2>
+                                <p
+                                    v-if="needsDate && !chosenFunction"
+                                    class="date-hint"
+                                    role="status"
+                                >
+                                    Elige la fecha a la que quieres asistir.
+                                </p>
                                 <ul class="function-list">
                                     <li
                                         v-for="fn in displayFunctions"
@@ -199,23 +207,31 @@
                                                 />
                                             </svg>
                                         </a>
+                                        <button
+                                            v-if="event.ventaWeb"
+                                            type="button"
+                                            class="btn-fn-buy"
+                                            :class="{
+                                                'btn-fn-buy--push':
+                                                    !hasMultipleFunctions,
+                                            }"
+                                            :aria-label="`Comprar boletos para el ${formatDateLabel(fn.date)}`"
+                                            @click="buy(fn)"
+                                        >
+                                            Comprar
+                                        </button>
                                     </li>
                                 </ul>
                             </div>
 
                             <div class="detail-block">
-                                <template
-                                    v-if="
-                                        event.ventaWeb &&
-                                        (!hasMultipleFunctions || isFiltered)
-                                    "
-                                >
+                                <template v-if="canBuy">
                                     <button
                                         type="button"
                                         class="btn-buy"
-                                        @click="goToSeats"
+                                        @click="buy()"
                                     >
-                                        COMPRAR BOLETO
+                                        {{ chosenFunction ? "COMPRAR BOLETO" : "ELEGIR FECHA" }}
                                     </button>
                                     <div class="event-info-label">
                                         <span
@@ -542,12 +558,33 @@ const displayFunctions = computed(() => {
     return fn ? [fn] : props.event.functions;
 });
 
-function goToSeats() {
-    const query = {};
-    if (isFiltered.value && selectedFunctionId.value) {
-        query.function = selectedFunctionId.value;
+const canBuy = computed(
+    () => Boolean(props.event.ventaWeb) && props.event.functions.length > 0,
+);
+
+const chosenFunction = computed(() => {
+    if (isFiltered.value) return selectedFunction.value;
+    return hasMultipleFunctions.value ? null : props.event.functions[0] || null;
+});
+
+const needsDate = ref(false);
+
+function buy(fn = chosenFunction.value) {
+    if (!fn) {
+        needsDate.value = true;
+        document
+            .getElementById("fechas")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
     }
-    router.get(route("event.seats", { slug: page.props.slug }), query);
+
+    router.get(route("event.seats", { slug: page.props.slug }), {
+        function: fn.id,
+    });
+}
+
+function formatDateLabel(date) {
+    return `${getDay(date)} de ${getMonth(date).toLowerCase()}, ${formatTime(date)}`;
 }
 
 function selectFunction(fn) {
@@ -1013,6 +1050,40 @@ main {
     color: var(--color-brand);
 }
 
+.btn-fn-buy {
+    flex-shrink: 0;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: #fff;
+    background: var(--color-brand);
+    border: none;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+}
+
+.btn-fn-buy--push {
+    margin-left: auto;
+}
+
+.btn-fn-buy:hover {
+    opacity: 0.9;
+}
+
+.btn-fn-buy:focus-visible,
+.btn-buy:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+}
+
+.date-hint {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-brand);
+}
+
 .function-date-badge {
     display: flex;
     flex-direction: column;
@@ -1351,5 +1422,14 @@ main {
     .sponsor-track li {
         flex: 0 0 130px;
     }
+}
+.flash-error {
+    margin-top: var(--space-4);
+    padding: 12px 16px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: var(--radius-md);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    font-size: var(--text-sm);
 }
 </style>

@@ -2,127 +2,43 @@
 
 namespace App\Modules\Tickets\Models;
 
-use Auth;
+use App\Modules\Orders\Models\EventosCompras;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Lugar de estacionamiento (o producto adicional) vendido con una compra.
+ * Tabla legacy `eventos_estacionamiento_boleto`.
+ *
+ * @property int $pk_eventos_estacionamiento_boleto
+ * @property int $pk_evento_compra
+ * @property int $pk_evento
+ * @property string $lugar
+ * @property float $precio
+ */
 class EventoEstacionamientoBoleto extends Model
 {
-    protected $table = 'eventos_estacionamiento_boleto';
+    public const UNASSIGNED = 'sin asignar';
 
     public $timestamps = false;
 
+    protected $table = 'eventos_estacionamiento_boleto';
+
     protected $primaryKey = 'pk_eventos_estacionamiento_boleto';
 
-    protected $fillable = [
-        'pk_evento_compra', 'lugar', 'precio', 'asistencia',
-    ];
+    protected $fillable = ['pk_evento_compra', 'pk_evento', 'lugar', 'precio', 'asistencia'];
 
-    public function save(array $options = [])
+    protected function casts(): array
     {
-
-        // $this['modificacion_pk_usuario'] = Auth::user()->pk_usuario;
-        // $this['modificacion_fecha'] = date('Y-m-d H:i:s');
-        return parent::save($options);
+        return [
+            'pk_evento_compra' => 'integer',
+            'pk_evento' => 'integer',
+            'precio' => 'float',
+        ];
     }
 
-    public function create($innerTransaction = true)
+    public function compra(): BelongsTo
     {
-
-        if ($innerTransaction) {
-            DB::beginTransaction();
-        }
-
-        try {
-            if ($this['pk_eventos_estacionamiento_boleto'] === null) {
-                $this->save();
-                if ($innerTransaction) {
-                    DB::commit();
-                }
-
-                return true;
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            if ($innerTransaction) {
-                DB::rollBack();
-            }
-            throw $exception;
-        }
-    }
-
-    public function update(array $attributes = [], array $options = [])
-    {
-
-        try {
-            if ($this['pk_eventos_estacionamiento_boleto'] != null) {
-                $this->save();
-            } else {
-                throw new ApplicationException('TICKETS_CREATE_10');
-            }
-        } catch (ApplicationException $exception) {
-            throw $exception;
-        }
-    }
-
-    public static function count_boletos($pk_evento)
-    {
-        $query = (string) "
-            SELECT
-                count(*) as total
-            FROM
-                eventos_estacionamiento_boleto
-            WHERE
-                pk_evento = $pk_evento";
-
-        // Construir la consulta usando el constructor de consultas de Laravel
-
-        // Log::alert('SQL: '.$query);
-
-        $results = DB::select($query);
-
-        return $results;
-    }
-
-    public static function totalBoletosVendidos($pk_evento)
-    {
-        $query = ' SELECT
-                COUNT(pk_eventos_estacionamiento_boleto) as total_boletos_vendidos
-            FROM
-                eventos_estacionamiento_boleto
-            WHERE
-                pk_evento = ?
-            GROUP BY
-                pk_evento';
-
-        // Construir la consulta usando el constructor de consultas de Laravel
-
-        // Log::alert('SQL: '.$query);
-
-        $results = DB::select($query, [$pk_evento]);
-
-        return $results;
-    }
-
-    public static function totalBoletosVendidosLocalidad($pk_evento)
-    {
-        $query = '
-                select el.evento_localidad, COUNT(DISTINCT(eeb.pk_eventos_estacionamiento_boleto)) total
-                from eventos_estacionamiento_boleto eeb
-                inner join eventos_compras ec on ec.pk_evento_compra = eeb.pk_evento_compra
-                inner join eventos_funciones_boletos efb on efb.pk_evento_compra  = ec.pk_evento_compra
-                inner join eventos_localidades el on el.pk_evento_localidad = efb.pk_evento_localidad
-                where eeb.pk_evento = ?
-                GROUP by el.evento_localidad
-                ORDER by el.pk_evento_localidad';
-
-        // Construir la consulta usando el constructor de consultas de Laravel
-
-        // Log::alert('SQL: '.$query);
-
-        $results = DB::select($query, [$pk_evento]);
-
-        return $results;
+        return $this->belongsTo(EventosCompras::class, 'pk_evento_compra', 'pk_evento_compra');
     }
 }

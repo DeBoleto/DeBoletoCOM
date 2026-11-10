@@ -1,8 +1,10 @@
 <script setup>
-import { useForm } from "@inertiajs/vue3";
+import { ref, watch } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
 import DialogModal from "@/components/DialogModal.vue";
+import InputError from "@/components/InputError.vue";
 
-defineProps({
+const props = defineProps({
     show: { type: Boolean, default: false },
     lada: { type: String, default: "52" },
     telefono: { type: String, default: "" },
@@ -17,15 +19,54 @@ const emit = defineEmits([
     "resend",
 ]);
 
+const page = usePage();
+const needsProfile = ref(false);
+
 const verifyForm = useForm({
     codigo: "",
 });
 
+const profileForm = useForm({
+    nombre: "",
+    apellido_paterno: "",
+    apellido_materno: "",
+    correo: "",
+});
+
+watch(
+    () => props.show,
+    (visible) => {
+        if (!visible) {
+            needsProfile.value = false;
+            verifyForm.clearErrors();
+            profileForm.clearErrors();
+        }
+    },
+);
+
 const handleSubmit = () => {
     verifyForm.post(route("login.verify"), {
+        preserveScroll: true,
         preserveState: true,
-        onSuccess: () => emit("verified"),
+        onSuccess: () => {
+            if (page.props.flash?.registration_required) {
+                needsProfile.value = true;
+                return;
+            }
+            emit("verified");
+        },
         onFinish: () => verifyForm.reset("codigo"),
+    });
+};
+
+const submitProfile = () => {
+    profileForm.post(route("login.complete"), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            needsProfile.value = false;
+            emit("verified");
+        },
     });
 };
 </script>
@@ -179,6 +220,29 @@ const handleSubmit = () => {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.2);
 }
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.profile-field--full {
+    grid-column: 1 / -1;
+}
+.login-input {
+    background-color: var(--color-surface-2);
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: 12px;
+    color: var(--color-text-primary);
+    height: 48px;
+    padding: 10px 16px;
+    font-size: 15px;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+}
+.login-input:focus {
+    border-color: var(--color-brand);
+}
 </style>
 
 <template>
@@ -206,6 +270,39 @@ const handleSubmit = () => {
         </template>
 
         <template #content>
+            <form v-if="needsProfile" @submit.prevent="submitProfile">
+                <p class="login-subtitle">
+                    Tu número quedó verificado. Completa tus datos para crear tu cuenta.
+                </p>
+                <div class="profile-grid">
+                    <div class="profile-field profile-field--full">
+                        <label class="login-label" for="perfil-nombre">Nombre</label>
+                        <input id="perfil-nombre" v-model="profileForm.nombre" class="login-input" autocomplete="given-name" required />
+                        <InputError class="mt-2" :message="profileForm.errors.nombre" />
+                    </div>
+                    <div class="profile-field">
+                        <label class="login-label" for="perfil-paterno">Apellido paterno</label>
+                        <input id="perfil-paterno" v-model="profileForm.apellido_paterno" class="login-input" autocomplete="family-name" required />
+                        <InputError class="mt-2" :message="profileForm.errors.apellido_paterno" />
+                    </div>
+                    <div class="profile-field">
+                        <label class="login-label" for="perfil-materno">Apellido materno</label>
+                        <input id="perfil-materno" v-model="profileForm.apellido_materno" class="login-input" />
+                    </div>
+                    <div class="profile-field profile-field--full">
+                        <label class="login-label" for="perfil-correo">Correo electrónico</label>
+                        <input id="perfil-correo" v-model="profileForm.correo" type="email" class="login-input" autocomplete="email" required />
+                        <InputError class="mt-2" :message="profileForm.errors.correo" />
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6">
+                    <button type="submit" class="btn-login" :disabled="profileForm.processing">
+                        {{ profileForm.processing ? "Creando cuenta…" : "CREAR MI CUENTA" }}
+                    </button>
+                </div>
+            </form>
+
+            <template v-else>
             <p class="login-subtitle">
                 Ingresa el código de verificación que te hemos enviado
             </p>
@@ -237,13 +334,15 @@ const handleSubmit = () => {
                     <input
                         v-model="verifyForm.codigo"
                         type="text"
+                        inputmode="numeric"
                         maxlength="6"
                         class="login-code-input"
                         placeholder="Ingresa el código"
                         required
-                        autocomplete="off"
+                        autocomplete="one-time-code"
                     />
                 </div>
+                <InputError class="mt-2" :message="verifyForm.errors.codigo" />
 
                 <p
                     class="mt-3 text-xs"
@@ -281,6 +380,7 @@ const handleSubmit = () => {
                     </button>
                 </div>
             </form>
+            </template>
         </template>
 
         <template #footer>

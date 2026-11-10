@@ -29,6 +29,14 @@ final class TicketLine
         return new self($this->localityId, $this->localityName, $seat, $price, $serviceFee, $paymentFee, $this->courtesy);
     }
 
+    public function withPrice(float $price): self
+    {
+        return new self(
+            $this->localityId, $this->localityName, $this->seat, $price, $this->serviceFee, $this->paymentFee,
+            $this->courtesy, $this->specialLocalityId, $this->specialLocalityName,
+        );
+    }
+
     public function isGeneralAdmission(): bool
     {
         return str_starts_with($this->seat, 'NA_NA');

@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Modules\Users\Models\Usuarios;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -37,7 +39,33 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            'customer' => fn () => $this->customer(),
+            'flash' => fn () => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'registration_required' => (bool) $request->session()->get('registration_required'),
+                'auth_required' => (bool) $request->session()->get('auth_required'),
+            ],
+        ];
+    }
+
+    /**
+     * Cliente con sesión en el sitio público (tabla usuarios).
+     */
+    private function customer(): ?array
+    {
+        $customer = Auth::guard('customer')->user();
+
+        if (! $customer instanceof Usuarios) {
+            return null;
+        }
+
+        return [
+            'id' => $customer->pk_usuario,
+            'name' => $customer->nombre,
+            'fullName' => $customer->nombreCompleto(),
+            'email' => $customer->correo,
+            'phone' => $customer->telefono,
         ];
     }
 }

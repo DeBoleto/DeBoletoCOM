@@ -96,7 +96,7 @@ class SaleCatalog
             ->each(function (EventosFuncionesBoletos $ticket) use (&$statuses) {
                 $status = match (TicketStatus::tryFrom($ticket->pk_evento_funcion_boleto_status)) {
                     TicketStatus::Issued, TicketStatus::Pending => 'vendido',
-                    TicketStatus::Blocked => 'no_disponible',
+                    TicketStatus::Blocked, TicketStatus::ChargedBack => 'no_disponible',
                     default => null,
                 };
 

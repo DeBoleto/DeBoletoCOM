@@ -4,7 +4,9 @@ namespace App\Modules\Orders\Models;
 
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\EventosFunciones;
+use App\Modules\Orders\Enums\PurchaseStatus;
 use App\Modules\Shared\Models\LegacyModel;
+use App\Modules\Tickets\Models\EventoEstacionamientoBoleto;
 use App\Modules\Tickets\Models\EventosFuncionesBoletos;
 use App\Modules\Users\Models\Usuarios;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +27,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property float $total_comision_pago_linea
  * @property float $total_utilidad
  * @property int $estatus
+ * @property string|null $pk_openpay
+ * @property float|null $total_descuento
+ * @property float|null $total_defender
+ * @property float|null $total_envio
  */
 class EventosCompras extends LegacyModel
 {
@@ -54,6 +60,9 @@ class EventosCompras extends LegacyModel
             'total_comision_pago_linea' => 'float',
             'total_utilidad' => 'float',
             'estatus' => 'integer',
+            'total_descuento' => 'float',
+            'total_defender' => 'float',
+            'total_envio' => 'float',
         ];
     }
 
@@ -80,5 +89,15 @@ class EventosCompras extends LegacyModel
     public function boletos(): HasMany
     {
         return $this->hasMany(EventosFuncionesBoletos::class, 'pk_evento_compra', 'pk_evento_compra');
+    }
+
+    public function estacionamientos(): HasMany
+    {
+        return $this->hasMany(EventoEstacionamientoBoleto::class, 'pk_evento_compra', 'pk_evento_compra');
+    }
+
+    public function status(): ?PurchaseStatus
+    {
+        return PurchaseStatus::tryFrom((int) $this->estatus);
     }
 }
