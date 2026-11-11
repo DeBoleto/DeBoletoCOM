@@ -20,8 +20,8 @@
                     :config="seatConfig(seat)"
                     @click="onSeat(seat)"
                     @tap="onSeat(seat)"
-                    @mouseenter="(event) => setCursor(event, seat)"
-                    @mouseleave="resetCursor"
+                    @mouseenter="(event) => enter(event, seat)"
+                    @mouseleave="leave"
                 />
                 <v-text
                     v-for="seat in seats"
@@ -75,9 +75,10 @@ const props = defineProps({
     section: { type: Object, required: true },
     zoom: { type: Number, default: 1 },
     selectedKeys: { type: Array, default: () => [] },
+    selectedColor: { type: String, default: "#166534" },
 });
 
-const emit = defineEmits(["toggle"]);
+const emit = defineEmits(["toggle", "hover"]);
 
 const host = ref(null);
 
@@ -185,7 +186,7 @@ function statusLabel(status) {
 }
 
 function seatFill(seat) {
-    if (isSelected(seat)) return "#166534";
+    if (isSelected(seat)) return props.selectedColor;
     return STATUS_COLOR[seat.status] || STATUS_COLOR.no_disponible;
 }
 
@@ -266,6 +267,16 @@ function setCursor(event, seat) {
 function resetCursor(event) {
     const stage = event.target.getStage();
     if (stage) stage.container().style.cursor = "default";
+}
+
+function enter(event, seat) {
+    setCursor(event, seat);
+    emit("hover", { seat, clientX: event.evt?.clientX ?? 0, clientY: event.evt?.clientY ?? 0 });
+}
+
+function leave(event) {
+    resetCursor(event);
+    emit("hover", null);
 }
 </script>
 

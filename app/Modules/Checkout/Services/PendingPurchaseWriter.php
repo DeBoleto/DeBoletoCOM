@@ -124,16 +124,17 @@ class PendingPurchaseWriter
     private function heldByOthers(WebCart $cart, $localities, string $owner): bool
     {
         $state = $cart->selection;
-        $seats = $cart->numberedSeats();
 
-        if ($state->localityId === null || $seats === []) {
-            return false;
+        foreach ($cart->numberedSeatsByLocality() as $localityId => $seats) {
+            $locality = $localities->get($localityId);
+            $others = $this->holds->heldByOthers($state->eventId, $state->functionId, $locality->evento_localidad, $owner);
+
+            if (array_intersect($seats, $others) !== []) {
+                return true;
+            }
         }
 
-        $locality = $localities->get($state->localityId);
-        $others = $this->holds->heldByOthers($state->eventId, $state->functionId, $locality->evento_localidad, $owner);
-
-        return array_intersect($seats, $others) !== [];
+        return false;
     }
 
     /**
@@ -148,12 +149,14 @@ class PendingPurchaseWriter
             return $lines;
         }
 
-        $paid = count(array_filter($lines, fn (TicketLine $line) => ! $line->courtesy));
+        $coupon = $quote->coupon;
+        $discounted = fn (TicketLine $line) => ! $line->courtesy && $coupon->covers($line);
+        $paid = count(array_filter($lines, $discounted));
         $perTicket = $paid > 0 ? $quote->discount / $paid : 0.0;
 
-        return array_map(fn (TicketLine $line) => $line->courtesy
-            ? $line
-            : $line->withPrice(max(0.0, $line->price - $perTicket)), $lines);
+        return array_map(fn (TicketLine $line) => $discounted($line)
+            ? $line->withPrice(max(0.0, $line->price - $perTicket))
+            : $line, $lines);
     }
 
     /**

@@ -6,10 +6,10 @@ use App\Modules\Checkout\Http\Controllers\PaymentController;
 use App\Modules\Checkout\Http\Controllers\SeatsController;
 use Illuminate\Support\Facades\Route;
 
-// Compra web. El paso de función vive en el detalle del evento, así que el
-// flujo empieza en el mapa: asientos → pago → confirmación.
+// Compra web: fecha y boletos (mapa con varias zonas) → pago → confirmación.
 Route::middleware('web')->group(function () {
-    Route::get('evento/{slug}/asientos', [SeatsController::class, 'show'])->name('event.seats');
+    Route::get('checkoutprocess/{slug}', [SeatsController::class, 'show'])->name('checkout.process');
+    Route::get('evento/{slug}/asientos', [SeatsController::class, 'legacy'])->name('event.seats');
 
     Route::prefix('compra')->name('checkout.')->group(function () {
         Route::get('confirmacion', [PaymentController::class, 'return'])->name('return');

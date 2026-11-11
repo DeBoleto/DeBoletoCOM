@@ -34,11 +34,19 @@ final class WebCart
      */
     public function numberedSeats(): array
     {
+        return array_merge([], ...array_values($this->numberedSeatsByLocality()));
+    }
+
+    /**
+     * @return array<int, list<string>> pk_evento_localidad => asientos numerados.
+     */
+    public function numberedSeatsByLocality(): array
+    {
         $seats = [];
 
         foreach ($this->selection->lines as $line) {
             if (! $line->isGeneralAdmission() && ! str_ends_with($line->seat, (string) config('boxoffice.rules.extra_chair.seat_suffix'))) {
-                $seats[] = $line->seat;
+                $seats[$line->localityId][] = $line->seat;
             }
         }
 

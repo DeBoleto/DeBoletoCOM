@@ -14,14 +14,18 @@
                     :config="polygonConfig(section)"
                     @click="emit('select', section.key)"
                     @tap="emit('select', section.key)"
-                    @mouseenter="setCursor"
-                    @mouseleave="resetCursor"
+                    @mouseenter="(event) => enter(event, section)"
+                    @mouseleave="leave"
                 />
                 <v-text
                     v-for="section in drawable"
                     :key="`${section.key}-label`"
                     :config="labelConfig(section)"
                 />
+                <template v-for="section in badged" :key="`${section.key}-badge`">
+                    <v-circle :config="badgeConfig(section)" />
+                    <v-text :config="badgeTextConfig(section)" />
+                </template>
             </v-layer>
         </v-stage>
         <div class="visually-hidden">
@@ -50,9 +54,13 @@ const props = defineProps({
     activeKey: { type: String, default: null },
     zoom: { type: Number, default: 1 },
     canvasSize: { type: Number, default: 2000 },
+    hoverKey: { type: String, default: null },
+    disabledKeys: { type: Array, default: () => [] },
+    badges: { type: Object, default: () => ({}) },
+    autoHeight: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(["select", "hover"]);
 
 const host = ref(null);
 const fitWidth = ref(640);
@@ -184,16 +192,76 @@ function py(y) {
     return (y - frame.value.minY) * scale.value + offsetY.value;
 }
 
+const badged = computed(() =>
+    drawable.value.filter((section) => (props.badges[section.key] ?? 0) > 0),
+);
+
 function polygonConfig(section) {
     const active = section.key === props.activeKey;
+    const hovered = section.key === props.hoverKey;
+    const disabled = props.disabledKeys.includes(section.key);
     return {
         points: section.polygon.flatMap((point) => [px(point.x), py(point.y)]),
         closed: true,
         fill: section.areaColor,
-        stroke: active ? "#4ecba0" : "#334155",
-        strokeWidth: (active ? 16 : 4) * scale.value,
+        opacity: disabled ? 0.28 : 1,
+        stroke: active || hovered ? "#4ecba0" : "#334155",
+        strokeWidth: (active ? 16 : hovered ? 12 : 4) * scale.value,
+        shadowColor: "#4ecba0",
+        shadowBlur: hovered && !disabled ? 28 * scale.value : 0,
+        shadowOpacity: 0.7,
         lineJoin: "round",
     };
+}
+
+function badgeRadius() {
+    return Math.max(11, 34 * scale.value);
+}
+
+function badgeCenter(section) {
+    const xs = section.polygon.map((point) => point.x);
+    const ys = section.polygon.map((point) => point.y);
+    return { x: px(Math.max(...xs)), y: py(Math.min(...ys)) };
+}
+
+function badgeConfig(section) {
+    const center = badgeCenter(section);
+    return {
+        x: center.x - badgeRadius() * 0.6,
+        y: center.y + badgeRadius() * 0.6,
+        radius: badgeRadius(),
+        fill: "#4ecba0",
+        stroke: "#0a0a0f",
+        strokeWidth: Math.max(2, 5 * scale.value),
+        listening: false,
+    };
+}
+
+function badgeTextConfig(section) {
+    const center = badgeCenter(section);
+    const radius = badgeRadius();
+    const fontSize = radius * 1.05;
+    return {
+        x: center.x - radius * 0.6 - radius,
+        y: center.y + radius * 0.6 - fontSize / 2,
+        width: radius * 2,
+        text: String(props.badges[section.key]),
+        align: "center",
+        fontSize,
+        fontStyle: "bold",
+        fill: "#06291d",
+        listening: false,
+    };
+}
+
+function enter(event, section) {
+    setCursor(event, section);
+    emit("hover", section.key);
+}
+
+function leave(event) {
+    resetCursor(event);
+    emit("hover", null);
 }
 
 function labelConfig(section) {
@@ -253,9 +321,9 @@ function zoneAriaLabel(section) {
     return `Zona ${section.name}, ${zonePriceLabel(section)}`;
 }
 
-function setCursor(event) {
+function setCursor(event, section) {
     const stage = event.target.getStage();
-    if (stage) stage.container().style.cursor = "pointer";
+    if (stage) stage.container().style.cursor = section && props.disabledKeys.includes(section.key) ? "not-allowed" : "pointer";
 }
 
 function resetCursor(event) {
@@ -276,7 +344,7 @@ function measure() {
     if (!viewport || measuring) return;
     measuring = true;
     try {
-        if (window.scrollY <= 0) {
+        if (props.autoHeight && window.scrollY <= 0) {
             const top = viewport.getBoundingClientRect().top;
             const desired = Math.max(240, Math.floor(window.innerHeight - top - reservedBottom()));
             const current = Math.round(viewport.getBoundingClientRect().height);

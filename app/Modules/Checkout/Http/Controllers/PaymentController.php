@@ -86,7 +86,7 @@ class PaymentController extends Controller
             'whatsapp' => $customer->telefono,
             'blocked' => $blocked,
             'legal' => ['terms' => config('checkout.terms_url'), 'privacy' => config('checkout.privacy_url')],
-            'seatsUrl' => route('event.seats', ['slug' => $event->getAttribute('friendly_url'), 'function' => $cart->selection->functionId]),
+            'seatsUrl' => route('checkout.process', ['slug' => $event->getAttribute('friendly_url'), 'function' => $cart->selection->functionId]),
         ]);
     }
 
@@ -236,7 +236,7 @@ class PaymentController extends Controller
 
     private function backToSeats(EventoVista $event, ?WebCart $cart, ?string $message): RedirectResponse
     {
-        $redirect = redirect()->route('event.seats', array_filter([
+        $redirect = redirect()->route('checkout.process', array_filter([
             'slug' => $event->getAttribute('friendly_url'),
             'function' => $cart?->selection->functionId,
         ]));

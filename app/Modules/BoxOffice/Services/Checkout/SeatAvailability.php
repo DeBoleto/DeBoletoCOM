@@ -51,13 +51,18 @@ class SeatAvailability
     }
 
     /**
-     * Cupo aplicable: el de la sección del mapa (cupo general) o, en venta sin
-     * mapa, el de la localidad. Asientos numerados no tienen cupo.
+     * Cupo aplicable: el de la sección del mapa (cupo general), el de cada
+     * zona en compras de varias zonas o, en venta sin mapa, el de la
+     * localidad. Asientos numerados no tienen cupo.
      */
     private function capacityFor(CheckoutState $state, int $localityId): ?int
     {
         if ($state->localityId !== null) {
             return $state->capacity;
+        }
+
+        if (array_key_exists($localityId, $state->capacities)) {
+            return $state->capacities[$localityId];
         }
 
         return (int) EventosLocalidades::query()->whereKey($localityId)->value('capacidad');

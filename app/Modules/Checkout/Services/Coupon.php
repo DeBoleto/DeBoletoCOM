@@ -2,6 +2,7 @@
 
 namespace App\Modules\Checkout\Services;
 
+use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\Orders\Models\EventoCodigoPromocion;
 
 /**
@@ -14,6 +15,7 @@ final class Coupon
         public readonly string $code,
         public readonly int $type,
         public readonly float $value,
+        public readonly ?int $localityId = null,
     ) {}
 
     public static function from(EventoCodigoPromocion $promotion): self
@@ -23,6 +25,7 @@ final class Coupon
             $promotion->codigo_promocion,
             $promotion->tipo,
             $promotion->promocion,
+            $promotion->pk_localidad,
         );
     }
 
@@ -58,6 +61,14 @@ final class Coupon
             EventoCodigoPromocion::TYPE_FREE_TICKETS => ((int) $this->value + 1).'x'.(int) $this->value.' en tus boletos',
             default => '$'.number_format($this->value, 2).' de descuento',
         };
+    }
+
+    /**
+     * Un código ligado a una zona solo descuenta los boletos de esa zona.
+     */
+    public function covers(TicketLine $line): bool
+    {
+        return $this->localityId === null || $this->localityId === $line->localityId;
     }
 
     public function toArray(): array

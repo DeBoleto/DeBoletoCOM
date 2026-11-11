@@ -28,9 +28,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Paso de selección (mapa del recinto o cantidades por localidad). La
- * elección de función vive en la página del evento, así que la compra
- * empieza directamente aquí.
+ * Proceso de compra (checkoutprocess/{slug}): fecha, mapa del recinto con
+ * boletos de una o varias zonas, o cantidades por localidad.
  */
 class SeatsController extends Controller
 {
@@ -52,32 +51,54 @@ class SeatsController extends Controller
         $requested = $request->integer('function');
         $function = $requested ? $functions->firstWhere('pk_evento_funcion', $requested) : ($functions->count() === 1 ? $functions->first() : null);
 
+        if ($requested && $function === null) {
+            return redirect()->route('checkout.process', $slug)->with('error', 'Esa fecha ya no está a la venta. Elige otra.');
+        }
+
+        $props = [
+            'event' => CheckoutPresenter::event($event),
+            'functions' => $functions->map(fn ($candidate) => CheckoutPresenter::function($candidate))->values()->all(),
+            'function' => null,
+            'limits' => [
+                'maxTickets' => $this->catalog->maxTickets($event->pk_evento),
+                'holdMinutes' => (int) config('checkout.hold_minutes'),
+            ],
+        ];
+
         if ($function === null) {
-            return redirect()->route('event.detail', $slug)->with('error', 'Elige la fecha a la que quieres asistir.');
+            return Inertia::render('Checkout/Process', $props + ['mode' => 'function']);
         }
 
         $localities = $this->catalog->openLocalities($event->pk_evento);
         $byQuantity = $event->sellsWithoutSeatMap();
         $eventRow = $this->catalog->eventRow($event->pk_evento);
+        $stage = $byQuantity ? null : $this->stage($event, $localities);
         $cart = $this->carts->get($event->pk_evento);
 
         if ($cart === null) {
             SendConversionEvent::dispatch($event->pk_evento, 'InitiateCheckout', $request->fullUrl());
         }
 
-        return Inertia::render('Checkout/Seats', [
-            'event' => CheckoutPresenter::event($event),
+        return Inertia::render('Checkout/Process', [
+            ...$props,
             'function' => CheckoutPresenter::function($function),
             'mode' => $byQuantity ? 'quantities' : 'map',
-            'stage' => $byQuantity ? null : $this->stage($event, $localities),
+            'stage' => $stage,
             'localities' => $byQuantity ? $this->quantityLocalities($event, $localities, $function->pk_evento_funcion, $availability) : [],
-            'limits' => [
-                'maxTickets' => $this->catalog->maxTickets($event->pk_evento),
-                'holdMinutes' => (int) config('checkout.hold_minutes'),
-            ],
             'parking' => $this->catalog->parkingOffer($eventRow),
-            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->previousSelection($cart) : null,
+            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->previousSelection($cart, $stage) : null,
         ]);
+    }
+
+    /**
+     * La ruta anterior del mapa se conserva como redirección permanente.
+     */
+    public function legacy(Request $request, string $slug): RedirectResponse
+    {
+        return redirect()->route('checkout.process', array_filter([
+            'slug' => $slug,
+            'function' => $request->integer('function') ?: null,
+        ]), 301);
     }
 
     /**
@@ -264,28 +285,66 @@ class SeatsController extends Controller
         ])->values()->all();
     }
 
-    private function previousSelection(WebCart $cart): array
+    /**
+     * Selección guardada, agrupada por sección del mapa para restaurarla.
+     */
+    private function previousSelection(WebCart $cart, ?array $stage): array
     {
         $lines = collect($cart->selection->lines);
+        $sections = collect($stage['sections'] ?? []);
+        $extraChairSuffix = (string) config('boxoffice.rules.extra_chair.seat_suffix');
+        $grouped = [];
+
+        foreach ($lines as $line) {
+            if (str_ends_with($line->seat, $extraChairSuffix)) {
+                continue;
+            }
+
+            $generalAdmission = $line->isGeneralAdmission();
+            $section = $cart->selection->sectionId !== null
+                ? $sections->firstWhere('sectionId', $cart->selection->sectionId)
+                : $sections->first(fn (array $candidate) => (int) $candidate['localityId'] === $line->localityId
+                    && ($generalAdmission
+                        ? $candidate['capacity'] !== null
+                        : collect($candidate['rows'])->flatMap(fn (array $row) => $row['seats'])->contains('id', $line->seat)));
+
+            if ($section === null) {
+                continue;
+            }
+
+            $grouped[$section['sectionId']] ??= ['sectionId' => $section['sectionId'], 'seats' => [], 'quantity' => 0];
+
+            if ($generalAdmission) {
+                $grouped[$section['sectionId']]['quantity']++;
+            } else {
+                $grouped[$section['sectionId']]['seats'][] = $line->seat;
+            }
+        }
 
         return [
-            'sectionId' => $cart->selection->sectionId,
-            'seats' => $lines->reject(fn (TicketLine $line) => $line->isGeneralAdmission())->pluck('seat')->values()->all(),
-            'quantity' => $lines->filter(fn (TicketLine $line) => $line->isGeneralAdmission())->count(),
-            'quantities' => $lines->countBy('localityId')->all(),
+            'sections' => array_values($grouped),
+            'quantities' => $lines->filter(fn (TicketLine $line) => $line->isGeneralAdmission())->countBy('localityId')->all(),
             'parking' => $cart->parking,
         ];
     }
 
     private function releaseOtherHolds(WebCart $cart, string $owner): void
     {
-        $keep = $cart->numberedSeats();
-
         EventoReservaBoleto::query()
             ->where('pk_usuario', $owner)
-            ->where(fn ($query) => $query
-                ->where('pk_evento_funcion', '!=', $cart->selection->functionId)
-                ->orWhereNotIn('asiento', $keep === [] ? [''] : $keep))
+            ->where('pk_evento_funcion', '!=', $cart->selection->functionId)
             ->delete();
+
+        $names = EventosLocalidades::query()
+            ->whereIn('pk_evento_localidad', array_keys($cart->numberedSeatsByLocality()))
+            ->pluck('evento_localidad', 'pk_evento_localidad');
+
+        $keep = [];
+
+        foreach ($cart->numberedSeatsByLocality() as $localityId => $seats) {
+            $keep[$names[$localityId]] = $seats;
+        }
+
+        $this->holds->releaseExcept($cart->eventId(), $cart->selection->functionId, $owner, $keep);
     }
 }

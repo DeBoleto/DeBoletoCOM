@@ -87,7 +87,9 @@ class TicketIssuer
      */
     public function expandTables(CheckoutState $state, EventoVista $event, Usuarios $buyer, int $salesPeriodId): array
     {
-        if ($state->localityId === null) {
+        $mapLocalities = $state->localityId !== null ? [$state->localityId] : array_keys($state->capacities);
+
+        if ($mapLocalities === []) {
             $lines = in_array($event->pk_evento, config('boxoffice.rules.race_table_events'), true)
                 ? $this->expandRaceTables($state->lines)
                 : $state->lines;
@@ -95,9 +97,13 @@ class TicketIssuer
             return ['lines' => $lines, 'markers' => []];
         }
 
-        $table = EventoLocalidadAsiento::query()->where('pk_evento_localidad', $state->localityId)->first();
+        $tables = EventoLocalidadAsiento::query()
+            ->whereIn('pk_evento_localidad', $mapLocalities)
+            ->where('cantidad_asientos', '>=', 1)
+            ->get()
+            ->keyBy('pk_evento_localidad');
 
-        if ($table === null || $table->cantidad_asientos < 1) {
+        if ($tables->isEmpty()) {
             return ['lines' => $state->lines, 'markers' => []];
         }
 
@@ -105,7 +111,9 @@ class TicketIssuer
         $markers = [];
 
         foreach ($state->lines as $line) {
-            if ($line->isTableSeat()) {
+            $table = $tables->get($line->localityId);
+
+            if ($table === null || $line->isTableSeat()) {
                 $expanded[] = $line;
 
                 continue;

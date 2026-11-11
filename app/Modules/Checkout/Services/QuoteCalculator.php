@@ -67,8 +67,22 @@ class QuoteCalculator
         $discount = 0.0;
 
         if ($options->coupon !== null && trim($options->coupon) !== '') {
-            $coupon = $this->coupons->resolve($options->coupon, $event->pk_evento, $this->mainLocalityId($cart), count($paid));
-            $discount = $coupon->discount($subtotal, $serviceFee, count($paid));
+            $coupon = $this->coupons->resolve(
+                $options->coupon,
+                $event->pk_evento,
+                collect($paid)->countBy(fn (TicketLine $line) => $line->localityId)->all(),
+            );
+            $covered = array_values(array_filter($paid, fn (TicketLine $line) => $coupon->covers($line)));
+            $coveredShare = count($paid) > 0 ? count($covered) / count($paid) : 0.0;
+            $coveredService = $installments === null
+                ? array_sum(array_map(fn (TicketLine $line) => $line->serviceFee, $covered))
+                : $serviceFee * $coveredShare;
+
+            $discount = $coupon->discount(
+                array_sum(array_map(fn (TicketLine $line) => $line->price, $covered)),
+                $coveredService,
+                count($covered),
+            );
         }
 
         return new Quote(

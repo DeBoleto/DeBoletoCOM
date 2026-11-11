@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\DB;
 class SeatHolds
 {
     /**
-     * Aparta asientos numerados de una localidad; todos o ninguno.
+     * Aparta asientos numerados de una localidad; todos o ninguno. El límite
+     * cuenta lo que el dueño ya tiene apartado en todas las zonas de la función.
      *
      * @param  list<string>  $seats
      *
@@ -51,9 +52,14 @@ class SeatHolds
                 throw SeatHeldException::for($heldByOthers);
             }
 
-            $alreadyMine = $this->active($eventId, $functionId, $locality->evento_localidad)
+            $alreadyMine = EventoReservaBoleto::query()
+                ->where('pk_evento', $eventId)
+                ->where('pk_evento_funcion', $functionId)
+                ->where('creacion_fecha', '>=', $this->activeSince())
                 ->where('pk_usuario', $owner)
-                ->whereNotIn('asiento', $seats)
+                ->where(fn ($query) => $query
+                    ->where('pk_seccion', '!=', $locality->evento_localidad)
+                    ->orWhereNotIn('asiento', $seats))
                 ->count();
 
             if ($alreadyMine + count($seats) > $limit) {
@@ -90,6 +96,28 @@ class SeatHolds
             ->where('pk_seccion', $locality->evento_localidad)
             ->where('asiento', $seat)
             ->where('pk_usuario', $owner)
+            ->delete();
+    }
+
+    /**
+     * Libera lo que el dueño tenga apartado en la función salvo los asientos
+     * indicados (nombre de localidad => asientos).
+     *
+     * @param  array<string, list<string>>  $keep
+     */
+    public function releaseExcept(int $eventId, int $functionId, string $owner, array $keep): void
+    {
+        EventoReservaBoleto::query()
+            ->where('pk_usuario', $owner)
+            ->where('pk_evento', $eventId)
+            ->where('pk_evento_funcion', $functionId)
+            ->where(function ($query) use ($keep) {
+                foreach ($keep as $localityName => $seats) {
+                    $query->whereNot(fn ($pair) => $pair
+                        ->where('pk_seccion', $localityName)
+                        ->whereIn('asiento', $seats === [] ? [''] : $seats));
+                }
+            })
             ->delete();
     }
 

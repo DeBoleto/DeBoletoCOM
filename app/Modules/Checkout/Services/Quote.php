@@ -53,14 +53,22 @@ final class Quote
 
     public function toArray(): array
     {
+        $generalCount = [];
+
         return [
-            'lines' => array_map(fn (TicketLine $line, int $index) => [
-                'label' => $line->isGeneralAdmission() ? 'Boleto '.($index + 1) : $line->seat,
-                'locality' => $line->localityName,
-                'type' => $line->specialLocalityName,
-                'price' => round($line->price, 2),
-                'courtesy' => $line->courtesy,
-            ], $this->lines, array_keys($this->lines)),
+            'lines' => array_map(function (TicketLine $line) use (&$generalCount) {
+                $number = $line->isGeneralAdmission()
+                    ? $generalCount[$line->localityId] = ($generalCount[$line->localityId] ?? 0) + 1
+                    : null;
+
+                return [
+                    'label' => $number !== null ? 'Boleto '.$number : $line->seat,
+                    'locality' => $line->localityName,
+                    'type' => $line->specialLocalityName,
+                    'price' => round($line->price, 2),
+                    'courtesy' => $line->courtesy,
+                ];
+            }, $this->lines),
             'subtotal' => round($this->subtotal, 2),
             'service' => round($this->serviceFee, 2),
             'payment' => round($this->paymentFee, 2),

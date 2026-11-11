@@ -11,6 +11,7 @@ final class CheckoutState
 {
     /**
      * @param  list<TicketLine>  $lines
+     * @param  array<int, int|null>  $capacities  Cupo de cada sección del mapa por localidad cuando la compra abarca varias zonas.
      */
     public function __construct(
         public readonly int $eventId,
@@ -24,6 +25,7 @@ final class CheckoutState
         public readonly ?int $discount = null,
         public readonly string $promotionText = '',
         public readonly ?int $purchaseId = null,
+        public readonly array $capacities = [],
     ) {}
 
     public function withPurchase(int $purchaseId): self
@@ -31,6 +33,7 @@ final class CheckoutState
         return new self(
             $this->eventId, $this->functionId, $this->paymentType, $this->lines, $this->localityId,
             $this->sectionId, $this->capacity, $this->promotion, $this->discount, $this->promotionText, $purchaseId,
+            $this->capacities,
         );
     }
 
@@ -83,6 +86,7 @@ final class CheckoutState
             'discount' => $this->discount,
             'promotion_text' => $this->promotionText,
             'purchase_id' => $this->purchaseId,
+            'capacities' => $this->capacities,
         ];
     }
 
@@ -100,6 +104,7 @@ final class CheckoutState
             $data['discount'] ?? null,
             (string) ($data['promotion_text'] ?? ''),
             $data['purchase_id'] ?? null,
+            array_map(fn ($capacity) => $capacity === null ? null : (int) $capacity, (array) ($data['capacities'] ?? [])),
         );
     }
 }

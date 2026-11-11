@@ -565,7 +565,7 @@ function buy(fn = chosenFunction.value) {
         return;
     }
 
-    router.get(route("event.seats", { slug: page.props.slug }), {
+    router.get(route("checkout.process", { slug: page.props.slug }), {
         function: fn.id,
     });
 }

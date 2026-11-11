@@ -5,6 +5,7 @@ namespace App\Modules\Checkout\Services;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
 use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
+use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\BoxOffice\Services\Checkout\TicketPricing;
 use App\Modules\Checkout\Exceptions\CheckoutException;
 use App\Modules\Checkout\Support\WebCart;
@@ -14,6 +15,7 @@ use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Tickets\Models\EventosFuncionesBoletos;
 use App\Modules\Users\Models\Usuarios;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -67,46 +69,127 @@ class SelectionBuilder
         }
     }
 
+    /**
+     * Selección del mapa: una o varias secciones, cada una con asientos
+     * numerados o cantidad de cupo general. Se aparta todo o nada.
+     */
     private function fromSeatMap(EventoVista $event, int $functionId, array $input, string $owner): CheckoutState
     {
+        $requested = $this->requestedSections($input);
+        $max = $this->catalog->maxTickets($event->pk_evento);
         $openIds = $this->catalog->openLocalities($event->pk_evento)->pluck('pk_evento_localidad')->all();
 
-        if (! in_array((int) ($input['localidad'] ?? 0), $openIds, true)) {
-            throw ValidationException::withMessages(['seccion' => 'Esa zona no está a la venta.']);
+        $resolved = [];
+
+        foreach ($requested as $section) {
+            if (! in_array((int) ($section['localidad'] ?? 0), $openIds, true)) {
+                throw ValidationException::withMessages(['seccion' => 'Esa zona no está a la venta.']);
+            }
+
+            $resolved[] = $this->resolver->resolve($event, $functionId, $section) + ['input' => $section];
         }
 
-        ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $this->resolver->resolve($event, $functionId, $input);
-
-        $max = $this->catalog->maxTickets($event->pk_evento);
-
-        if (count($seats) > $max) {
+        if (array_sum(array_map(fn (array $section) => count($section['seats']), $resolved)) > $max) {
             throw ValidationException::withMessages(['asientos' => "Puedes comprar hasta {$max} boletos por compra."]);
         }
 
-        if ($section['capacity'] === null) {
-            $this->holds->holdMany($event->pk_evento, $functionId, $locality, $seats, $owner, $max);
+        $numbered = array_filter($resolved, fn (array $section) => $section['section']['capacity'] === null);
+
+        $this->holds->releaseExcept($event->pk_evento, $functionId, $owner, collect($numbered)
+            ->groupBy(fn (array $section) => $section['locality']->evento_localidad)
+            ->map(fn ($sections) => $sections->flatMap(fn (array $section) => $section['seats'])->values()->all())
+            ->all());
+
+        DB::transaction(function () use ($numbered, $event, $functionId, $owner, $max) {
+            foreach ($numbered as $section) {
+                $this->holds->holdMany($event->pk_evento, $functionId, $section['locality'], $section['seats'], $owner, $max);
+            }
+        });
+
+        $lines = [];
+        $promotion = 0;
+        $promotionTexts = [];
+        $gaIndex = [];
+
+        foreach ($resolved as ['locality' => $locality, 'section' => $section, 'seats' => $seats, 'input' => $sectionInput]) {
+            $specials = $this->specials($event, $seats, (array) ($sectionInput['especiales'] ?? []));
+            $extraChairs = array_values(array_intersect((array) ($sectionInput['sillas_extra'] ?? []), $seats));
+
+            $priced = $this->pricing->forSeatMap(
+                $event,
+                $locality,
+                PaymentType::Web,
+                $seats,
+                false,
+                null,
+                $specials,
+                $extraChairs,
+                $this->volumeDiscount($event, $locality, count($seats)),
+            );
+
+            foreach ($priced->lines as $line) {
+                if ($line->isGeneralAdmission()) {
+                    $index = $gaIndex[$locality->pk_evento_localidad] = ($gaIndex[$locality->pk_evento_localidad] ?? -1) + 1;
+                    $line = new TicketLine(
+                        $line->localityId, $line->localityName, 'NA_NA'.$index, $line->price, $line->serviceFee,
+                        $line->paymentFee, $line->courtesy, $line->specialLocalityId, $line->specialLocalityName,
+                    );
+                }
+
+                $lines[] = $line;
+            }
+
+            $promotion = max($promotion, $priced->promotion);
+
+            if ($priced->promotionText !== '') {
+                $promotionTexts[] = $priced->promotionText;
+            }
         }
 
-        $specials = $this->specials($event, $seats, (array) ($input['especiales'] ?? []));
-        $extraChairs = array_values(array_intersect((array) ($input['sillas_extra'] ?? []), $seats));
+        $promotionText = implode(', ', array_unique($promotionTexts));
 
-        $priced = $this->pricing->forSeatMap(
-            $event,
-            $locality,
-            PaymentType::Web,
-            $seats,
-            false,
-            null,
-            $specials,
-            $extraChairs,
-            $this->volumeDiscount($event, $locality, count($seats)),
-        );
+        if (count($resolved) === 1) {
+            $section = $resolved[0]['section'];
+
+            return new CheckoutState(
+                $event->pk_evento, $functionId, PaymentType::Web, $lines,
+                $resolved[0]['locality']->pk_evento_localidad, $section['sectionId'], $section['capacity'],
+                $promotion, null, $promotionText,
+            );
+        }
+
+        $capacities = [];
+
+        foreach ($resolved as ['locality' => $locality, 'section' => $section]) {
+            $id = $locality->pk_evento_localidad;
+            $capacities[$id] = $section['capacity'] === null || (array_key_exists($id, $capacities) && $capacities[$id] === null)
+                ? null
+                : ($capacities[$id] ?? 0) + $section['capacity'];
+        }
 
         return new CheckoutState(
-            $event->pk_evento, $functionId, PaymentType::Web, $priced->lines,
-            $locality->pk_evento_localidad, $section['sectionId'], $section['capacity'],
-            $priced->promotion, null, $priced->promotionText,
+            $event->pk_evento, $functionId, PaymentType::Web, $lines,
+            promotion: $promotion, promotionText: $promotionText, capacities: $capacities,
         );
+    }
+
+    /**
+     * Normaliza la selección: `secciones` (varias zonas) o los campos de una
+     * sola sección. Una sección no puede repetirse.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function requestedSections(array $input): array
+    {
+        $sections = isset($input['secciones'])
+            ? array_values((array) $input['secciones'])
+            : [array_intersect_key($input, array_flip(['localidad', 'seccion', 'asientos', 'cantidad', 'especiales', 'sillas_extra']))];
+
+        if ($sections === [] || count(array_unique(array_map(fn (array $section) => (string) ($section['seccion'] ?? ''), $sections))) !== count($sections)) {
+            throw ValidationException::withMessages(['secciones' => 'Revisa las zonas de tu selección.']);
+        }
+
+        return $sections;
     }
 
     private function fromQuantities(EventoVista $event, int $functionId, array $input): CheckoutState

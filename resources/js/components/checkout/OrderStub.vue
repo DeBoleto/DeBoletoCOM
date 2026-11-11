@@ -9,15 +9,18 @@
         <div class="stub-perforation" aria-hidden="true" />
 
         <div class="stub-body">
-            <ul class="stub-lines">
-                <li v-for="(line, index) in quote.lines" :key="`${line.label}-${index}`">
-                    <span class="line-main">
-                        <span class="line-seat">{{ line.label }}</span>
-                        <span class="line-zone">{{ line.locality }}<template v-if="line.type && line.type !== 'Regular'"> · {{ line.type }}</template></span>
-                    </span>
-                    <span class="line-price">{{ line.courtesy ? "Cortesía" : money(line.price) }}</span>
-                </li>
-            </ul>
+            <div v-for="zone in zones" :key="zone.name" class="stub-zone">
+                <p v-if="zones.length > 1" class="stub-zone-name">{{ zone.name }} <span>· {{ zone.lines.length }}</span></p>
+                <ul class="stub-lines">
+                    <li v-for="(line, index) in zone.lines" :key="`${line.label}-${index}`">
+                        <span class="line-main">
+                            <span class="line-seat">{{ line.label }}</span>
+                            <span class="line-zone">{{ line.locality }}<template v-if="line.type && line.type !== 'Regular'"> · {{ line.type }}</template></span>
+                        </span>
+                        <span class="line-price">{{ line.courtesy ? "Cortesía" : money(line.price) }}</span>
+                    </li>
+                </ul>
+            </div>
 
             <dl class="stub-breakdown">
                 <div><dt>Boletos</dt><dd>{{ money(quote.subtotal) }}</dd></div>
@@ -59,6 +62,15 @@ const props = defineProps({
 });
 
 const when = computed(() => [props.func?.date, props.func?.time].filter(Boolean).join(" · "));
+
+const zones = computed(() => {
+    const byZone = new Map();
+    for (const line of props.quote.lines) {
+        if (!byZone.has(line.locality)) byZone.set(line.locality, { name: line.locality, lines: [] });
+        byZone.get(line.locality).lines.push(line);
+    }
+    return [...byZone.values()];
+});
 </script>
 
 <style scoped>
@@ -108,6 +120,23 @@ const when = computed(() => [props.func?.date, props.func?.time].filter(Boolean)
 
 .stub-body {
     padding: 22px;
+}
+
+.stub-zone + .stub-zone {
+    margin-top: 12px;
+}
+
+.stub-zone-name {
+    margin-bottom: 4px;
+    color: var(--color-brand);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stub-zone-name span {
+    color: var(--color-text-muted);
 }
 
 .stub-lines {
