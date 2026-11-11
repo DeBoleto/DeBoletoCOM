@@ -64,6 +64,11 @@ body:has(.bo-root) {
         radial-gradient(circle var(--notch) at 100% var(--stub-cut, 70%), #0000 98%, #000) right / 51% 100% no-repeat;
 }
 
+.bo-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
 .bo-perforation {
     border-top: 2px dashed var(--color-bo-line);
     margin-inline: 18px;

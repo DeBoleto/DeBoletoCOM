@@ -40,8 +40,18 @@ class SelectTicketsRequest extends FormRequest
         }
 
         return $rules + [
-            'localidad' => ['required', 'integer'],
-            'seccion' => ['required', 'string', 'max:100'],
+            'secciones' => ['sometimes', 'array', 'min:1', 'max:30'],
+            'secciones.*.localidad' => ['required', 'integer'],
+            'secciones.*.seccion' => ['required', 'string', 'max:100'],
+            'secciones.*.asientos' => ['array', "max:{$max}"],
+            'secciones.*.asientos.*' => ['string', 'max:40', 'distinct'],
+            'secciones.*.cantidad' => ['nullable', 'integer', 'min:1', "max:{$max}"],
+            'secciones.*.especiales' => ['array'],
+            'secciones.*.especiales.*' => ['integer'],
+            'secciones.*.sillas_extra' => ['array'],
+            'secciones.*.sillas_extra.*' => ['string', 'max:40'],
+            'localidad' => ['required_without:secciones', 'integer'],
+            'seccion' => ['required_without:secciones', 'string', 'max:100'],
             'asientos' => ['array', "max:{$max}"],
             'asientos.*' => ['string', 'max:40', 'distinct'],
             'cantidad' => ['nullable', 'integer', 'min:1', "max:{$max}"],
@@ -71,8 +81,14 @@ class SelectTicketsRequest extends FormRequest
                     return;
                 }
 
-                if (empty($this->input('asientos')) && ! $this->filled('cantidad')) {
-                    $validator->errors()->add('asientos', 'Selecciona al menos un asiento.');
+                $sections = $this->has('secciones') ? (array) $this->input('secciones') : [$this->all()];
+
+                foreach ($sections as $section) {
+                    if (empty($section['asientos'] ?? null) && empty($section['cantidad'] ?? null)) {
+                        $validator->errors()->add('asientos', 'Selecciona al menos un asiento.');
+
+                        return;
+                    }
                 }
             },
         ];

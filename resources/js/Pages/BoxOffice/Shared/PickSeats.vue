@@ -16,7 +16,7 @@
         </div>
 
         <div class="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
-            <div class="space-y-6">
+            <div class="min-w-0 space-y-6">
                 <section class="rounded-xl border border-bo-line bg-bo-card p-5" aria-labelledby="function-title">
                     <h2 id="function-title" class="font-semibold">Función</h2>
                     <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-labelledby="function-title">

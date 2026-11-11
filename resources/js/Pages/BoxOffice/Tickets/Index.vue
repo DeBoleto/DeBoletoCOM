@@ -24,24 +24,37 @@
         />
         <EmptyState v-else-if="filtered.length === 0" title="Sin resultados" :text="`Ningún evento coincide con “${search}”.`" />
 
-        <ul v-else class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <ul v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <li v-for="event in filtered" :key="event.id">
                 <Link
                     :href="route(actionRoute, event.id)"
-                    class="group flex h-full flex-col overflow-hidden rounded-xl border border-bo-line bg-bo-card hover:border-bo-green"
+                    class="group flex h-full flex-col overflow-hidden rounded-2xl border border-bo-line bg-bo-card shadow-[0_1px_2px_rgba(22,32,43,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-bo-green/60 hover:shadow-[0_14px_32px_-12px_rgba(22,32,43,0.28)] focus-visible:-translate-y-0.5"
                 >
-                    <EventThumb :src="event.image" :alt="event.name" class="rounded-none" />
-                    <div class="flex flex-1 flex-col p-4">
-                        <p class="font-semibold leading-snug">{{ event.name }}</p>
-                        <p class="mt-2 flex items-start gap-1.5 text-sm text-bo-slate">
-                            <BoIcon name="venue" :size="16" class="mt-0.5 shrink-0" />
-                            {{ event.venue }}, {{ event.city }}
+                    <div class="relative">
+                        <EventThumb :src="event.image" :alt="event.name" class="rounded-none transition-transform duration-500 group-hover:scale-[1.03]" />
+                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-bo-ink/70 via-bo-ink/5 to-transparent" />
+                        <span class="tabular absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-bo-ink shadow-sm backdrop-blur">
+                            <BoIcon name="calendar" :size="14" class="text-bo-green" />
+                            {{ event.date }}
+                        </span>
+                        <p class="absolute right-3 bottom-3 left-3 line-clamp-2 text-[15px] leading-snug font-semibold text-white drop-shadow">
+                            {{ event.name }}
                         </p>
-                        <p class="mt-1 flex items-center gap-1.5 text-sm text-bo-slate">
-                            <BoIcon name="calendar" :size="16" class="shrink-0" />
-                            <span class="tabular">{{ event.date }}</span>
+                    </div>
+                    <div class="flex flex-1 flex-col gap-3 p-4">
+                        <p class="flex items-start gap-2 text-sm text-bo-slate">
+                            <BoIcon name="venue" :size="16" class="mt-0.5 shrink-0 text-bo-muted" />
+                            <span class="min-w-0">
+                                <span class="block truncate font-medium text-bo-ink">{{ event.venue }}</span>
+                                <span class="block truncate">{{ [event.city, event.state].filter(Boolean).join(", ") }}</span>
+                            </span>
                         </p>
-                        <span class="mt-auto pt-4 text-sm font-semibold text-bo-green group-hover:text-bo-green-dark">{{ actionLabel }}</span>
+                        <span
+                            class="mt-auto inline-flex items-center justify-between rounded-lg bg-bo-green-soft px-3.5 py-2.5 text-sm font-semibold text-bo-green-dark transition-colors group-hover:bg-bo-green group-hover:text-white"
+                        >
+                            {{ actionLabel }}
+                            <BoIcon name="chevronRight" :size="18" class="transition-transform group-hover:translate-x-0.5" />
+                        </span>
                     </div>
                 </Link>
             </li>

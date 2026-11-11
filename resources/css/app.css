@@ -101,9 +101,9 @@
 }
 
 /* --- Reset & Box-sizing --- */
-*,
-*::before,
-*::after {
+:where(*:not(.bo-root, .bo-root *)),
+:where(*:not(.bo-root, .bo-root *))::before,
+:where(*:not(.bo-root, .bo-root *))::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -133,38 +133,28 @@ body {
 }
 
 /* --- Typography --- */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+:where(h1, h2, h3, h4, h5, h6):where(:not(.bo-root *)) {
     line-height: 1.2;
     font-weight: 700;
     color: var(--color-text-primary);
     text-wrap: balance;
 }
 
-p {
+:where(p):where(:not(.bo-root *)) {
     text-wrap: pretty;
 }
 
-a {
+:where(a):where(:not(.bo-root *)) {
     color: inherit;
     text-decoration: none;
 }
 
-img,
-picture,
-video {
+:where(img, picture, video):where(:not(.bo-root *)) {
     display: block;
     max-width: 100%;
 }
 
-input,
-button,
-select,
-textarea {
+:where(input, button, select, textarea):where(:not(.bo-root *)) {
     font: inherit;
 }
 

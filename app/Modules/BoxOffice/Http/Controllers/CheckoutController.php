@@ -13,6 +13,7 @@ use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
 use App\Modules\BoxOffice\Services\Checkout\PurchaseService;
 use App\Modules\BoxOffice\Services\Checkout\SaleCatalog;
 use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
+use App\Modules\BoxOffice\Services\Checkout\SectionsStateBuilder;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\BoxOffice\Services\Checkout\TicketPricing;
 use App\Modules\BoxOffice\Support\EventImage;
@@ -40,6 +41,7 @@ class CheckoutController extends Controller
     public function __construct(
         private readonly SaleCatalog $catalog,
         private readonly CheckoutStore $store,
+        private readonly SectionsStateBuilder $sections,
     ) {}
 
     public function start(int $evento): RedirectResponse
@@ -220,24 +222,32 @@ class CheckoutController extends Controller
 
     private function seatMapState(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $resolver, EventoVista $event, int $functionId): CheckoutState
     {
-        ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolver->resolve($event, $functionId, $request->validated());
-
-        $priced = $pricing->forSeatMap(
-            $event,
-            $locality,
-            $request->paymentType(),
-            $seats,
-            $request->boolean('promocion'),
-            $request->discount(),
-            array_map('intval', (array) $request->validated('especiales', [])),
-            (array) $request->validated('sillas_extra', []),
+        $max = (int) config('boxoffice.max_tickets_per_sale');
+        $resolved = array_map(
+            fn (array $section) => $resolver->resolve($event, $functionId, $section) + ['input' => $section],
+            $this->sections->requested($request->validated()),
         );
 
-        return new CheckoutState(
-            $event->pk_evento, $functionId, $request->paymentType(), $priced->lines,
-            $locality->pk_evento_localidad, $section['sectionId'], $section['capacity'],
-            $priced->promotion, $request->discount(), $priced->promotionText,
-        );
+        if (array_sum(array_map(fn (array $section) => count($section['seats']), $resolved)) > $max) {
+            throw ValidationException::withMessages(['asientos' => "No puedes vender más de {$max} boletos por venta."]);
+        }
+
+        $priced = array_map(fn (array $section) => [
+            'locality' => $section['locality'],
+            'section' => $section['section'],
+            'priced' => $pricing->forSeatMap(
+                $event,
+                $section['locality'],
+                $request->paymentType(),
+                $section['seats'],
+                $request->boolean('promocion'),
+                $request->discount(),
+                array_map('intval', (array) ($section['input']['especiales'] ?? [])),
+                (array) ($section['input']['sillas_extra'] ?? []),
+            ),
+        ], $resolved);
+
+        return $this->sections->build($event->pk_evento, $functionId, $request->paymentType(), $priced, $request->discount());
     }
 
     private function quantitiesState(SelectTicketsRequest $request, TicketPricing $pricing, EventoVista $event, int $functionId): CheckoutState

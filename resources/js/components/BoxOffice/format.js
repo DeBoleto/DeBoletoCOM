@@ -20,3 +20,31 @@ export function iconForMenu(faClass) {
 
     return "grid";
 }
+
+const ITEM_ICONS = {
+    tickets: "ticket",
+    "boletos-venta": "ticket",
+    "tickets-exchange": "swap",
+    "tickets-courtesy": "gift",
+    "tickets-courtesy-create": "gift",
+    "tickets-count": "counter",
+    "tickets-change": "refresh",
+    reportes: "file",
+    "reportes-por-dia": "calendar",
+    "reportes-contador-entradas": "counter",
+    "reportes-por-categoria": "chart",
+    ventas: "cash",
+    escenarios: "venue",
+    administradores: "user",
+    monitores: "user",
+    empresarios: "users",
+    puntoventa: "cash",
+    usuarios: "users",
+    eventos: "calendar",
+    "tickets-unlock": "lock",
+    actualizar: "refresh",
+};
+
+export function iconForItem(section, fallback) {
+    return ITEM_ICONS[section] ?? iconForMenu(fallback);
+}
