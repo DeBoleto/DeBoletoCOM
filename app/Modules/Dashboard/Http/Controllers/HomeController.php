@@ -20,8 +20,8 @@ class HomeController extends Controller
 
         return Inertia::render('Admin/Home', [
             'events' => [
-                'published' => Eventos::query()->publicados()->where('eliminado', 0)->count(),
-                'drafts' => Eventos::query()->where('pk_evento_status', Eventos::STATUS_DRAFT)->where('eliminado', 0)->count(),
+                'published' => Eventos::query()->publicados()->count(),
+                'drafts' => Eventos::query()->where('pk_evento_status', Eventos::STATUS_DRAFT)->count(),
             ],
             'staff' => collect(StaffType::cases())->map(fn (StaffType $type) => [
                 'section' => $type->section(),
