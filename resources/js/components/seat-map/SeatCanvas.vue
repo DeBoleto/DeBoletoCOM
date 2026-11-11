@@ -66,6 +66,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { registerKonva } from "./registerKonva.js";
+import { SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
 
 registerKonva();
 
@@ -78,13 +79,6 @@ const MIN_PITCH = 20;
 const MAX_PITCH = 46;
 const DOT_RATIO = 0.68;
 
-const STATUS_COLOR = {
-    disponible: "#22c55e",
-    no_disponible: "#9ca3af",
-    vendido: "#ef4444",
-    en_proceso: "#f97316",
-};
-
 const STATUS_LABEL = {
     disponible: "Disponible",
     no_disponible: "No disponible",
@@ -96,7 +90,6 @@ const props = defineProps({
     section: { type: Object, required: true },
     zoom: { type: Number, default: 1 },
     selectedKeys: { type: Array, default: () => [] },
-    selectedColor: { type: String, default: "#166534" },
     variant: { type: String, default: "blocks" },
 });
 
@@ -109,6 +102,7 @@ let observer = null;
 let centered = false;
 
 const dots = computed(() => props.variant === "dots");
+const palette = computed(() => zoneSeatColors(props.section.areaColor || props.section.color));
 
 const labels = computed(() =>
     (props.section.labels ?? []).filter((label) => !/^\d+$/.test(String(label.name))),
@@ -291,17 +285,15 @@ function statusLabel(status) {
 }
 
 function seatFill(seat) {
-    if (isSelected(seat)) return props.selectedColor;
-    return STATUS_COLOR[seat.status] || STATUS_COLOR.no_disponible;
+    if (isSelected(seat)) return palette.value.selected;
+    if (seat.status === "disponible") return palette.value.available;
+    return (SEAT_STATUS[seat.status] ?? SEAT_STATUS.no_disponible).fill;
 }
 
 function seatTextFill(seat) {
-    if (dots.value) {
-        if (isSelected(seat)) return "#052e1f";
-        return seat.status === "disponible" ? "#ffffff" : "rgba(255, 255, 255, 0.9)";
-    }
-    if (isSelected(seat) || seat.status !== "no_disponible") return "#ffffff";
-    return "#1f2937";
+    if (isSelected(seat)) return palette.value.selectedText;
+    if (seat.status === "disponible") return palette.value.availableText;
+    return (SEAT_STATUS[seat.status] ?? SEAT_STATUS.no_disponible).text;
 }
 
 function labelBoxConfig(label) {
@@ -341,7 +333,7 @@ function seatConfig(seat) {
         width: SEAT_W * props.zoom,
         height: SEAT_H * props.zoom,
         fill: seatFill(seat),
-        stroke: selected ? "#4ecba0" : "transparent",
+        stroke: selected ? palette.value.glow : "transparent",
         strokeWidth: selected ? 3 * props.zoom : 0,
         cornerRadius: 2,
     };
@@ -352,16 +344,17 @@ function dotConfig(seat) {
     const available = seat.status === "disponible";
     const hovered = hoveredId.value === seat.id && available;
     const grow = selected ? 1.12 : hovered ? 1.18 : 1;
+    const outline = !selected && !available ? SEAT_STATUS[seat.status]?.stroke : null;
 
     return {
         x: toX(seat.x),
         y: toY(seat.y),
         radius: dotRadius.value * grow,
         fill: seatFill(seat),
-        opacity: available || selected ? 1 : 0.55,
-        stroke: selected ? "#065f46" : hovered ? "#15803d" : undefined,
-        strokeWidth: selected ? Math.max(2, dotRadius.value * 0.2) : hovered ? 2 : 0,
-        shadowColor: selected ? "#4ecba0" : "#0f172a",
+        stroke: selected ? palette.value.glow : hovered ? palette.value.hover : (outline ?? undefined),
+        strokeWidth: selected ? Math.max(2, dotRadius.value * 0.2) : hovered ? 2 : outline ? 1.5 : 0,
+        dash: outline ? [3, 2] : undefined,
+        shadowColor: selected ? palette.value.glow : "#0f172a",
         shadowBlur: selected ? dotRadius.value * 1.4 : hovered ? 8 : 0,
         shadowOpacity: selected ? 0.75 : 0.25,
         shadowOffsetY: hovered && !selected ? 2 : 0,

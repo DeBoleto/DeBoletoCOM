@@ -16,7 +16,7 @@ class MenuBuilder
 {
     private const SESSION_KEY = 'backoffice.menu.';
 
-    private const AREAS = ['boxoffice', 'admin'];
+    private const AREAS = ['boxoffice' => 'boxoffice', 'admin' => 'dashboard'];
 
     public function __construct(private readonly Session $session) {}
 
@@ -45,7 +45,7 @@ class MenuBuilder
                 ->where('pk_privilegio_categoria', $category->pk_privilegio_categoria)
                 ->map(fn (Privilegios $privilege) => [
                     'label' => $privilege->etiqueta,
-                    'url' => "/{$area}/".ltrim((string) $privilege->menu_url, '/'),
+                    'url' => '/'.(self::AREAS[$area] ?? $area).'/'.ltrim((string) $privilege->menu_url, '/'),
                     'section' => self::sectionOf((string) $privilege->menu_url),
                 ])
                 ->values()
@@ -73,7 +73,7 @@ class MenuBuilder
 
     public function forget(): void
     {
-        foreach (self::AREAS as $area) {
+        foreach (array_keys(self::AREAS) as $area) {
             $this->session->forget(self::SESSION_KEY.$area);
         }
     }

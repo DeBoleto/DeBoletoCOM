@@ -22,20 +22,20 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo(fn (Request $request) => match (true) {
             $request->is('boxoffice', 'boxoffice/*') => route('boxoffice.login'),
-            $request->is('admin', 'admin/*') => route('admin.login'),
+            $request->is('dashboard', 'dashboard/*') => route('admin.login'),
             default => route('login'),
         });
 
         $middleware->redirectUsersTo(fn (Request $request) => match (true) {
             $request->is('boxoffice', 'boxoffice/*') => route('boxoffice.dashboard'),
-            $request->is('admin', 'admin/*') => route('admin.home'),
-            default => config('fortify.home', '/dashboard'),
+            $request->is('dashboard', 'dashboard/*') => route('admin.home'),
+            default => config('fortify.home', '/admin'),
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*')
                 || $request->is('webhooks/*')
-                || ($request->is('boxoffice/*', 'admin/*', 'compra/*') && $request->expectsJson() && ! $request->header('X-Inertia')),
+                || ($request->is('boxoffice/*', 'dashboard/*', 'compra/*') && $request->expectsJson() && ! $request->header('X-Inertia')),
         );
     })->create();

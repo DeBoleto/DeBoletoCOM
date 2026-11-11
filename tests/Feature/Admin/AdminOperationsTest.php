@@ -11,14 +11,14 @@ class AdminOperationsTest extends TestCase
 {
     public function test_event_and_venue_routes_require_admin_login(): void
     {
-        foreach (['/admin/eventos', '/admin/eventos/nuevo', '/admin/eventos/5', '/admin/eventos/5/boletos', '/admin/eventos/5/reembolsos',
-            '/admin/eventos/defender', '/admin/eventos/cortesias', '/admin/escenarios', '/admin/actualizar', '/admin/tickets-unlock'] as $url) {
-            $this->get($url)->assertRedirect('/admin/login');
+        foreach (['/dashboard/eventos', '/dashboard/eventos/nuevo', '/dashboard/eventos/5', '/dashboard/eventos/5/boletos', '/dashboard/eventos/5/reembolsos',
+            '/dashboard/eventos/defender', '/dashboard/eventos/cortesias', '/dashboard/escenarios', '/dashboard/actualizar', '/dashboard/tickets-unlock'] as $url) {
+            $this->get($url)->assertRedirect('/dashboard/login');
         }
 
-        $this->postJson('/admin/escenarios/vista-previa', ['xml' => '<stage/>'])->assertUnauthorized();
-        $this->delete('/admin/eventos/5/boletos/9')->assertRedirect('/admin/login');
-        $this->post('/admin/eventos/5/bloqueos-olmecas')->assertRedirect('/admin/login');
+        $this->postJson('/dashboard/escenarios/vista-previa', ['xml' => '<stage/>'])->assertUnauthorized();
+        $this->delete('/dashboard/eventos/5/boletos/9')->assertRedirect('/dashboard/login');
+        $this->post('/dashboard/eventos/5/bloqueos-olmecas')->assertRedirect('/dashboard/login');
     }
 
     public function test_format_localities_are_read_from_xml(): void

@@ -134,7 +134,6 @@
                                             :section="sectionWithStatus"
                                             :zoom="seatZoom"
                                             :selected-keys="selectedKeys"
-                                            selected-color="#4ecba0"
                                             variant="dots"
                                             @toggle="toggleSeat"
                                             @hover="hoverSeat = $event"
@@ -165,8 +164,11 @@
                         </Transition>
 
                         <ul v-if="activeInfo && !activeIsGeneral" class="legend">
-                            <li><span class="swatch swatch--disponible" /> Disponible</li>
-                            <li><span class="swatch swatch--seleccionado" /> Tu selección</li>
+                            <li><span class="swatch" :style="{ background: seatColors.available }" /> Disponible</li>
+                            <li>
+                                <span class="swatch" :style="{ background: seatColors.selected, boxShadow: `0 0 0 2px ${seatColors.glow}` }" />
+                                Tu selección
+                            </li>
                             <li><span class="swatch swatch--proceso" /> En proceso</li>
                             <li><span class="swatch swatch--vendido" /> Vendido</li>
                             <li><span class="swatch swatch--no-disponible" /> No disponible</li>
@@ -312,6 +314,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
 import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
+import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -377,6 +380,7 @@ const eventMeta = computed(() =>
 
 const sections = computed(() => props.stage?.sections ?? []);
 const activeSection = computed(() => sections.value.find((section) => section.key === activeKey.value) ?? null);
+const seatColors = computed(() => zoneSeatColors(activeSection.value && zoneColor(activeSection.value)));
 const activeInfo = computed(() => (activeKey.value === null ? null : infos[activeKey.value] ?? null));
 const activeIsGeneral = computed(() => isGeneral(activeKey.value));
 const disabledKeys = computed(() => sections.value.filter((section) => !section.available).map((section) => section.key));
@@ -1285,11 +1289,9 @@ button.crumb:hover {
     border-radius: 3px;
 }
 
-.swatch--disponible { background: #22c55e; }
-.swatch--seleccionado { background: #4ecba0; box-shadow: 0 0 0 2px rgba(78, 203, 160, 0.4); }
-.swatch--no-disponible { background: #9ca3af; }
-.swatch--vendido { background: #ef4444; }
-.swatch--proceso { background: #f97316; }
+.swatch--no-disponible { background: #eef2f6; box-shadow: inset 0 0 0 1px #dbe2ea; }
+.swatch--vendido { background: #cbd5e1; }
+.swatch--proceso { background: #ffffff; border: 1.5px dashed #94a3b8; }
 
 .list-panel {
     padding: 18px;

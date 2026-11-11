@@ -10,7 +10,7 @@ class AdminAreaTest extends TestCase
 {
     public function test_admin_login_screen_renders_with_admin_labels(): void
     {
-        $this->get('/admin/login')
+        $this->get('/dashboard/login')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('BoxOffice/Auth/Login', false)
@@ -20,24 +20,23 @@ class AdminAreaTest extends TestCase
 
     public function test_guests_are_sent_to_admin_login(): void
     {
-        $this->get('/admin/inicio')->assertRedirect('/admin/login');
+        $this->get('/dashboard/inicio')->assertRedirect('/dashboard/login');
 
         foreach (StaffType::sections() as $section) {
-            $this->get("/admin/{$section}")->assertRedirect('/admin/login');
+            $this->get("/dashboard/{$section}")->assertRedirect('/dashboard/login');
         }
 
-        $this->get('/admin/administradores/3/documentos')->assertRedirect('/admin/login');
+        $this->get('/dashboard/administradores/3/documentos')->assertRedirect('/dashboard/login');
     }
 
-    public function test_legacy_dashboard_links_redirect_to_admin(): void
+    public function test_back_office_root_sends_guests_to_login(): void
     {
-        $this->get('/dashboard/administradores')->assertRedirect('/admin/administradores')->assertStatus(301);
-        $this->get('/dashboard/inicio')->assertRedirect('/admin/inicio');
+        $this->get('/dashboard')->assertRedirect('/dashboard/login');
     }
 
-    public function test_customer_dashboard_is_untouched(): void
+    public function test_customer_account_lives_under_admin(): void
     {
-        $this->get('/dashboard')->assertRedirect('/login');
+        $this->get('/admin')->assertRedirect('/login');
     }
 
     public function test_staff_types_map_to_legacy_user_types(): void

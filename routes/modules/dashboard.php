@@ -19,10 +19,10 @@ use App\Modules\Dashboard\Http\Controllers\VenuesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Administración del back-office (grupo legacy /dashboard). /dashboard en este
-// proyecto es la cuenta de clientes de Jetstream, por eso vive en /admin.
+// Administración del back-office en /dashboard, como en el sistema anterior.
+// La cuenta de clientes de Jetstream vive en /admin.
 Route::middleware(['web', ShareBoxOfficeData::class.':admin'])
-    ->prefix('admin')
+    ->prefix('dashboard')
     ->name('admin.')
     ->group(function () {
         Route::get('/', fn () => redirect()->route(Auth::guard('admin')->check() ? 'admin.home' : 'admin.login'))->name('root');
@@ -146,8 +146,3 @@ Route::middleware(['web', ShareBoxOfficeData::class.':admin'])
                 });
         });
     });
-
-// Enlaces del sistema anterior: /dashboard/<sección> → /admin/<sección>.
-Route::middleware('web')
-    ->get('dashboard/{path}', fn (string $path) => redirect('/admin/'.$path, 301))
-    ->where('path', '.+');

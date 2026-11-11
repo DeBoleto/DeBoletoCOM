@@ -96,7 +96,14 @@
                 </div>
                 <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-bo-slate">
                     <li v-for="item in legend" :key="item.label" class="flex items-center gap-2">
-                        <span class="size-3 rounded-full" :style="{ background: item.color }" />
+                        <span
+                            class="size-3 rounded-full"
+                            :style="{
+                                background: item.color,
+                                boxShadow: item.ring ? `0 0 0 2px ${item.ring}` : undefined,
+                                border: item.border ? `1.5px dashed ${item.border}` : undefined,
+                            }"
+                        />
                         {{ item.label }}
                     </li>
                 </ul>
@@ -115,6 +122,7 @@ import BoIcon from "./BoIcon.vue";
 import QuantityStepper from "./QuantityStepper.vue";
 import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
 import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
+import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
 
 /**
@@ -134,13 +142,17 @@ const props = defineProps({
 
 const emit = defineEmits(["change"]);
 
-const legend = [
-    { label: "Disponible", color: "#22c55e" },
-    { label: "Seleccionado", color: "#166534" },
-    { label: "En proceso", color: "#f97316" },
-    { label: "Vendido", color: "#ef4444" },
-    { label: "No disponible", color: "#9ca3af" },
-];
+const legend = computed(() => {
+    const colors = zoneSeatColors(activeSection.value?.areaColor || activeSection.value?.color);
+
+    return [
+        { label: "Disponible", color: colors.available },
+        { label: "Seleccionado", color: colors.selected, ring: colors.glow },
+        { label: "En proceso", color: SEAT_STATUS.en_proceso.fill, border: SEAT_STATUS.en_proceso.stroke },
+        { label: "Vendido", color: SEAT_STATUS.vendido.fill },
+        { label: "No disponible", color: SEAT_STATUS.no_disponible.fill },
+    ];
+});
 
 const sectionKey = ref(null);
 const hoverKey = ref(null);

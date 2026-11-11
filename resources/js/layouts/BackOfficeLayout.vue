@@ -44,11 +44,11 @@
                 <Link
                     :href="route(config.home)"
                     class="group relative mb-1 flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors"
-                    :class="isActive(`/${area}/inicio`) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
-                    :aria-current="isActive(`/${area}/inicio`) ? 'page' : undefined"
+                    :class="isActive(`/${config.path}/inicio`) ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'"
+                    :aria-current="isActive(`/${config.path}/inicio`) ? 'page' : undefined"
                     :title="compact ? 'Inicio' : undefined"
                 >
-                    <span v-if="isActive(`/${area}/inicio`)" class="absolute inset-y-2 left-0 w-1 rounded-r-full bg-bo-green" />
+                    <span v-if="isActive(`/${config.path}/inicio`)" class="absolute inset-y-2 left-0 w-1 rounded-r-full bg-bo-green" />
                     <BoIcon name="home" :size="19" class="shrink-0" />
                     <span class="truncate transition-opacity duration-150" :class="compact ? 'lg:opacity-0' : ''">Inicio</span>
                 </Link>
@@ -175,6 +175,7 @@ const peek = ref(false);
 const AREAS = {
     boxoffice: {
         label: "Taquilla",
+        path: "boxoffice",
         home: "boxoffice.dashboard",
         logout: "boxoffice.logout",
         sections: [
@@ -196,6 +197,7 @@ const AREAS = {
     },
     admin: {
         label: "Administración",
+        path: "dashboard",
         home: "admin.home",
         logout: "admin.logout",
         sections: [
@@ -267,7 +269,7 @@ function onFocusOut(event) {
 }
 
 function section(url) {
-    return url.replace(/^\/(boxoffice|admin)\/?/, "").split(/[/?]/)[0];
+    return url.replace(/^\/(boxoffice|dashboard)\/?/, "").split(/[/?]/)[0];
 }
 
 function isActive(url) {

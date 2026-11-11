@@ -76,7 +76,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                     ->whereNumber('evento');
             });
 
-            Route::middleware([EnsureMenuPrivilege::class.':tickets-courtesy', 'can:'.BoxOfficeAbilities::PRIVILEGE.','.config('boxoffice.privileges.courtesies')])
+            Route::middleware([EnsureMenuPrivilege::class.':tickets-courtesy', 'can:'.BoxOfficeAbilities::PRIVILEGE.",'".config('boxoffice.privileges.courtesies')."'"])
                 ->prefix('tickets-courtesy')
                 ->name('courtesies.')
                 ->controller(CourtesyController::class)
@@ -87,7 +87,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                     Route::get('{evento}/imprimir-pendientes', 'printPending')->whereNumber('evento')->name('print-pending');
                 });
 
-            Route::middleware([EnsureMenuPrivilege::class.':tickets-courtesy-create,tickets-courtesy', 'can:'.BoxOfficeAbilities::PRIVILEGE.','.config('boxoffice.privileges.courtesies')])
+            Route::middleware([EnsureMenuPrivilege::class.':tickets-courtesy-create,tickets-courtesy', 'can:'.BoxOfficeAbilities::PRIVILEGE.",'".config('boxoffice.privileges.courtesies')."'"])
                 ->prefix('tickets-courtesy-create')
                 ->name('courtesies.create.')
                 ->controller(CourtesyCheckoutController::class)
