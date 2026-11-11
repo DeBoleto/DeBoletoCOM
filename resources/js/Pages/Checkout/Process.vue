@@ -135,6 +135,7 @@
                                             :zoom="seatZoom"
                                             :selected-keys="selectedKeys"
                                             selected-color="#4ecba0"
+                                            variant="dots"
                                             @toggle="toggleSeat"
                                             @hover="hoverSeat = $event"
                                         />
@@ -1126,8 +1127,9 @@ button.crumb:hover {
 }
 
 .viewport--seats {
+    display: flex;
     height: clamp(320px, 56vh, 640px);
-    background: #f8fafc;
+    background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 70%);
     box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 

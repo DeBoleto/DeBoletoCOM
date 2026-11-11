@@ -54,12 +54,12 @@
             </div>
 
             <template v-else>
-                <div class="mt-4 overflow-auto rounded-lg bg-bo-paper p-3">
-                    <SeatCanvas :section="sectionWithStatus" :zoom="seatZoom" :selected-keys="selectedKeys" @toggle="toggleSeat" />
+                <div class="mt-4 flex h-[60vh] min-h-80 overflow-auto rounded-lg bg-bo-paper p-3">
+                    <SeatCanvas :section="sectionWithStatus" :zoom="seatZoom" :selected-keys="selectedKeys" variant="dots" @toggle="toggleSeat" />
                 </div>
                 <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-bo-slate">
                     <li v-for="item in legend" :key="item.label" class="flex items-center gap-2">
-                        <span class="size-3 rounded-sm" :style="{ background: item.color }" />
+                        <span class="size-3 rounded-full" :style="{ background: item.color }" />
                         {{ item.label }}
                     </li>
                 </ul>
