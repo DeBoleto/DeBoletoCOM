@@ -13,8 +13,6 @@ class CategoriesController extends Controller
 {
     private const REDIS_KEY = 'eventos_por_categoria';
 
-    private const IMAGE_BASE = 'https://deboleto.com/images/eventos/';
-
     public function index(): JsonResponse
     {
         $categories = $this->groupedCategories();
@@ -154,7 +152,7 @@ class CategoriesController extends Controller
             return $imagen;
         }
 
-        return self::IMAGE_BASE.$imagen;
+        return config('app.deboleto_url').'/images/eventos/'.$imagen;
     }
 
     private function formatPrice($desde): string

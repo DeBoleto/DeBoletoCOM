@@ -94,7 +94,7 @@ class SearchController extends Controller
 
         $path = $imagen;
         if (!str_contains($path, '/')) {
-            $path = 'https://deboleto.com/images/eventos/' . $path;
+            $path = config('app.deboleto_url').'/images/eventos/'.$path;
         }
 
         return $path;

@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'deboleto_url' => rtrim(env('DEBOLETO_URL', 'https://deboleto.com'), '/'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

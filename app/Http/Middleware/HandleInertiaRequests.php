@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'deboletoUrl' => config('app.deboleto_url'),
             'customer' => fn () => $this->customer(),
             'flash' => fn () => [
                 'success' => $request->session()->get('success'),

@@ -46,7 +46,7 @@
                                 draggable="false"
                             >
                                 <img
-                                    :src="`https://deboleto.com/images/categoria/${cat.image}`"
+                                    :src="`${page.props.deboletoUrl}/images/categoria/${cat.image}`"
                                     :alt="cat.name"
                                     draggable="false"
                                 />
@@ -84,6 +84,9 @@
 
 <script setup>
 import { ref } from "vue";
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
 
 defineProps({
     categories: {

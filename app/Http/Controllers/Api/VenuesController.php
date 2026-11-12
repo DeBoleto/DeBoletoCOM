@@ -15,8 +15,6 @@ class VenuesController extends Controller
 
     private const EVENTS_KEY = 'eventos_por_escenario';
 
-    private const IMAGE_BASE = 'https://deboleto.com/images/eventos/';
-
     public function index(): JsonResponse
     {
         $eventsMap = $this->readEventsMap();
@@ -197,7 +195,7 @@ class VenuesController extends Controller
             return $imagen;
         }
 
-        return self::IMAGE_BASE.$imagen;
+        return config('app.deboleto_url').'/images/eventos/'.$imagen;
     }
 
     private function formatPrice($desde): string

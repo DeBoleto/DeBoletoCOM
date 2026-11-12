@@ -25,8 +25,8 @@ $imageUrl = function ($imagen, $useSlide = false) {
         return asset('hero-bg.png');
     }
     $base = $useSlide
-        ? 'https://deboleto.com/images/eventos/slide/'
-        : 'https://deboleto.com/images/eventos/';
+        ? config('app.deboleto_url').'/images/eventos/slide/'
+        : config('app.deboleto_url').'/images/eventos/';
 
     return $base.$imagen;
 };

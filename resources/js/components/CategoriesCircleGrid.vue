@@ -16,7 +16,7 @@
                     >
                         <div class="circle-img-wrapper">
                             <img
-                                :src="`https://deboleto.com/images/categoria/${cat.image}`"
+                                :src="`${page.props.deboletoUrl}/images/categoria/${cat.image}`"
                                 :alt="cat.name"
                             />
                             <div class="circle-overlay"></div>
@@ -30,6 +30,10 @@
 </template>
 
 <script setup>
+import { usePage } from "@inertiajs/vue3";
+
+const page = usePage();
+
 defineProps({
     categories: {
         type: Array,
