@@ -39,8 +39,8 @@ return [
         'instance' => env('ULTRAMSG_INSTANCE'),
         'token' => env('ULTRAMSG_TOKEN'),
         'base_url' => env('ULTRAMSG_BASE_URL', 'https://api.ultramsg.com'),
-        'ticket_image' => env('ULTRAMSG_TICKET_IMAGE', rtrim(env('DEBOLETO_NET_URL', 'https://deboleto.net'), '/').'/images/boletodigital.jpg'),
-        'bond_image' => env('ULTRAMSG_BOND_IMAGE', rtrim(env('DEBOLETO_NET_URL', 'https://deboleto.net'), '/').'/images/bonos/bonos2026.jpg'),
+        'ticket_image' => env('ULTRAMSG_TICKET_IMAGE', rtrim(env('DEBOLETO_URL', 'https://deboleto.net'), '/').'/images/boletodigital.jpg'),
+        'bond_image' => env('ULTRAMSG_BOND_IMAGE', rtrim(env('DEBOLETO_URL', 'https://deboleto.net'), '/').'/images/bonos/bonos2026.jpg'),
         'country_code' => env('ULTRAMSG_COUNTRY_CODE', '+52'),
     ],
 

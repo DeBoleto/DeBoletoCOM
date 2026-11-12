@@ -266,8 +266,8 @@ return [
 
     'event_images_url' => env('BOXOFFICE_EVENT_IMAGES_URL', rtrim(env('DEBOLETO_URL', 'https://deboleto.com'), '/').'/images/eventos/'),
 
-    'digital_ticket_url' => env('BOXOFFICE_DIGITAL_TICKET_URL', rtrim(env('DEBOLETO_NET_URL', 'https://deboleto.net'), '/').'/boleto/digital/'),
+    'digital_ticket_url' => env('BOXOFFICE_DIGITAL_TICKET_URL', rtrim(env('DEBOLETO_URL', 'https://deboleto.net'), '/').'/boleto/digital/'),
 
-    'bond_registration_url' => env('BOXOFFICE_BOND_REGISTRATION_URL', rtrim(env('DEBOLETO_NET_URL', 'https://deboleto.net'), '/').'/perfil/registro/bonos/'),
+    'bond_registration_url' => env('BOXOFFICE_BOND_REGISTRATION_URL', rtrim(env('DEBOLETO_URL', 'https://deboleto.net'), '/').'/perfil/registro/bonos/'),
 
 ];
