@@ -1001,7 +1001,12 @@ main {
 
 .process-grid {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
+}
+
+.process-grid > * {
+    min-width: 0;
 }
 
 .change-date {
@@ -1166,8 +1171,8 @@ button.crumb:hover {
 }
 
 .minimap-viewport {
-    width: 120px;
-    height: 84px;
+    width: 84px;
+    height: 58px;
     overflow: hidden;
     pointer-events: none;
 }
@@ -1658,9 +1663,31 @@ button.crumb:hover {
     }
 }
 
+@media (max-width: 767px) {
+    .map-panel {
+        padding: 10px;
+    }
+
+    .map-zoom {
+        top: 8px;
+        right: 8px;
+    }
+
+    .minimap {
+        left: 8px;
+        bottom: 8px;
+        padding: 4px;
+    }
+}
+
 @media (min-width: 768px) {
     .process {
         padding-bottom: var(--space-10);
+    }
+
+    .minimap-viewport {
+        width: 120px;
+        height: 84px;
     }
 }
 
