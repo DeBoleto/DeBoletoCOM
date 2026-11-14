@@ -103,6 +103,13 @@
                                     </div>
                                 </div>
 
+                                <div v-else-if="!seats.length" key="empty" class="ga">
+                                    <div class="ga-card">
+                                        <p class="ga-title">Elige una zona</p>
+                                        <p class="ga-text">Toca una zona de la lista para elegir tus boletos.</p>
+                                    </div>
+                                </div>
+
                                 <div v-else key="canvas" class="viewport">
                                     <VenueCanvas
                                         ref="canvas"
@@ -146,7 +153,7 @@
                             </Transition>
                         </div>
 
-                        <ul v-if="!activeIsGeneral" class="legend">
+                        <ul v-if="!activeIsGeneral && seats.length" class="legend">
                             <li><span class="swatch" :style="{ background: legendColors.available }" /> Disponible</li>
                             <li>
                                 <span class="swatch swatch--check" :style="{ background: legendColors.selected }">✓</span>
@@ -323,12 +330,53 @@ const activeInfo = computed(() => (activeKey.value === null ? null : infos[activ
 const activeIsGeneral = computed(() => activeSection.value !== null && isGeneral(activeKey.value));
 const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneColor(activeSection.value) : "#4ecba0"));
 
+const seatedSections = computed(() => sections.value.filter((section) => section.capacity === null && section.rows.length));
+
+const offsets = computed(() => {
+    const seated = seatedSections.value;
+    const placed = seated.some((section) => section.offset && (section.offset.x !== 0 || section.offset.y !== 0));
+
+    if (placed || seated.length < 2) {
+        return Object.fromEntries(seated.map((section) => [section.key, section.offset ?? { x: 0, y: 0 }]));
+    }
+
+    const boxes = seated.map((section) => {
+        const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x));
+        const ys = section.rows.map((row) => row.y);
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+
+        return { key: section.key, minX, minY, width: Math.max(...xs) - minX + 1, height: Math.max(...ys) - minY + 1 };
+    });
+
+    const gap = 3;
+    const area = boxes.reduce((sum, box) => sum + (box.width + gap) * (box.height + gap), 0);
+    const rowWidth = Math.max(Math.sqrt(area) * 1.4, ...boxes.map((box) => box.width));
+    const result = {};
+    let x = 0;
+    let y = 0;
+    let rowHeight = 0;
+
+    for (const box of boxes) {
+        if (x > 0 && x + box.width > rowWidth) {
+            x = 0;
+            y += rowHeight + gap;
+            rowHeight = 0;
+        }
+
+        result[box.key] = { x: x - box.minX, y: y - box.minY };
+        x += box.width + gap;
+        rowHeight = Math.max(rowHeight, box.height);
+    }
+
+    return result;
+});
+
 const seats = computed(() =>
-    sections.value
-        .filter((section) => section.capacity === null && section.rows.length)
+    seatedSections.value
         .flatMap((section) => {
             const statuses = venue[section.key]?.statuses ?? {};
-            const offset = section.offset ?? { x: 0, y: 0 };
+            const offset = offsets.value[section.key] ?? { x: 0, y: 0 };
 
             return section.rows.flatMap((row) =>
                 row.seats.map((seat) => ({
@@ -812,7 +860,7 @@ onMounted(async () => {
     }
 
     const available = sections.value.filter((section) => section.available);
-    if (available.length === 1) focusZone(available[0].key);
+    if (available.length === 1 || (!seats.value.length && available.length)) focusZone(available[0].key);
 
     pollId = window.setInterval(poll, POLL_MS);
 });

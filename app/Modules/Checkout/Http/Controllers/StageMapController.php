@@ -51,7 +51,7 @@ class StageMapController extends Controller
         $localities = $this->catalog->openLocalities($event->pk_evento);
         $stage = $event->sellsWithoutSeatMap() ? null : $this->stages->priced($event, $localities);
 
-        if ($stage === null || ! $this->hasVenueLayout($stage)) {
+        if ($stage === null || $stage['sections'] === []) {
             return redirect()->route('checkout.process', array_filter([
                 'slug' => $slug,
                 'function' => $function?->pk_evento_funcion,
@@ -139,23 +139,6 @@ class StageMapController extends Controller
         }
 
         return response()->json(['zones' => (object) $zones]);
-    }
-
-    /**
-     * El mapa completo coloca cada sección con su desplazamiento (num/numx).
-     * Los mapas anteriores, sin desplazamientos, se encimarían: esos siguen
-     * en el proceso de compra por zonas.
-     */
-    private function hasVenueLayout(array $stage): bool
-    {
-        $seated = array_filter($stage['sections'], fn (array $section) => $section['capacity'] === null && $section['rows'] !== []);
-
-        if ($seated === []) {
-            return false;
-        }
-
-        return count($seated) === 1
-            || array_filter($seated, fn (array $section) => $section['offset']['x'] !== 0 || $section['offset']['y'] !== 0) !== [];
     }
 
     /**
