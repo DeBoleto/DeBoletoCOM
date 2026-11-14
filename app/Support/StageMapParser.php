@@ -125,6 +125,10 @@ class StageMapParser
                 'labels' => $labels,
                 'rows' => $rows,
                 'capacity' => isset($section['capacity']) ? (int) $section['capacity'] : null,
+                'offset' => [
+                    'x' => (int) ($section['numx'] ?? 0),
+                    'y' => (int) ($section['num'] ?? 0),
+                ],
                 'price' => self::matchPrice($localityId, $zones),
             ];
             $sectionIndex++;

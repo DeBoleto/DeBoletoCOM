@@ -4,12 +4,14 @@ use App\Modules\Checkout\Http\Controllers\OpenPayWebhookController;
 use App\Modules\Checkout\Http\Controllers\OrderController;
 use App\Modules\Checkout\Http\Controllers\PaymentController;
 use App\Modules\Checkout\Http\Controllers\SeatsController;
+use App\Modules\Checkout\Http\Controllers\StageMapController;
 use Illuminate\Support\Facades\Route;
 
 // Compra web: fecha y boletos (mapa con varias zonas) → pago → confirmación.
 Route::middleware('web')->group(function () {
     Route::get('checkoutprocess/{slug}', [SeatsController::class, 'show'])->name('checkout.process');
     Route::get('evento/{slug}/asientos', [SeatsController::class, 'legacy'])->name('event.seats');
+    Route::get('eventos/mapa/{evento}', [StageMapController::class, 'show'])->whereNumber('evento')->name('checkout.map');
 
     Route::prefix('compra')->name('checkout.')->group(function () {
         Route::get('confirmacion', [PaymentController::class, 'return'])->name('return');
@@ -19,6 +21,10 @@ Route::middleware('web')->group(function () {
                 ->whereNumber('funcion')
                 ->middleware('throttle:120,1')
                 ->name('section');
+            Route::get('{evento}/funciones/{funcion}/mapa', [StageMapController::class, 'venue'])
+                ->whereNumber('funcion')
+                ->middleware('throttle:60,1')
+                ->name('venue');
             Route::post('{evento}/asientos', [SeatsController::class, 'hold'])->middleware('throttle:90,1')->name('hold');
             Route::post('{evento}/seleccion', [SeatsController::class, 'store'])->middleware('throttle:30,1')->name('selection');
             Route::post('{evento}/cancelar', [SeatsController::class, 'cancel'])->name('cancel');

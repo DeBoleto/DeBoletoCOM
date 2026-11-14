@@ -4,7 +4,6 @@ namespace App\Modules\Checkout\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
-use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\Checkout\Exceptions\CheckoutException;
 use App\Modules\Checkout\Http\CheckoutPresenter;
 use App\Modules\Checkout\Http\Requests\HoldSeatRequest;
@@ -12,6 +11,7 @@ use App\Modules\Checkout\Http\Requests\StoreSelectionRequest;
 use App\Modules\Checkout\Jobs\SendConversionEvent;
 use App\Modules\Checkout\Services\SeatHolds;
 use App\Modules\Checkout\Services\SelectionBuilder;
+use App\Modules\Checkout\Services\StageView;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
@@ -37,6 +37,7 @@ class SeatsController extends Controller
         private readonly WebCatalog $catalog,
         private readonly WebCartStore $carts,
         private readonly SeatHolds $holds,
+        private readonly StageView $stages,
     ) {}
 
     public function show(Request $request, SeatAvailability $availability, string $slug): Response|RedirectResponse
@@ -72,7 +73,7 @@ class SeatsController extends Controller
         $localities = $this->catalog->openLocalities($event->pk_evento);
         $byQuantity = $event->sellsWithoutSeatMap();
         $eventRow = $this->catalog->eventRow($event->pk_evento);
-        $stage = $byQuantity ? null : $this->stage($event, $localities);
+        $stage = $byQuantity ? null : $this->stages->priced($event, $localities);
         $cart = $this->carts->get($event->pk_evento);
 
         if ($cart === null) {
@@ -86,7 +87,7 @@ class SeatsController extends Controller
             'stage' => $stage,
             'localities' => $byQuantity ? $this->quantityLocalities($event, $localities, $function->pk_evento_funcion, $availability) : [],
             'parking' => $this->catalog->parkingOffer($eventRow),
-            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->previousSelection($cart, $stage) : null,
+            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->stages->previousSelection($cart, $stage) : null,
         ]);
     }
 
@@ -242,35 +243,6 @@ class SeatsController extends Controller
         return [$section, $locality];
     }
 
-    /**
-     * Mapa del recinto; las secciones de localidades cerradas quedan sin precio.
-     */
-    private function stage(EventoVista $event, Collection $localities): ?array
-    {
-        $stage = $this->catalog->stage($event, $localities);
-
-        if ($stage === null) {
-            return null;
-        }
-
-        $prices = $localities->mapWithKeys(fn (EventosLocalidades $locality) => [
-            $locality->pk_evento_localidad => $this->catalog->listPrice($event, $locality),
-        ]);
-
-        $stage['sections'] = array_map(function (array $section) use ($prices) {
-            $price = $prices->get((int) $section['localityId']);
-            $section['available'] = $price !== null;
-            $section['price'] = $price === null ? null : [
-                'originalPrice' => $section['price']['originalPrice'] ?? $price,
-                'discountPrice' => $price < ($section['price']['originalPrice'] ?? $price) ? $price : null,
-            ];
-
-            return $section;
-        }, $stage['sections']);
-
-        return $stage;
-    }
-
     private function quantityLocalities(EventoVista $event, Collection $localities, int $functionId, SeatAvailability $availability): array
     {
         $max = $this->catalog->maxTickets($event->pk_evento);
@@ -283,49 +255,6 @@ class SeatsController extends Controller
             'promotion' => $this->catalog->promotion($event, $locality),
             'rules' => $this->catalog->rules($locality),
         ])->values()->all();
-    }
-
-    /**
-     * Selección guardada, agrupada por sección del mapa para restaurarla.
-     */
-    private function previousSelection(WebCart $cart, ?array $stage): array
-    {
-        $lines = collect($cart->selection->lines);
-        $sections = collect($stage['sections'] ?? []);
-        $extraChairSuffix = (string) config('boxoffice.rules.extra_chair.seat_suffix');
-        $grouped = [];
-
-        foreach ($lines as $line) {
-            if (str_ends_with($line->seat, $extraChairSuffix)) {
-                continue;
-            }
-
-            $generalAdmission = $line->isGeneralAdmission();
-            $section = $cart->selection->sectionId !== null
-                ? $sections->firstWhere('sectionId', $cart->selection->sectionId)
-                : $sections->first(fn (array $candidate) => (int) $candidate['localityId'] === $line->localityId
-                    && ($generalAdmission
-                        ? $candidate['capacity'] !== null
-                        : collect($candidate['rows'])->flatMap(fn (array $row) => $row['seats'])->contains('id', $line->seat)));
-
-            if ($section === null) {
-                continue;
-            }
-
-            $grouped[$section['sectionId']] ??= ['sectionId' => $section['sectionId'], 'seats' => [], 'quantity' => 0];
-
-            if ($generalAdmission) {
-                $grouped[$section['sectionId']]['quantity']++;
-            } else {
-                $grouped[$section['sectionId']]['seats'][] = $line->seat;
-            }
-        }
-
-        return [
-            'sections' => array_values($grouped),
-            'quantities' => $lines->filter(fn (TicketLine $line) => $line->isGeneralAdmission())->countBy('localityId')->all(),
-            'parking' => $cart->parking,
-        ];
     }
 
     private function releaseOtherHolds(WebCart $cart, string $owner): void
