@@ -249,8 +249,14 @@ onBeforeUnmount(() => {
     position: relative;
     width: 100%;
     max-width: 400px;
-    border: 1px solid var(--color-accent-hover);
+    border: 1px solid rgba(78, 203, 160, 0.3);
     border-radius: 2px;
+    transition: border-color var(--transition-fast);
+}
+
+.search-autocomplete:hover,
+.search-autocomplete:focus-within {
+    border-color: rgba(78, 203, 160, 0.55);
 }
 
 .search-input-wrap {
