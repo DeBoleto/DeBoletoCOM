@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Events\Models\Eventos;
 use App\Support\VenueNameNormalizer;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
@@ -256,8 +257,27 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             ->all();
     }
 
+    // Carreras: el kit que se entrega (elementos, fecha y lugar de entrega)
+    // vive en MySQL; si la consulta falla, el detalle se muestra sin él.
+    $race = rescue(fn () => Eventos::query()
+        ->where('pk_evento', $currentEventId)
+        ->where('pk_evento_categoria', Eventos::CATEGORY_RACE)
+        ->with('kit.kitsElementos')
+        ->first(), null, false);
+
+    $kit = $race?->kit ? [
+        'items' => $race->kit->kitsElementos
+            ->reject(fn ($item) => $item->eliminado)
+            ->pluck('kit_elemento')
+            ->values()
+            ->all(),
+        'deliveryDate' => $race->kit->entrega_fecha?->format('Y-m-d\TH:i:s'),
+        'deliveryPlace' => trim((string) $race->kit->entrega_lugar),
+    ] : null;
+
     return Inertia::render('EventDetail', [
         'slug' => $slug,
+        'kit' => $kit && ($kit['items'] !== [] || $kit['deliveryPlace'] !== '') ? $kit : null,
         'nearbyEvents' => $nearbyEvents,
         'event' => [
             'id' => $event['id'],

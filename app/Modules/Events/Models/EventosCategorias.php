@@ -22,6 +22,12 @@ class EventosCategorias extends Model
         return $this->belongsToMany('App\Modules\Events\Models\Eventos', 'eventos_map_eventos_categorias', 'pk_evento_categoria', 'pk_evento');
     }
 
+    public function subcategorias()
+    {
+        return $this->hasMany(EventosSubcategorias::class, 'pk_evento_categoria', 'pk_evento_categoria')
+            ->where('eliminado', 0);
+    }
+
     public function creacionUsuario()
     {
         return $this->belongsTo('App\Modules\Users\Models\Usuarios', 'pk_usuario', 'creacion_pk_usuario');

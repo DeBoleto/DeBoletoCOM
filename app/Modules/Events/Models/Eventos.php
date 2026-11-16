@@ -87,6 +87,18 @@ class Eventos extends LegacyModel
         return $this->hasMany(EventosFuncionesBoletos::class, 'pk_evento', 'pk_evento');
     }
 
+    public function kit(): HasOne
+    {
+        return $this->hasOne(EventosKits::class, 'pk_evento', 'pk_evento')->where('eliminado', 0);
+    }
+
+    public function cuestionario(): HasMany
+    {
+        return $this->hasMany(EventosCuestionariosPreguntas::class, 'pk_evento', 'pk_evento')
+            ->where('eliminado', 0)
+            ->orderBy('orden');
+    }
+
     public function usuarios(): BelongsToMany
     {
         return $this->belongsToMany(Usuarios::class, 'usuarios_eventos', 'pk_evento', 'pk_usuario')

@@ -106,6 +106,69 @@
                                     {{ formattedComments }}
                                 </p>
                             </div>
+                            <div v-if="kit" class="detail-block">
+                                <h2 class="block-title">
+                                    <svg
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"
+                                        />
+                                    </svg>
+                                    Tu kit incluye
+                                </h2>
+                                <ul v-if="kit.items.length" class="kit-items">
+                                    <li
+                                        v-for="item in kit.items"
+                                        :key="item"
+                                        class="kit-item"
+                                    >
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="3"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M20 6 9 17l-5-5" />
+                                        </svg>
+                                        <span>{{ item }}</span>
+                                    </li>
+                                </ul>
+                                <dl
+                                    v-if="kit.deliveryDate || kit.deliveryPlace"
+                                    class="kit-delivery"
+                                >
+                                    <div v-if="kit.deliveryDate">
+                                        <dt>Entrega del kit</dt>
+                                        <dd>
+                                            {{ formatDate(kit.deliveryDate) }}
+                                            <template
+                                                v-if="formatTime(kit.deliveryDate)"
+                                            >
+                                                ·
+                                                {{ formatTime(kit.deliveryDate) }}
+                                            </template>
+                                        </dd>
+                                    </div>
+                                    <div v-if="kit.deliveryPlace">
+                                        <dt>Lugar de entrega</dt>
+                                        <dd>{{ kit.deliveryPlace }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
                             <div
                                 v-if="event.functions.length"
                                 id="fechas"
@@ -495,6 +558,7 @@ import NearbyEventsStrip from "@/components/NearbyEventsStrip.vue";
 
 const props = defineProps({
     event: { type: Object, required: true },
+    kit: { type: Object, default: null },
     nearbyEvents: { type: Array, default: () => [] },
 });
 
@@ -974,6 +1038,66 @@ main {
 
 .event-comments {
     white-space: pre-line;
+}
+
+.kit-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+    gap: var(--space-3);
+    list-style: none;
+}
+
+.kit-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-1);
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+.kit-item svg {
+    flex-shrink: 0;
+    color: var(--color-brand);
+}
+
+.kit-item span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.kit-delivery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.kit-delivery div {
+    min-width: 0;
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--color-brand);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-1);
+}
+
+.kit-delivery dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.kit-delivery dd {
+    margin: 2px 0 0;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 .function-list {

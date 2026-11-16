@@ -5,6 +5,7 @@ namespace App\Modules\Tickets\Models;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EventoBoletoCarrera extends Model
 {
@@ -18,6 +19,11 @@ class EventoBoletoCarrera extends Model
         'pk_evento_compra', 'pk_evento_funcion_boleto', 'nombre', 'correo', 'telefono', 'fecha_nacimiento', 'talla', 'tipo_sangre',
         'nombre_emergencia', 'telefono_emergencia', 'creacion_fecha', 'modificacion_fecha', 'tipo_extra',
     ];
+
+    public function respuestas(): HasMany
+    {
+        return $this->hasMany(EventoBoletoCarreraRespuestas::class, 'pk_evento_boleto_carrera', 'pk_evento_boleto_carrera');
+    }
 
     public function save(array $options = [])
     {
