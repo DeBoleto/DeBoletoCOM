@@ -1008,8 +1008,13 @@ main {
 
 .venue-rail {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
     align-content: start;
+}
+
+.venue-rail > * {
+    min-width: 0;
 }
 
 .event-card {
@@ -1024,7 +1029,7 @@ main {
 }
 
 .event-card-name {
-    font-size: var(--text-lg);
+    font-size: clamp(1rem, 4.2vw, var(--text-lg));
     font-weight: 900;
     line-height: 1.2;
     overflow-wrap: anywhere;

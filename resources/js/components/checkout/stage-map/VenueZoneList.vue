@@ -62,6 +62,10 @@ const emit = defineEmits(["select", "show-all"]);
 </script>
 
 <style scoped>
+.zones {
+    min-width: 0;
+}
+
 .zones-head {
     display: flex;
     align-items: baseline;
@@ -86,8 +90,12 @@ const emit = defineEmits(["select", "show-all"]);
     list-style: none;
     margin: 0;
     padding: 8px 2px 6px;
+    max-width: 100%;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: 2px;
     scrollbar-width: none;
 }
 
@@ -107,6 +115,7 @@ const emit = defineEmits(["select", "show-all"]);
     gap: 10px;
     width: 100%;
     min-width: 150px;
+    max-width: min(220px, 70vw);
     min-height: 64px;
     padding: 8px 14px 8px 8px;
     border: 1px solid var(--color-border-strong);
@@ -247,6 +256,7 @@ const emit = defineEmits(["select", "show-all"]);
 
     .zone {
         min-width: 0;
+        max-width: none;
     }
 }
 
