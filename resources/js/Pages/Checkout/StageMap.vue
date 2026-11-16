@@ -67,7 +67,9 @@
                             <p v-if="activeSection" class="map-price">
                                 <strong>{{ money(activeInfo?.price ?? sectionPrice(activeSection)) }}</strong> por boleto
                             </p>
-                            <p v-else class="map-hint">Toca una zona para ver sus asientos</p>
+                            <p v-else class="map-hint" :class="{ 'is-direct': directPick }">
+                                {{ directPick ? "Toca un asiento para elegirlo" : "Toca una zona o acerca el mapa para elegir asientos" }}
+                            </p>
                         </div>
 
                         <div v-if="activeInfo?.promotion || activeInfo?.volumeDiscount" class="promo-strip">
@@ -118,7 +120,8 @@
                                         :active-key="activeKey"
                                         :selected-keys="selectedKeys"
                                         @zone="focusZone"
-                                        @toggle="toggleSeat"
+                                        @toggle="pickSeat"
+                                        @direct="directPick = $event"
                                         @hover="hoverSeat = $event"
                                     />
 
@@ -148,7 +151,9 @@
                                         </button>
                                     </Transition>
 
-                                    <p class="map-gesture" aria-hidden="true">Arrastra para moverte · pellizca para acercar</p>
+                                    <p class="map-gesture" :class="{ 'is-direct': directPick && !activeSection }" aria-hidden="true">
+                                        {{ directPick && !activeSection ? "Selección de asientos activa · aleja para ver zonas" : "Arrastra para moverte · pellizca para acercar" }}
+                                    </p>
                                 </div>
                             </Transition>
                         </div>
@@ -299,6 +304,7 @@ const mapPanel = ref(null);
 
 const activeKey = ref(null);
 const hoverSeat = ref(null);
+const directPick = ref(false);
 const picks = reactive({});
 const infos = reactive({});
 const venue = reactive({});
@@ -588,12 +594,7 @@ async function focusZone(key) {
     }
 
     await loadSection(key);
-
-    const info = infos[key];
-    if (info?.rules && !rulesShown.has(key)) {
-        rulesShown.add(key);
-        rules.value = { zone: info.name, text: info.rules };
-    }
+    showRules(key);
 }
 
 function showAllZones() {
@@ -682,6 +683,24 @@ function setQuantity(key, value) {
     pick.quantity = value;
     for (const specialKey of Object.keys(pick.specials)) {
         if (Number(specialKey.replace("Boleto", "")) > value) delete pick.specials[specialKey];
+    }
+}
+
+async function pickSeat(seat) {
+    if (activeKey.value === null) {
+        if (!sectionByKey(seat.key)?.available) return;
+        if (!infos[seat.key]) loadSection(seat.key).then(() => showRules(seat.key));
+        else showRules(seat.key);
+    }
+
+    await toggleSeat(seat);
+}
+
+function showRules(key) {
+    const info = infos[key];
+    if (info?.rules && !rulesShown.has(key)) {
+        rulesShown.add(key);
+        rules.value = { zone: info.name, text: info.rules };
     }
 }
 
@@ -1254,6 +1273,16 @@ button.crumb:hover {
     font-weight: 800;
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
     cursor: pointer;
+}
+
+.map-hint.is-direct {
+    color: var(--color-brand);
+    font-weight: 700;
+}
+
+.map-gesture.is-direct {
+    background: rgba(6, 41, 29, 0.85);
+    color: #6ee7b7;
 }
 
 .map-gesture {

@@ -33,6 +33,8 @@ const RADIUS_MAP = 6;
 const RADIUS_ZONE = 8;
 const MAX_FIT = { map: 1, zone: 2 };
 const ZOOM_STEP = 1.25;
+const DIRECT_ON = 3;
+const DIRECT_OFF = 2;
 
 const STATUS_LABEL = {
     disponible: "Disponible",
@@ -48,10 +50,11 @@ const props = defineProps({
     selectedKeys: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["zone", "toggle", "hover", "scale"]);
+const emit = defineEmits(["zone", "toggle", "hover", "scale", "direct"]);
 
 const host = ref(null);
 const grabbing = ref(false);
+const direct = ref(false);
 
 let stage = null;
 let layer = null;
@@ -73,6 +76,19 @@ const zoneButtons = computed(() =>
         .filter(([, zone]) => zone.available && zone.hasSeats)
         .map(([key, zone]) => ({ key, name: zone.name })),
 );
+
+function seatMode() {
+    return props.activeKey !== null || direct.value;
+}
+
+function updateDirect(ratio) {
+    const next = props.activeKey === null && (ratio >= DIRECT_ON || (direct.value && ratio > DIRECT_OFF));
+    if (next === direct.value) return;
+
+    direct.value = next;
+    emit("direct", next);
+    paint();
+}
 
 function statusLabel(status) {
     return STATUS_LABEL[status] ?? status;
@@ -154,7 +170,7 @@ function build() {
             fontStyle: "bold",
             fill: "#ffffff",
             listening: false,
-            visible: zoneMode && isSelected(seat),
+            visible: seatMode() && isSelected(seat),
         });
 
         circle.on("click tap", (event) => onSeat(event, seat));
@@ -175,14 +191,14 @@ function latest(seat) {
 }
 
 function paint() {
-    const zoneMode = props.activeKey !== null;
+    const marks = seatMode();
 
     for (const { circle, mark, seat } of nodes.values()) {
         const current = latest(seat);
         circle.fill(fill(current));
         circle.stroke(current.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff");
         circle.dash(current.status === "en_proceso" ? [3, 2] : []);
-        mark.visible(zoneMode && isSelected(current));
+        mark.visible(marks && isSelected(current));
     }
 
     layer?.batchDraw();
@@ -209,6 +225,7 @@ function fit() {
     });
     stage.batchDraw();
     emit("scale", 1);
+    updateDirect(1);
 }
 
 function zoomAt(next, point) {
@@ -224,6 +241,7 @@ function zoomAt(next, point) {
     stage.position({ x: point.x - anchor.x * scale, y: point.y - anchor.y * scale });
     stage.batchDraw();
     emit("scale", scale / fitScale);
+    updateDirect(scale / fitScale);
 }
 
 function center() {
@@ -245,13 +263,13 @@ function onSeat(event, seat) {
     if (lastTap.id === id && now - lastTap.at < 400) return;
     lastTap = { id, at: now };
 
-    if (props.activeKey === null) {
+    if (!seatMode()) {
         if (props.zones[seat.key]?.available) emit("zone", seat.key);
         return;
     }
 
     const current = latest(seat);
-    if (current.status !== "disponible") return;
+    if (current.status !== "disponible" || !props.zones[seat.key]?.available) return;
 
     emit("toggle", current);
     if (!isSelected(current)) ripple(nodes.get(id)?.circle, colorsFor(current).glow);
@@ -259,19 +277,21 @@ function onSeat(event, seat) {
 
 function enter(event, stale, circle) {
     const seat = latest(stale);
-    const clickable = props.activeKey === null ? props.zones[seat.key]?.available : seat.status === "disponible";
+    const picking = seatMode();
+    const available = props.zones[seat.key]?.available;
+    const clickable = picking ? available && seat.status === "disponible" : available;
     stage.container().style.cursor = clickable ? "pointer" : "default";
 
-    if (props.activeKey !== null && clickable && !reduceMotion) {
+    if (picking && clickable && !reduceMotion) {
         circle.to({ scaleX: 1.35, scaleY: 1.35, duration: 0.15 });
     }
 
-    emit("hover", { seat, zoneMode: props.activeKey !== null, clientX: event.evt?.clientX ?? 0, clientY: event.evt?.clientY ?? 0 });
+    emit("hover", { seat, zoneMode: picking, clientX: event.evt?.clientX ?? 0, clientY: event.evt?.clientY ?? 0 });
 }
 
 function leave(seat, circle) {
     stage.container().style.cursor = "default";
-    if (props.activeKey !== null && !reduceMotion) circle.to({ scaleX: 1, scaleY: 1, duration: 0.15 });
+    if (seatMode() && !reduceMotion) circle.to({ scaleX: 1, scaleY: 1, duration: 0.15 });
     emit("hover", null);
 }
 
