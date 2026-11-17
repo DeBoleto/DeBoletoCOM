@@ -9,6 +9,25 @@
                     </h2>
                 </div>
 
+                <div class="nearby-select-wrap">
+                    <label for="nearby-estado" class="visually-hidden">
+                        Filtrar eventos por estado
+                    </label>
+                    <select
+                        id="nearby-estado"
+                        v-model="selectedEstado"
+                        class="nearby-select"
+                    >
+                        <option
+                            v-for="estado in estadoOptions"
+                            :key="estado"
+                            :value="estado"
+                        >
+                            {{ estado }}
+                        </option>
+                    </select>
+                </div>
+
                 <p
                     v-if="locationFailed"
                     class="nearby-location-warning"
@@ -76,24 +95,21 @@
                         :key="`activos-${event.id}`"
                         class="ticket"
                     >
-                        <a
-                            :href="`/evento/${event.slug}`"
-                            class="ticket-thumb"
-                            :aria-label="`Ver evento: ${event.title}`"
-                        >
+                        <div class="ticket-thumb">
                             <img
                                 :src="event.image"
-                                :alt="`Imagen del evento: ${event.title}`"
+                                alt=""
                                 class="ticket-thumb-img"
                                 loading="lazy"
                                 decoding="async"
                             />
-                        </a>
+                        </div>
 
                         <div class="ticket-body">
                             <a
                                 :href="`/evento/${event.slug}`"
                                 class="ticket-title"
+                                :aria-label="`Ver evento: ${event.title}`"
                                 >{{ event.title }}</a
                             >
                             <span class="ticket-meta">
@@ -166,27 +182,6 @@
                         </p>
                     </li>
                 </ul>
-            </div>
-
-            <div class="nearby-footer">
-                <div class="nearby-select-wrap">
-                    <label for="nearby-estado" class="visually-hidden">
-                        Filtrar eventos por estado
-                    </label>
-                    <select
-                        id="nearby-estado"
-                        v-model="selectedEstado"
-                        class="nearby-select"
-                    >
-                        <option
-                            v-for="estado in estadoOptions"
-                            :key="estado"
-                            :value="estado"
-                        >
-                            {{ estado }}
-                        </option>
-                    </select>
-                </div>
             </div>
         </div>
     </section>
@@ -362,7 +357,7 @@ onMounted(() => {
 }
 
 .nearby-header {
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-6);
 }
 
 .nearby-title-group {
@@ -390,14 +385,10 @@ onMounted(() => {
     letter-spacing: -0.02em;
 }
 
-.nearby-footer {
-    display: flex;
-    justify-content: center;
-    margin-top: var(--space-6);
-}
-
 .nearby-select-wrap {
+    width: fit-content;
     min-width: 220px;
+    margin-top: var(--space-4);
 }
 
 .nearby-select {
@@ -592,6 +583,7 @@ onMounted(() => {
 }
 
 .ticket {
+    position: relative;
     display: flex;
     align-items: stretch;
     background: var(--color-surface-1);
@@ -657,7 +649,24 @@ onMounted(() => {
     transition: color var(--transition-fast);
 }
 
-.ticket-title:hover {
+.ticket-title::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.ticket-title:focus-visible {
+    outline: none;
+}
+
+.ticket:has(.ticket-title:focus-visible) {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+}
+
+.ticket:hover .ticket-title {
     color: var(--color-brand);
 }
 
@@ -749,7 +758,6 @@ onMounted(() => {
     .nearby-select-wrap {
         width: 100%;
         min-width: 0;
-        max-width: 320px;
     }
 
     .nearby-select {

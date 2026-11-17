@@ -29,6 +29,12 @@ const tabs = [
         icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>',
     },
     {
+        href: "#buscar",
+        label: "Buscar",
+        icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+        click: focusSearch,
+    },
+    {
         href: "/eventos",
         label: "Eventos",
         icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M9 12h6"/></svg>',
@@ -41,7 +47,21 @@ const tabs = [
     },
 ];
 
+function focusSearch(event) {
+    event.preventDefault();
+
+    const input = document.getElementById("site-search");
+    if (!input) {
+        window.location.assign("/");
+        return;
+    }
+
+    input.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function isActive(href) {
+    if (href.startsWith("#")) return false;
     if (href === "/") return window.location.pathname === "/";
     return window.location.pathname.startsWith(href);
 }

@@ -24,6 +24,7 @@
             <input
                 ref="inputRef"
                 v-model="query"
+                id="site-search"
                 type="search"
                 class="search-input"
                 placeholder="Buscar eventos…"

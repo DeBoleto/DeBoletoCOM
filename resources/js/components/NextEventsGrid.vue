@@ -339,7 +339,23 @@ watch(filter, () => {
 
 @media (max-width: 480px) {
     .next-grid {
-        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+
+    .grid-item {
+        width: 100%;
+    }
+
+    .grid-item :deep(.card-meta) {
+        padding: var(--space-3);
+    }
+
+    .grid-item :deep(.meta-title) {
+        font-size: var(--text-sm);
+    }
+
+    .more-plus {
+        font-size: 2rem;
     }
 }
 </style>
