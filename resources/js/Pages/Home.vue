@@ -46,6 +46,39 @@
                     <h2 id="categories-heading" class="strip-title">
                         CATEGORÍAS
                     </h2>
+                    <label class="cat-select">
+                        <span class="visually-hidden">Elige una categoría</span>
+                        <select
+                            :value="''"
+                            aria-describedby="categories-heading"
+                            @change="goToCategory"
+                        >
+                            <option value="" disabled>
+                                Elige una categoría
+                            </option>
+                            <option
+                                v-for="cat in categories"
+                                :key="cat.slug"
+                                :value="cat.slug"
+                            >
+                                {{ cat.icon }} {{ cat.name }}
+                            </option>
+                        </select>
+                        <svg
+                            class="cat-select-chevron"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.4"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="m6 9 6 6 6-6" />
+                        </svg>
+                    </label>
                     <ul role="list" class="categories-grid">
                         <li v-for="cat in categories" :key="cat.slug">
                             <a
@@ -330,6 +363,12 @@ const resolvedUpcomingEvents = computed(() =>
         : [...mockNextEvents, ...mockPopularEvents],
 );
 
+function goToCategory(event) {
+    const slug = event.target.value;
+    if (!slug) return;
+    window.location.assign(`/buscar?categoria=${slug}`);
+}
+
 const categories = [
     {
         name: "CARRERAS",
@@ -391,6 +430,50 @@ main {
     letter-spacing: -0.02em;
     margin-bottom: var(--space-8);
     text-align: center;
+}
+
+.cat-select {
+    position: relative;
+    display: none;
+}
+
+.cat-select select {
+    width: 100%;
+    height: 52px;
+    padding: 0 48px 0 var(--space-4);
+    border: 1px solid rgba(78, 203, 160, 0.25);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-1);
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: none;
+    box-shadow: 0 0 12px rgba(78, 203, 160, 0.06);
+    cursor: pointer;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cat-select select:focus {
+    border-color: rgba(78, 203, 160, 0.5);
+    box-shadow: 0 0 0 3px rgba(78, 203, 160, 0.12);
+    outline: none;
+}
+
+.cat-select select option {
+    background: var(--color-surface-2);
+    color: var(--color-text-primary);
+}
+
+.cat-select-chevron {
+    position: absolute;
+    top: 50%;
+    right: var(--space-4);
+    color: var(--color-brand);
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .categories-grid {
@@ -613,6 +696,25 @@ main {
 @media (max-width: 852px) {
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .categories-strip {
+        padding-block: var(--space-8) var(--space-4);
+    }
+
+    .categories-strip .strip-title {
+        margin-bottom: var(--space-4);
+        font-size: var(--text-xl);
+    }
+
+    .cat-select {
+        display: block;
+    }
+
+    .categories-grid {
+        display: none;
     }
 }
 
