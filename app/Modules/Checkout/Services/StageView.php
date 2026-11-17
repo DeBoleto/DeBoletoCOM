@@ -30,10 +30,14 @@ class StageView
         $prices = $localities->mapWithKeys(fn (EventosLocalidades $locality) => [
             $locality->pk_evento_localidad => $this->catalog->listPrice($event, $locality),
         ]);
+        $promotions = $localities->mapWithKeys(fn (EventosLocalidades $locality) => [
+            $locality->pk_evento_localidad => $this->catalog->promotion($event, $locality),
+        ]);
 
-        $stage['sections'] = array_map(function (array $section) use ($prices) {
+        $stage['sections'] = array_map(function (array $section) use ($prices, $promotions) {
             $price = $prices->get((int) $section['localityId']);
             $section['available'] = $price !== null;
+            $section['promotion'] = $promotions->get((int) $section['localityId']);
             $section['price'] = $price === null ? null : [
                 'originalPrice' => $section['price']['originalPrice'] ?? $price,
                 'discountPrice' => $price < ($section['price']['originalPrice'] ?? $price) ? $price : null,

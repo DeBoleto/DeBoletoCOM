@@ -20,7 +20,7 @@
             </a>
 
             <div class="search-col">
-                <SearchAutocomplete />
+                <SearchAutocomplete v-if="!hideSearch" />
             </div>
 
             <div class="header-right">
@@ -124,6 +124,10 @@ import { usePage, router } from "@inertiajs/vue3";
 import SearchAutocomplete from "@/components/SearchAutocomplete.vue";
 import VenueSearchModal from "@/components/VenueSearchModal.vue";
 import CategoriesModal from "@/components/CategoriesModal.vue";
+
+defineProps({
+    hideSearch: { type: Boolean, default: false },
+});
 
 const emit = defineEmits(["open-login", "open-register"]);
 

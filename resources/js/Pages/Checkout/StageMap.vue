@@ -2,7 +2,7 @@
     <Head :title="`Compra · ${event.name}`" />
 
     <div class="page-layout">
-        <SiteHeader @open-login="auth?.open('phone')" @open-register="auth?.open('register')" />
+        <SiteHeader hide-search @open-login="auth?.open('phone')" @open-register="auth?.open('register')" />
 
         <main id="main-content">
             <div class="process-bar">
@@ -72,9 +72,10 @@
                             </p>
                         </div>
 
-                        <div v-if="activeInfo?.promotion || activeInfo?.volumeDiscount" class="promo-strip">
-                            <span v-if="activeInfo.promotion" class="promo-chip">🎉 Promoción {{ activeInfo.promotion.label }} en esta zona</span>
-                            <span v-if="activeInfo.volumeDiscount" class="promo-chip">
+                        <div v-if="eventPromotion || activeInfo?.promotion || activeInfo?.volumeDiscount" class="promo-strip">
+                            <span v-if="eventPromotion" class="promo-chip">🎉 Promoción {{ eventPromotion }} en todas las zonas</span>
+                            <span v-else-if="activeInfo?.promotion" class="promo-chip">🎉 Promoción {{ activeInfo.promotion.label }} en esta zona</span>
+                            <span v-if="activeInfo?.volumeDiscount" class="promo-chip">
                                 Desde {{ activeInfo.volumeDiscount.from }} boletos, {{ money(activeInfo.volumeDiscount.amount) }} menos c/u
                             </span>
                         </div>
@@ -248,7 +249,6 @@
             </div>
         </main>
 
-        <SiteFooter />
         <MobileBottomNav v-if="totalTickets === 0" @open-login="auth?.open('phone')" />
 
         <DialogModal :show="rules !== null" max-width="md" @close="rules = null">
@@ -271,7 +271,6 @@ import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
-import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
 import DialogModal from "@/components/DialogModal.vue";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps.vue";
@@ -334,6 +333,12 @@ const sections = computed(() => props.stage?.sections ?? []);
 const activeSection = computed(() => sections.value.find((section) => section.key === activeKey.value) ?? null);
 const activeInfo = computed(() => (activeKey.value === null ? null : infos[activeKey.value] ?? null));
 const activeIsGeneral = computed(() => activeSection.value !== null && isGeneral(activeKey.value));
+const eventPromotion = computed(() => {
+    const available = sections.value.filter((section) => section.available);
+    const labels = new Set(available.map((section) => section.promotion?.label ?? null));
+
+    return available.length > 0 && labels.size === 1 && !labels.has(null) ? [...labels][0] : null;
+});
 const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneColor(activeSection.value) : "#4ecba0"));
 
 const seatedSections = computed(() => sections.value.filter((section) => section.capacity === null && section.rows.length));
