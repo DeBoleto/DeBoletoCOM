@@ -800,11 +800,46 @@ function payload() {
     };
 }
 
+function singleSeatGap() {
+    for (const section of sections.value) {
+        const pick = readPick(section.key);
+        if (isGeneral(section.key) || pick.seats.length < 2) continue;
+
+        const chosen = new Set(pick.seats);
+        const statuses = venue[section.key]?.statuses ?? {};
+
+        for (const row of section.rows) {
+            const byX = new Map(row.seats.map((seat) => [seat.x, seat]));
+
+            for (const seat of row.seats) {
+                if (chosen.has(seat.id) || seat.selectable === false) continue;
+                if (statuses[seat.id] && statuses[seat.id] !== "mio") continue;
+
+                const left = byX.get(seat.x - 1);
+                const right = byX.get(seat.x + 1);
+
+                if (left && right && chosen.has(left.id) && chosen.has(right.id)) {
+                    return { key: section.key, zone: section.name, fila: row.fila, seat: seat.id };
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
 async function submit() {
     if (submitting.value) return;
 
     if (totalTickets.value === 0) {
         notify("Es necesario seleccionar los asientos para continuar.", "info");
+        return;
+    }
+
+    const gap = singleSeatGap();
+    if (gap) {
+        notify(`Selecciona asientos pegados: quedó libre el asiento ${gap.seat} de la fila ${gap.fila} en ${gap.zone}, entre dos de tus lugares.`);
+        if (activeKey.value !== gap.key) focusZone(gap.key);
         return;
     }
 
