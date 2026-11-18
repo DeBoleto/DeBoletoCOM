@@ -185,7 +185,7 @@ const stageBarConfig = computed(() => {
         y: py(bar.y),
         width: bar.width * scale.value,
         height: bar.height * scale.value,
-        fill: "#1d4ed8",
+        fill: "#000000",
         cornerRadius: 4,
         listening: false,
     };

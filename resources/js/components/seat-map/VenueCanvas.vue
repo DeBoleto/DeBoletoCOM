@@ -201,7 +201,7 @@ function addMainStage(group, bar) {
             y: bar.y,
             width: bar.width,
             height: bar.height,
-            fill: "#1d4ed8",
+            fill: "#000000",
             cornerRadius: 4,
         }),
         new Konva.Text({
