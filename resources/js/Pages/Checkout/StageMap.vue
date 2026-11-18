@@ -68,7 +68,7 @@
                                 <strong>{{ money(activeInfo?.price ?? sectionPrice(activeSection)) }}</strong> por boleto
                             </p>
                             <p v-else class="map-hint" :class="{ 'is-direct': directPick }">
-                                {{ directPick ? "Toca un asiento para elegirlo" : "Toca una zona o acerca el mapa para elegir asientos" }}
+                                {{ directPick ? "Toca un asiento para elegirlo" : "Toca una zona o tócala dos veces para acercar y elegir asientos" }}
                             </p>
                         </div>
 

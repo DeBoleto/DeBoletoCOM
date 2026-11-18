@@ -35,6 +35,8 @@ const MAX_FIT = { map: 1, zone: 2 };
 const ZOOM_STEP = 1.25;
 const DIRECT_ON = 3;
 const DIRECT_OFF = 2;
+const DOUBLE_ZOOM = 3.5;
+const DOUBLE_TAP_MS = 300;
 
 const STATUS_LABEL = {
     disponible: "Disponible",
@@ -66,6 +68,8 @@ let entrance = null;
 let fitScale = 1;
 let lastTap = { id: null, at: 0 };
 let pinch = null;
+let pendingZone = null;
+let lastMapTap = { at: 0, x: 0, y: 0 };
 const nodes = new Map();
 
 const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -306,6 +310,27 @@ function center() {
     return { x: stage.width() / 2, y: stage.height() / 2 };
 }
 
+function zoomToPoint(pointer) {
+    const old = stage.scaleX();
+    const scale = fitScale * DOUBLE_ZOOM;
+    const world = { x: (pointer.x - stage.x()) / old, y: (pointer.y - stage.y()) / old };
+    const target = { x: stage.width() / 2 - world.x * scale, y: stage.height() / 2 - world.y * scale };
+    const done = () => {
+        emit("scale", DOUBLE_ZOOM);
+        updateDirect(DOUBLE_ZOOM);
+    };
+
+    if (reduceMotion) {
+        stage.scale({ x: scale, y: scale });
+        stage.position(target);
+        stage.batchDraw();
+        done();
+        return;
+    }
+
+    stage.to({ scaleX: scale, scaleY: scale, x: target.x, y: target.y, duration: 0.35, easing: Konva.Easings.EaseInOut, onFinish: done });
+}
+
 function zoomIn() {
     zoomAt(stage.scaleX() * ZOOM_STEP, center());
 }
@@ -314,17 +339,50 @@ function zoomOut() {
     zoomAt(stage.scaleX() / ZOOM_STEP, center());
 }
 
+// En el mapa completo un toque abre la zona y dos toques seguidos acercan el
+// mapa donde se tocó: se espera a ver si llega el segundo toque antes de abrirla.
+function mapTap(key) {
+    const pointer = stage.getPointerPosition();
+    const now = Date.now();
+    const second = pointer && now - lastMapTap.at < DOUBLE_TAP_MS && Math.hypot(pointer.x - lastMapTap.x, pointer.y - lastMapTap.y) < 40;
+
+    window.clearTimeout(pendingZone);
+    pendingZone = null;
+
+    if (second) {
+        lastMapTap = { at: 0, x: 0, y: 0 };
+        zoomToPoint(pointer);
+        return;
+    }
+
+    lastMapTap = { at: now, x: pointer?.x ?? 0, y: pointer?.y ?? 0 };
+
+    if (key !== null && props.zones[key]?.available) {
+        pendingZone = window.setTimeout(() => {
+            pendingZone = null;
+            emit("zone", key);
+        }, DOUBLE_TAP_MS);
+    }
+}
+
+function onStageTap(event) {
+    if (seatMode() || pinch) return;
+    if (event.target !== stage && event.target.name() === "seat") return;
+    mapTap(null);
+}
+
 function onSeat(event, seat) {
     event.cancelBubble = true;
+
+    if (!seatMode()) {
+        mapTap(seat.key);
+        return;
+    }
+
     const id = `${seat.key}:${seat.id}`;
     const now = Date.now();
     if (lastTap.id === id && now - lastTap.at < 400) return;
     lastTap = { id, at: now };
-
-    if (!seatMode()) {
-        if (props.zones[seat.key]?.available) emit("zone", seat.key);
-        return;
-    }
 
     const current = latest(seat);
     if (props.readonly || current.status !== "disponible" || !props.zones[seat.key]?.available) return;
@@ -476,6 +534,7 @@ onMounted(() => {
     stage.on("wheel", onWheel);
     stage.on("touchmove", onTouchMove);
     stage.on("touchend touchcancel", onTouchEnd);
+    stage.on("click tap", onStageTap);
 
     build();
 
@@ -486,6 +545,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    window.clearTimeout(pendingZone);
     observer?.disconnect();
     entrance?.stop();
     stage?.destroy();

@@ -102,7 +102,7 @@ const zones = computed(() =>
 );
 
 const hint = computed(() => {
-    if (props.readonly) return "Toca una zona para acercarla";
-    return direct.value ? "Selección de asientos activa · aleja para ver zonas" : "Toca una zona o acerca x3 para elegir asientos";
+    if (props.readonly) return "Toca una zona para verla · doble toque para acercar";
+    return direct.value ? "Selección de asientos activa · aleja para ver zonas" : "Toca una zona o dale doble toque para elegir asientos";
 });
 </script>
