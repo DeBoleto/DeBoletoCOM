@@ -20,6 +20,9 @@
                 @zone="focusZone"
                 @toggle="pickSeat"
             />
+            <p v-if="seatGap" class="mt-3 rounded-lg bg-bo-sold-soft px-3 py-2 text-sm font-medium text-bo-sold" role="alert">
+                Selecciona asientos pegados: quedó libre el asiento {{ seatGap.seat }} de la fila {{ seatGap.fila }} en {{ seatGap.zone }}, entre dos de los asientos elegidos.
+            </p>
             <div class="mt-3 flex flex-wrap gap-2">
                 <button
                     v-for="section in stage.sections"
@@ -105,6 +108,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import QuantityStepper from "./QuantityStepper.vue";
 import VenueMap from "./VenueMap.vue";
+import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
 
@@ -174,6 +178,18 @@ const seatStatuses = computed(() =>
         (props.stage?.sections ?? []).map((section) => [section.key, infos[section.key]?.statuses ?? venue[section.key]?.statuses ?? {}]),
     ),
 );
+
+const seatGap = computed(() => {
+    for (const section of props.stage?.sections ?? []) {
+        if (isGeneral(infos[section.key])) continue;
+
+        const statuses = seatStatuses.value[section.key] ?? {};
+        const gap = singleSeatGap(section, readPick(section.key).seats, (seatId) => (statuses[seatId] ?? "disponible") !== "disponible");
+        if (gap) return gap;
+    }
+
+    return null;
+});
 
 const venueRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".venue"));
 
@@ -346,5 +362,5 @@ watch(
 
 onMounted(loadVenue);
 
-defineExpose({ clear, focus: focusZone });
+defineExpose({ clear, focus: focusZone, seatGap });
 </script>

@@ -4,6 +4,7 @@ namespace App\Modules\Checkout\Services;
 
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
+use App\Modules\BoxOffice\Services\Checkout\SeatGapRule;
 use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
 use App\Modules\BoxOffice\Services\Checkout\SectionsStateBuilder;
 use App\Modules\BoxOffice\Services\Checkout\TicketPricing;
@@ -31,6 +32,7 @@ class SelectionBuilder
         private readonly SeatAvailability $availability,
         private readonly SeatHolds $holds,
         private readonly SectionsStateBuilder $sections,
+        private readonly SeatGapRule $gaps,
     ) {}
 
     /**
@@ -97,7 +99,8 @@ class SelectionBuilder
         $numbered = array_filter($resolved, fn (array $section) => $section['section']['capacity'] === null);
 
         foreach ($numbered as $section) {
-            $this->ensureNoSingleSeatGap($event->pk_evento, $functionId, $section, $owner);
+            $this->gaps->ensure($event->pk_evento, $functionId, $section,
+                $this->holds->heldByOthers($event->pk_evento, $functionId, $section['locality']->evento_localidad, $owner));
         }
 
         $this->holds->releaseExcept($event->pk_evento, $functionId, $owner, collect($numbered)
@@ -135,46 +138,6 @@ class SelectionBuilder
         }
 
         return $this->sections->build($event->pk_evento, $functionId, PaymentType::Web, $priced);
-    }
-
-    /**
-     * No se puede dejar un solo asiento libre entre dos asientos elegidos
-     * de la misma fila: se piden asientos pegados.
-     *
-     * @throws ValidationException
-     */
-    private function ensureNoSingleSeatGap(int $eventId, int $functionId, array $section, string $owner): void
-    {
-        $chosen = array_flip(array_map('strval', $section['seats']));
-
-        if (count($chosen) < 2) {
-            return;
-        }
-
-        $locality = $section['locality'];
-        $taken = $this->catalog->seatStatuses($eventId, $functionId, $locality->pk_evento_localidad)
-            + array_flip($this->holds->heldByOthers($eventId, $functionId, $locality->evento_localidad, $owner));
-
-        foreach ($section['section']['rows'] as $row) {
-            $byX = collect($row['seats'])->keyBy('x');
-
-            foreach ($row['seats'] as $seat) {
-                $id = (string) $seat['id'];
-
-                if (isset($chosen[$id]) || ! ($seat['selectable'] ?? true) || isset($taken[$id])) {
-                    continue;
-                }
-
-                $left = $byX->get($seat['x'] - 1);
-                $right = $byX->get($seat['x'] + 1);
-
-                if ($left && $right && isset($chosen[(string) $left['id']], $chosen[(string) $right['id']])) {
-                    throw ValidationException::withMessages([
-                        'asientos' => "Selecciona asientos pegados: quedó libre el asiento {$id} de la fila {$row['fila']} entre dos de tus lugares.",
-                    ]);
-                }
-            }
-        }
     }
 
     private function fromQuantities(EventoVista $event, int $functionId, array $input): CheckoutState

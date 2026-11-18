@@ -195,7 +195,7 @@
                         <button
                             type="button"
                             class="mt-4 w-full rounded-lg bg-bo-green px-4 py-3 font-semibold text-white hover:bg-bo-green-dark disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="!canContinue || form.processing"
+                            :disabled="!canContinue || Boolean(picker?.seatGap) || form.processing"
                             @click="submit"
                         >
                             {{ form.processing ? "Calculando…" : "Continuar al cobro" }}

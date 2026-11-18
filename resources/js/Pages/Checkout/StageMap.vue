@@ -271,6 +271,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import { venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
+import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -748,29 +749,13 @@ function payload() {
     };
 }
 
-function singleSeatGap() {
+function findSeatGap() {
     for (const section of sections.value) {
-        const pick = readPick(section.key);
-        if (isGeneral(section.key) || pick.seats.length < 2) continue;
+        if (isGeneral(section.key)) continue;
 
-        const chosen = new Set(pick.seats);
         const statuses = venue[section.key]?.statuses ?? {};
-
-        for (const row of section.rows) {
-            const byX = new Map(row.seats.map((seat) => [seat.x, seat]));
-
-            for (const seat of row.seats) {
-                if (chosen.has(seat.id) || seat.selectable === false) continue;
-                if (statuses[seat.id] && statuses[seat.id] !== "mio") continue;
-
-                const left = byX.get(seat.x - 1);
-                const right = byX.get(seat.x + 1);
-
-                if (left && right && chosen.has(left.id) && chosen.has(right.id)) {
-                    return { key: section.key, zone: section.name, fila: row.fila, seat: seat.id };
-                }
-            }
-        }
+        const gap = singleSeatGap(section, readPick(section.key).seats, (seatId) => Boolean(statuses[seatId]) && statuses[seatId] !== "mio");
+        if (gap) return gap;
     }
 
     return null;
@@ -784,7 +769,7 @@ async function submit() {
         return;
     }
 
-    const gap = singleSeatGap();
+    const gap = findSeatGap();
     if (gap) {
         notify(`Selecciona asientos pegados: quedó libre el asiento ${gap.seat} de la fila ${gap.fila} en ${gap.zone}, entre dos de tus lugares.`);
         if (activeKey.value !== gap.key) focusZone(gap.key);

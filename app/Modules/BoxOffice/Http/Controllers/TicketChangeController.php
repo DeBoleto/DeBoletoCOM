@@ -12,6 +12,7 @@ use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
 use App\Modules\BoxOffice\Services\Checkout\PurchaseService;
 use App\Modules\BoxOffice\Services\Checkout\SaleCatalog;
+use App\Modules\BoxOffice\Services\Checkout\SeatGapRule;
 use App\Modules\BoxOffice\Services\Checkout\SeatPickerProps;
 use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
@@ -140,7 +141,7 @@ class TicketChangeController extends Controller
         ]);
     }
 
-    public function storeSelection(PickSeatsRequest $request, SeatSelectionResolver $resolver, int $evento): RedirectResponse
+    public function storeSelection(PickSeatsRequest $request, SeatSelectionResolver $resolver, SeatGapRule $gaps, int $evento): RedirectResponse
     {
         if (! $this->oldTicket()) {
             return redirect()->route('boxoffice.change.index');
@@ -153,7 +154,9 @@ class TicketChangeController extends Controller
             throw ValidationException::withMessages(['funcion' => 'La función no pertenece a este evento.']);
         }
 
-        ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolver->resolve($event, $functionId, $request->validated());
+        $resolved = $resolver->resolve($event, $functionId, $request->validated());
+        $gaps->ensure($evento, $functionId, $resolved);
+        ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolved;
 
         $lines = array_map(
             fn (string $seat, int $index) => new TicketLine(

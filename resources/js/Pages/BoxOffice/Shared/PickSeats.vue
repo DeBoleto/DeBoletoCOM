@@ -55,6 +55,7 @@
                 </section>
 
                 <SeatPicker
+                    ref="picker"
                     :stage="stage"
                     :event-id="event.id"
                     :function-id="functionId"
@@ -75,7 +76,7 @@
                     <button
                         type="button"
                         class="mt-5 w-full rounded-lg bg-bo-green px-4 py-3 font-semibold text-white hover:bg-bo-green-dark disabled:cursor-not-allowed disabled:opacity-50"
-                        :disabled="!functionId || !count || form.processing"
+                        :disabled="!functionId || !count || Boolean(picker?.seatGap) || form.processing"
                         @click="submit"
                     >
                         {{ form.processing ? "Validando…" : submitLabel }}
@@ -111,6 +112,7 @@ const props = defineProps({
     note: { type: String, default: "" },
 });
 
+const picker = ref(null);
 const functionId = ref(props.functions.length === 1 ? props.functions[0].id : null);
 const paymentType = ref(props.paymentTypes[0]?.value ?? null);
 const pick = ref({ localityId: null, sectionId: null, generalAdmission: false, seats: [], quantity: 0, price: 0 });
