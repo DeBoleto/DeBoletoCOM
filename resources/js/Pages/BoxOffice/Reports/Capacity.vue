@@ -13,7 +13,14 @@
 
         <div v-else-if="data" class="grid gap-6 xl:grid-cols-[1fr_420px]">
             <section v-if="coloredSections.length" class="rounded-xl border border-bo-line bg-bo-card p-4" aria-label="Mapa de ocupación">
-                <ZoneCanvas :sections="coloredSections" :canvas-size="data.stage.canvas" :main-stage="data.stage.mainStage" />
+                <VenueMap
+                    v-if="seatedSections(coloredSections).length"
+                    :stage="coloredStage"
+                    :active-key="focusKey"
+                    readonly
+                    @zone="focusKey = $event"
+                />
+                <ZoneCanvas v-else :sections="coloredSections" :canvas-size="data.stage.canvas" :main-stage="data.stage.mainStage" />
                 <ul class="mt-3 flex flex-wrap gap-4 text-sm text-bo-slate">
                     <li v-for="item in scale" :key="item.label" class="flex items-center gap-2">
                         <span class="size-3 rounded-sm" :style="{ background: item.color }" />
@@ -47,6 +54,8 @@
 import { computed, ref } from "vue";
 import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
+import VenueMap from "@/components/BoxOffice/VenueMap.vue";
+import { seatedSections } from "@/components/seat-map/venueLayout.js";
 
 defineProps({ events: { type: Array, required: true } });
 
@@ -58,6 +67,7 @@ const scale = [
 ];
 
 const eventId = ref(null);
+const focusKey = ref(null);
 const data = ref(null);
 const loading = ref(false);
 const error = ref("");
@@ -79,8 +89,11 @@ const coloredSections = computed(() => {
     });
 });
 
+const coloredStage = computed(() => (data.value?.stage ? { ...data.value.stage, sections: coloredSections.value } : null));
+
 async function load() {
     loading.value = true;
+    focusKey.value = null;
     error.value = "";
     try {
         const response = await fetch(route("boxoffice.capacity.data", eventId.value), { headers: { Accept: "application/json" }, credentials: "same-origin" });

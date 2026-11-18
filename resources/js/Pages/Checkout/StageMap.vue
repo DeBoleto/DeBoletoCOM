@@ -270,6 +270,7 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
+import { venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -342,73 +343,13 @@ const eventPromotion = computed(() => {
 });
 const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneColor(activeSection.value) : "#4ecba0"));
 
-const seatedSections = computed(() => sections.value.filter((section) => section.capacity === null && section.rows.length));
-
-const placed = computed(() =>
-    seatedSections.value.some((section) => section.offset && (section.offset.x !== 0 || section.offset.y !== 0)),
-);
-
-// Sin desplazamientos las secciones se acomodan solas y el escenario del XML ya no coincidiría.
-const mainStage = computed(() => (placed.value ? props.stage?.mainStage ?? null : null));
-
-const offsets = computed(() => {
-    const seated = seatedSections.value;
-
-    if (placed.value || seated.length < 2) {
-        return Object.fromEntries(seated.map((section) => [section.key, section.offset ?? { x: 0, y: 0 }]));
-    }
-
-    const boxes = seated.map((section) => {
-        const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x));
-        const ys = section.rows.map((row) => row.y);
-        const minX = Math.min(...xs);
-        const minY = Math.min(...ys);
-
-        return { key: section.key, minX, minY, width: Math.max(...xs) - minX + 1, height: Math.max(...ys) - minY + 1 };
-    });
-
-    const gap = 3;
-    const area = boxes.reduce((sum, box) => sum + (box.width + gap) * (box.height + gap), 0);
-    const rowWidth = Math.max(Math.sqrt(area) * 1.4, ...boxes.map((box) => box.width));
-    const result = {};
-    let x = 0;
-    let y = 0;
-    let rowHeight = 0;
-
-    for (const box of boxes) {
-        if (x > 0 && x + box.width > rowWidth) {
-            x = 0;
-            y += rowHeight + gap;
-            rowHeight = 0;
-        }
-
-        result[box.key] = { x: x - box.minX, y: y - box.minY };
-        x += box.width + gap;
-        rowHeight = Math.max(rowHeight, box.height);
-    }
-
-    return result;
-});
+const mainStage = computed(() => venueMainStage(props.stage));
 
 const seats = computed(() =>
-    seatedSections.value
-        .flatMap((section) => {
-            const statuses = venue[section.key]?.statuses ?? {};
-            const offset = offsets.value[section.key] ?? { x: 0, y: 0 };
-
-            return section.rows.flatMap((row) =>
-                row.seats.map((seat) => ({
-                    key: section.key,
-                    id: seat.id,
-                    fila: row.fila,
-                    x: seat.x + offset.x,
-                    y: row.y + offset.y,
-                    zx: seat.x,
-                    zy: row.y,
-                    status: seat.selectable === false || !section.available ? "no_disponible" : VENUE_STATUS[statuses[seat.id]] ?? "disponible",
-                })),
-            );
-        }),
+    venueSeats(sections.value, (section, seat) => {
+        const statuses = venue[section.key]?.statuses ?? {};
+        return seat.selectable === false || !section.available ? "no_disponible" : VENUE_STATUS[statuses[seat.id]] ?? "disponible";
+    }),
 );
 
 const canvasZones = computed(() =>

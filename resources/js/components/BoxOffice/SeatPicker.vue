@@ -11,18 +11,15 @@
             </p>
         </div>
         <template v-if="stage">
-            <div class="mt-3 overflow-auto rounded-lg bg-bo-paper p-2">
-                <ZoneCanvas
-                    :sections="stage.sections"
-                    :active-key="sectionKey"
-                    :hover-key="hoverKey"
-                    :badges="badges"
-                    :canvas-size="stage.canvas"
-                    :main-stage="stage.mainStage"
-                    @select="selectSection"
-                    @hover="hoverKey = $event"
-                />
-            </div>
+            <VenueMap
+                class="mt-3"
+                :stage="stage"
+                :statuses="seatStatuses"
+                :selected-keys="selectedKeys"
+                :active-key="focusKey"
+                @zone="focusZone"
+                @toggle="pickSeat"
+            />
             <div class="mt-3 flex flex-wrap gap-2">
                 <button
                     v-for="section in stage.sections"
@@ -31,9 +28,7 @@
                     class="relative inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors"
                     :class="sectionKey === section.key ? 'border-bo-ink bg-bo-ink text-white' : 'border-bo-line hover:border-bo-slate'"
                     :aria-pressed="sectionKey === section.key"
-                    @click="selectSection(section.key)"
-                    @mouseenter="hoverKey = section.key"
-                    @mouseleave="hoverKey = null"
+                    @click="focusZone(section.key)"
                 >
                     {{ section.name }}
                     <span
@@ -67,17 +62,6 @@
                 >
                     Quitar de esta zona
                 </button>
-                <div v-if="info && !isGeneralAdmission" class="flex items-center gap-1">
-                    <button type="button" class="rounded-md border border-bo-line p-1.5 hover:border-bo-slate" aria-label="Alejar" @click="zoom(-0.15)">
-                        <BoIcon name="zoomOut" :size="18" />
-                    </button>
-                    <button type="button" class="rounded-md border border-bo-line p-1.5 hover:border-bo-slate" aria-label="Acercar" @click="zoom(0.15)">
-                        <BoIcon name="zoomIn" :size="18" />
-                    </button>
-                    <button type="button" class="rounded-md border border-bo-line p-1.5 hover:border-bo-slate" aria-label="Ajustar a la zona" @click="seatZoom = 1">
-                        <BoIcon name="refresh" :size="18" />
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -92,9 +76,9 @@
             </div>
 
             <template v-else>
-                <div class="mt-4 flex h-[60vh] min-h-80 overflow-auto rounded-lg bg-bo-paper p-3">
-                    <SeatCanvas :key="sectionKey" :section="sectionWithStatus" :zoom="seatZoom" :selected-keys="selectedKeys" variant="dots" @toggle="toggleSeat" />
-                </div>
+                <p class="mt-3 text-sm text-bo-slate">
+                    {{ activePickCount ? `Asientos: ${activePick.seats.join(", ")}` : "Toca los asientos en el mapa para elegirlos." }}
+                </p>
                 <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-bo-slate">
                     <li v-for="item in legend" :key="item.label" class="flex items-center gap-2">
                         <span
@@ -118,11 +102,9 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
-import BoIcon from "./BoIcon.vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import QuantityStepper from "./QuantityStepper.vue";
-import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
-import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
+import VenueMap from "./VenueMap.vue";
 import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
 
@@ -156,13 +138,14 @@ const legend = computed(() => {
 });
 
 const sectionKey = ref(null);
-const hoverKey = ref(null);
+const focusKey = ref(null);
 const infos = reactive({});
+const venue = reactive({});
 const picks = reactive({});
 const error = ref("");
 const loading = ref(false);
-const seatZoom = ref(1);
 let requestId = 0;
+let venueRequest = 0;
 
 const activeSection = computed(() => props.stage?.sections.find((section) => section.key === sectionKey.value) ?? null);
 const info = computed(() => (sectionKey.value !== null ? (infos[sectionKey.value] ?? null) : null));
@@ -182,27 +165,22 @@ const badges = computed(() =>
     Object.fromEntries(Object.keys(picks).map((key) => [key, countOf(key)]).filter(([, count]) => count > 0)),
 );
 
-const selectedKeys = computed(() => activePick.value.seats.map((seat) => `${sectionKey.value}:${seat}`));
+const selectedKeys = computed(() =>
+    Object.entries(picks).flatMap(([key, pick]) => (isGeneral(infos[key]) ? [] : pick.seats.map((seat) => `${key}:${seat}`))),
+);
+
+const seatStatuses = computed(() =>
+    Object.fromEntries(
+        (props.stage?.sections ?? []).map((section) => [section.key, infos[section.key]?.statuses ?? venue[section.key]?.statuses ?? {}]),
+    ),
+);
+
+const venueRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".venue"));
 
 const quantityMax = computed(() => {
     const remaining = info.value?.remaining ?? 0;
     const room = props.maxTickets - (totalTickets.value - activePick.value.quantity);
     return Math.max(0, Math.min(remaining, room));
-});
-
-const sectionWithStatus = computed(() => {
-    const statuses = info.value?.statuses ?? {};
-
-    return {
-        ...activeSection.value,
-        rows: activeSection.value.rows.map((row) => ({
-            ...row,
-            seats: row.seats.map((seat) => ({
-                ...seat,
-                status: seat.selectable === false ? "no_disponible" : (statuses[seat.id] ?? "disponible"),
-            })),
-        })),
-    };
 });
 
 function isGeneral(value) {
@@ -256,8 +234,47 @@ function clear(key) {
 function selectSection(key) {
     if (!props.multiple) resetAll();
     sectionKey.value = key;
-    seatZoom.value = 1;
     load(key);
+}
+
+function focusZone(key) {
+    if (key === null) {
+        focusKey.value = null;
+        return;
+    }
+
+    const section = props.stage?.sections.find((candidate) => candidate.key === key);
+    focusKey.value = section && section.capacity === null && section.rows.length ? key : null;
+    if (sectionKey.value !== key) selectSection(key);
+}
+
+function pickSeat(seat) {
+    if (sectionKey.value !== seat.key) {
+        if (!props.multiple) resetAll();
+        sectionKey.value = seat.key;
+        load(seat.key);
+    }
+
+    toggleSeat(seat);
+}
+
+async function loadVenue() {
+    Object.keys(venue).forEach((key) => delete venue[key]);
+    if (!props.functionId || !props.stage) return;
+
+    const current = ++venueRequest;
+
+    try {
+        const url = route(venueRoute.value, { evento: props.eventId, funcion: props.functionId });
+        const response = await fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (current !== venueRequest) return;
+        Object.assign(venue, data.zones ?? {});
+    } catch {
+        // El mapa se queda con los estados por sección que ya se hayan cargado.
+    }
 }
 
 async function load(key, { force = false } = {}) {
@@ -301,7 +318,7 @@ function dropTaken(key, data) {
 }
 
 function toggleSeat(seat) {
-    const pick = pickFor(sectionKey.value);
+    const pick = pickFor(seat.key);
     const index = pick.seats.indexOf(seat.id);
     const limit = props.multiple ? props.maxTickets - totalTickets.value : props.maxTickets - pick.seats.length;
 
@@ -316,19 +333,18 @@ function setQuantity(value) {
     publish();
 }
 
-function zoom(delta) {
-    seatZoom.value = Math.min(2.5, Math.max(0.5, Math.round((seatZoom.value + delta) * 100) / 100));
-}
-
 watch(
     () => props.functionId,
     () => {
         resetAll();
         Object.keys(infos).forEach((key) => delete infos[key]);
+        loadVenue();
         if (sectionKey.value !== null) load(sectionKey.value, { force: true });
         else publish();
     },
 );
 
-defineExpose({ clear, focus: selectSection });
+onMounted(loadVenue);
+
+defineExpose({ clear, focus: focusZone });
 </script>

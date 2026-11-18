@@ -20,7 +20,15 @@
                 </button>
             </div>
             <div class="min-h-72 rounded-lg border border-bo-line bg-bo-paper p-2">
-                <ZoneCanvas v-if="stage?.sections.length" :sections="stage.sections" :canvas-size="stage.canvas" :main-stage="stage.mainStage" />
+                <VenueMap
+                    v-if="seatedSections(stage?.sections).length"
+                    :stage="stage"
+                    :active-key="focusKey"
+                    height-class="h-[28rem]"
+                    readonly
+                    @zone="focusKey = $event"
+                />
+                <ZoneCanvas v-else-if="stage?.sections.length" :sections="stage.sections" :canvas-size="stage.canvas" :main-stage="stage.mainStage" />
                 <p v-else class="p-6 text-center text-sm text-bo-slate">{{ previewError || "Pega el XML y pulsa Actualizar para ver las zonas." }}</p>
             </div>
             <p v-if="stage" class="tabular mt-2 text-xs text-bo-slate">
@@ -34,6 +42,8 @@
 import { computed, ref } from "vue";
 import BoIcon from "./BoIcon.vue";
 import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
+import VenueMap from "./VenueMap.vue";
+import { seatedSections } from "@/components/seat-map/venueLayout.js";
 
 const props = defineProps({
     modelValue: { type: String, default: "" },
@@ -43,6 +53,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 const stage = ref(null);
+const focusKey = ref(null);
 const loading = ref(false);
 const previewError = ref("");
 
@@ -69,6 +80,7 @@ async function preview() {
             previewError.value = data.message ?? "El XML no es válido.";
             return;
         }
+        focusKey.value = null;
         stage.value = data;
     } catch {
         previewError.value = "No se pudo generar la vista previa.";

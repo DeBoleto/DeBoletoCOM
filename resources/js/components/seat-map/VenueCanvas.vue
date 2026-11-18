@@ -11,7 +11,7 @@
                     v-for="seat in activeSeats"
                     :key="seat.id"
                     type="button"
-                    :disabled="seat.status !== 'disponible'"
+                    :disabled="readonly || seat.status !== 'disponible'"
                     :aria-pressed="seat.status === 'disponible' ? isSelected(seat) : undefined"
                     :aria-label="`Fila ${seat.fila}, asiento ${seat.id}, ${statusLabel(seat.status)}`"
                     @click="emit('toggle', seat)"
@@ -49,6 +49,7 @@ const props = defineProps({
     activeKey: { type: String, default: null },
     selectedKeys: { type: Array, default: () => [] },
     mainStage: { type: Object, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["zone", "toggle", "hover", "scale", "direct"]);
@@ -83,7 +84,7 @@ function seatMode() {
 }
 
 function updateDirect(ratio) {
-    const next = props.activeKey === null && (ratio >= DIRECT_ON || (direct.value && ratio > DIRECT_OFF));
+    const next = !props.readonly && props.activeKey === null && (ratio >= DIRECT_ON || (direct.value && ratio > DIRECT_OFF));
     if (next === direct.value) return;
 
     direct.value = next;
@@ -299,7 +300,7 @@ function onSeat(event, seat) {
     }
 
     const current = latest(seat);
-    if (current.status !== "disponible" || !props.zones[seat.key]?.available) return;
+    if (props.readonly || current.status !== "disponible" || !props.zones[seat.key]?.available) return;
 
     emit("toggle", current);
     if (!isSelected(current)) ripple(nodes.get(id)?.circle, colorsFor(current).glow);
@@ -309,7 +310,7 @@ function enter(event, stale, circle) {
     const seat = latest(stale);
     const picking = seatMode();
     const available = props.zones[seat.key]?.available;
-    const clickable = picking ? available && seat.status === "disponible" : available;
+    const clickable = picking ? !props.readonly && available && seat.status === "disponible" : available;
     stage.container().style.cursor = clickable ? "pointer" : "default";
 
     if (picking && clickable && !reduceMotion) {
