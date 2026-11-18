@@ -20,7 +20,7 @@
                 </button>
             </div>
             <div class="min-h-72 rounded-lg border border-bo-line bg-bo-paper p-2">
-                <ZoneCanvas v-if="stage?.sections.length" :sections="stage.sections" :canvas-size="stage.canvas" />
+                <ZoneCanvas v-if="stage?.sections.length" :sections="stage.sections" :canvas-size="stage.canvas" :main-stage="stage.mainStage" />
                 <p v-else class="p-6 text-center text-sm text-bo-slate">{{ previewError || "Pega el XML y pulsa Actualizar para ver las zonas." }}</p>
             </div>
             <p v-if="stage" class="tabular mt-2 text-xs text-bo-slate">

@@ -68,6 +68,7 @@ class StageMapParser
                     $rows[] = [
                         'y' => $rowY,
                         'fila' => (string) $row['fila'],
+                        'orientation' => (string) $row['orientation'] === 'vertical' ? 'vertical' : 'horizontal',
                         'seats' => $seats,
                     ];
                 }
@@ -136,7 +137,34 @@ class StageMapParser
 
         return [
             'canvas' => (int) ($xml->image['size'] ?? 2000),
+            'mainStage' => self::mainStage($xml),
             'sections' => $sections,
+        ];
+    }
+
+    /**
+     * Escenario principal (<main_stage>) en px del mapa general. Los mapas
+     * anteriores no lo traen y el mapa de zonas lo calcula.
+     */
+    private static function mainStage(SimpleXMLElement $xml): ?array
+    {
+        if (! isset($xml->main_stage)) {
+            return null;
+        }
+
+        $width = (int) $xml->main_stage['width'];
+        $height = (int) $xml->main_stage['height'];
+
+        if ($width <= 0 || $height <= 0) {
+            return null;
+        }
+
+        return [
+            'x' => (int) $xml->main_stage['x'],
+            'y' => (int) $xml->main_stage['y'],
+            'width' => $width,
+            'height' => $height,
+            'label' => trim((string) $xml->main_stage['label']) ?: 'ESCENARIO',
         ];
     }
 

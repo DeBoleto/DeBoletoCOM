@@ -97,4 +97,46 @@ class StageMapParserTest extends TestCase
         $this->assertNull($stage['sections'][2]['price']);
         $this->assertNull($this->stage()['sections'][0]['price']);
     }
+
+    public function test_legacy_map_has_no_main_stage(): void
+    {
+        $stage = $this->stage();
+
+        $this->assertNull($stage['mainStage']);
+        $this->assertSame('horizontal', $stage['sections'][0]['rows'][0]['orientation']);
+    }
+
+    public function test_reads_main_stage_and_vertical_rows(): void
+    {
+        $stage = StageMapParser::parseXml(<<<'XML'
+            <stage version="2">
+                <image size="2000" height="1400" />
+                <main_stage x="700" y="60" width="600" height="120" label="TARIMA" />
+                <sections hasManyChildren="1">
+                    <section name="VIP" section_id="VIP" locality_id="1" color="#544657" num="10" numx="5">
+                        <rows>
+                            <row y="3" fila="P" orientation="vertical"><seat seat_id="P1" x="3" /></row>
+                            <row y="4" fila="P" orientation="vertical"><seat seat_id="P2" x="3" /></row>
+                        </rows>
+                    </section>
+                </sections>
+            </stage>
+            XML);
+
+        $this->assertSame(
+            ['x' => 700, 'y' => 60, 'width' => 600, 'height' => 120, 'label' => 'TARIMA'],
+            $stage['mainStage'],
+        );
+        $this->assertSame(['vertical', 'vertical'], array_column($stage['sections'][0]['rows'], 'orientation'));
+        $this->assertSame(['x' => 5, 'y' => 10], $stage['sections'][0]['offset']);
+    }
+
+    public function test_main_stage_without_size_is_ignored(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><main_stage x="10" y="10" width="0" height="50" /><sections><section name="A" section_id="A" locality_id="1" capacity="10" /></sections></stage>',
+        );
+
+        $this->assertNull($stage['mainStage']);
+    }
 }

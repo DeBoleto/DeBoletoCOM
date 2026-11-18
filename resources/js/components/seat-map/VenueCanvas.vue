@@ -48,6 +48,7 @@ const props = defineProps({
     zones: { type: Object, required: true },
     activeKey: { type: String, default: null },
     selectedKeys: { type: Array, default: () => [] },
+    mainStage: { type: Object, default: null },
 });
 
 const emit = defineEmits(["zone", "toggle", "hover", "scale", "direct"]);
@@ -125,6 +126,8 @@ function build() {
     const areas = new Konva.Group({ listening: false });
     const dots = new Konva.Group();
 
+    if (!zoneMode && props.mainStage) addMainStage(areas, props.mainStage);
+
     for (const seat of visibleSeats.value) {
         const { x, y } = position(seat);
         const color = props.zones[seat.key]?.color ?? "#94a3b8";
@@ -184,6 +187,33 @@ function build() {
     layer.add(areas, dots);
     fit();
     animateEntrance();
+}
+
+// El escenario viene en px del mapa general, la misma escala que los asientos (1 celda = GRID px).
+function addMainStage(group, bar) {
+    const label = bar.label || "ESCENARIO";
+    const fontSize = Math.min(bar.height * 0.4, (bar.width / Math.max(label.length, 1)) * 1.4);
+
+    group.add(
+        new Konva.Rect({
+            x: bar.x,
+            y: bar.y,
+            width: bar.width,
+            height: bar.height,
+            fill: "#1d4ed8",
+            cornerRadius: 4,
+        }),
+        new Konva.Text({
+            x: bar.x,
+            y: bar.y + bar.height / 2 - fontSize / 2,
+            width: bar.width,
+            text: label,
+            align: "center",
+            fontSize,
+            fontStyle: "bold",
+            fill: "#ffffff",
+        }),
+    );
 }
 
 function latest(seat) {
@@ -399,6 +429,7 @@ function resize() {
 }
 
 watch(() => props.activeKey, build);
+watch(() => props.mainStage, build);
 watch(() => props.seats.map((seat) => seat.key + seat.id).join("|"), build);
 watch([() => props.seats, () => props.selectedKeys], paint);
 

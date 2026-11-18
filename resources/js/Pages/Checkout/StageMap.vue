@@ -120,6 +120,7 @@
                                         :zones="canvasZones"
                                         :active-key="activeKey"
                                         :selected-keys="selectedKeys"
+                                        :main-stage="mainStage"
                                         @zone="focusZone"
                                         @toggle="pickSeat"
                                         @direct="directPick = $event"
@@ -343,11 +344,17 @@ const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneCol
 
 const seatedSections = computed(() => sections.value.filter((section) => section.capacity === null && section.rows.length));
 
+const placed = computed(() =>
+    seatedSections.value.some((section) => section.offset && (section.offset.x !== 0 || section.offset.y !== 0)),
+);
+
+// Sin desplazamientos las secciones se acomodan solas y el escenario del XML ya no coincidiría.
+const mainStage = computed(() => (placed.value ? props.stage?.mainStage ?? null : null));
+
 const offsets = computed(() => {
     const seated = seatedSections.value;
-    const placed = seated.some((section) => section.offset && (section.offset.x !== 0 || section.offset.y !== 0));
 
-    if (placed || seated.length < 2) {
+    if (placed.value || seated.length < 2) {
         return Object.fromEntries(seated.map((section) => [section.key, section.offset ?? { x: 0, y: 0 }]));
     }
 

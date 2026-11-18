@@ -80,6 +80,7 @@
                                         :badges="badges"
                                         :zoom="zoneZoom"
                                         :canvas-size="stage.canvas"
+                                        :main-stage="stage.mainStage"
                                         :auto-height="false"
                                         @select="focusZone"
                                         @hover="hoverKey = $event"
@@ -154,6 +155,7 @@
                                                 :active-key="activeKey"
                                                 :disabled-keys="disabledKeys"
                                                 :canvas-size="stage.canvas"
+                                                :main-stage="stage.mainStage"
                                                 :auto-height="false"
                                             />
                                         </span>

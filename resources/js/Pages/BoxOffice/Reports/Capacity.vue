@@ -13,7 +13,7 @@
 
         <div v-else-if="data" class="grid gap-6 xl:grid-cols-[1fr_420px]">
             <section v-if="coloredSections.length" class="rounded-xl border border-bo-line bg-bo-card p-4" aria-label="Mapa de ocupación">
-                <ZoneCanvas :sections="coloredSections" :canvas-size="data.stage.canvas" />
+                <ZoneCanvas :sections="coloredSections" :canvas-size="data.stage.canvas" :main-stage="data.stage.mainStage" />
                 <ul class="mt-3 flex flex-wrap gap-4 text-sm text-bo-slate">
                     <li v-for="item in scale" :key="item.label" class="flex items-center gap-2">
                         <span class="size-3 rounded-sm" :style="{ background: item.color }" />

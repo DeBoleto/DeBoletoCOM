@@ -54,6 +54,7 @@ const props = defineProps({
     activeKey: { type: String, default: null },
     zoom: { type: Number, default: 1 },
     canvasSize: { type: Number, default: 2000 },
+    mainStage: { type: Object, default: null },
     hoverKey: { type: String, default: null },
     disabledKeys: { type: Array, default: () => [] },
     badges: { type: Object, default: () => ({}) },
@@ -98,11 +99,34 @@ const frame = computed(() => {
     }
 
     const span = Math.max(maxX - minX, 200);
+    const pad = span * 0.045;
+
+    if (props.mainStage) {
+        const bar = {
+            x: props.mainStage.x,
+            y: props.mainStage.y,
+            width: props.mainStage.width,
+            height: props.mainStage.height,
+            label: props.mainStage.label || "ESCENARIO",
+        };
+        const frameMinX = Math.min(minX, bar.x) - pad;
+        const frameMinY = Math.min(minY, bar.y) - pad;
+        const frameMaxX = Math.max(maxX, bar.x + bar.width) + pad;
+        const frameMaxY = Math.max(maxY, bar.y + bar.height) + pad;
+
+        return {
+            minX: frameMinX,
+            minY: frameMinY,
+            width: frameMaxX - frameMinX,
+            height: frameMaxY - frameMinY,
+            stageBar: bar,
+        };
+    }
+
     const barWidth = Math.min(span * 0.46, 640);
     const barHeight = Math.max(80, span * 0.09);
     const barX = (minX + maxX) / 2 - barWidth / 2;
     const barY = minY - barHeight - span * 0.05;
-    const pad = span * 0.045;
     const frameMinX = Math.min(minX, barX) - pad;
     const frameMinY = barY - pad;
     const frameMaxX = Math.max(maxX, barX + barWidth) + pad;
@@ -113,7 +137,7 @@ const frame = computed(() => {
         minY: frameMinY,
         width: frameMaxX - frameMinX,
         height: frameMaxY - frameMinY,
-        stageBar: { x: barX, y: barY, width: barWidth, height: barHeight },
+        stageBar: { x: barX, y: barY, width: barWidth, height: barHeight, label: "ESCENARIO" },
     };
 });
 
@@ -170,12 +194,12 @@ const stageBarConfig = computed(() => {
 const stageBarTextConfig = computed(() => {
     const bar = frame.value.stageBar;
     if (!bar) return {};
-    const fontSize = bar.height * scale.value * 0.34;
+    const fontSize = Math.min(bar.height * 0.34, (bar.width / Math.max(bar.label.length, 1)) * 1.4) * scale.value;
     return {
         x: px(bar.x),
         y: py(bar.y + bar.height / 2) - fontSize / 2,
         width: bar.width * scale.value,
-        text: "ESCENARIO",
+        text: bar.label,
         align: "center",
         fontSize,
         fontStyle: "bold",

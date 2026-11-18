@@ -18,6 +18,7 @@
                     :hover-key="hoverKey"
                     :badges="badges"
                     :canvas-size="stage.canvas"
+                    :main-stage="stage.mainStage"
                     @select="selectSection"
                     @hover="hoverKey = $event"
                 />
