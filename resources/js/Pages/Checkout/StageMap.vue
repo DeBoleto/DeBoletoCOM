@@ -121,6 +121,7 @@
                                         :active-key="activeKey"
                                         :selected-keys="selectedKeys"
                                         :main-stage="mainStage"
+                                        :areas="areas"
                                         @zone="focusZone"
                                         @toggle="pickSeat"
                                         @direct="directPick = $event"
@@ -270,7 +271,7 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
-import { venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
+import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
 import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
@@ -345,6 +346,7 @@ const eventPromotion = computed(() => {
 const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneColor(activeSection.value) : "#4ecba0"));
 
 const mainStage = computed(() => venueMainStage(props.stage));
+const areas = computed(() => venueAreas(sections.value));
 
 const seats = computed(() =>
     venueSeats(sections.value, (section, seat) => {

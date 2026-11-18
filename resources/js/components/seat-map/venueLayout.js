@@ -55,27 +55,95 @@ export function venueOffsets(sections) {
     return result;
 }
 
+const GRID = 20;
+const AREA_MARGIN = 0.1;
+const MIN_FIT = 0.5;
+const MAX_FIT = 4;
+
+function polygonOf(section) {
+    return section.polygon?.length >= 3 ? section.polygon : null;
+}
+
+/**
+ * Áreas de las secciones para dibujarlas detrás de los asientos. Solo
+ * coinciden con los asientos cuando el XML trae desplazamientos.
+ */
+export function venueAreas(sections) {
+    if (!hasPlacement(sections)) return [];
+
+    return (sections ?? []).filter(polygonOf).map((section) => ({ key: section.key, polygon: section.polygon }));
+}
+
+/**
+ * Escala y centra los asientos de la sección dentro de su área (en celdas),
+ * para que llenen el área sin importar el tamaño de celda del XML.
+ */
+function areaFit(section, offset) {
+    const polygon = polygonOf(section);
+    if (!polygon) return null;
+
+    const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x + offset.x));
+    const ys = section.rows.map((row) => row.y + offset.y);
+    const seatBox = {
+        minX: Math.min(...xs) - 0.5,
+        minY: Math.min(...ys) - 0.5,
+        maxX: Math.max(...xs) + 0.5,
+        maxY: Math.max(...ys) + 0.5,
+    };
+    const areaBox = {
+        minX: Math.min(...polygon.map((point) => point.x)) / GRID,
+        minY: Math.min(...polygon.map((point) => point.y)) / GRID,
+        maxX: Math.max(...polygon.map((point) => point.x)) / GRID,
+        maxY: Math.max(...polygon.map((point) => point.y)) / GRID,
+    };
+    const areaWidth = (areaBox.maxX - areaBox.minX) * (1 - AREA_MARGIN * 2);
+    const areaHeight = (areaBox.maxY - areaBox.minY) * (1 - AREA_MARGIN * 2);
+    const size = Math.max(
+        MIN_FIT,
+        Math.min(MAX_FIT, areaWidth / (seatBox.maxX - seatBox.minX), areaHeight / (seatBox.maxY - seatBox.minY)),
+    );
+
+    return {
+        size,
+        fromX: (seatBox.minX + seatBox.maxX) / 2,
+        fromY: (seatBox.minY + seatBox.maxY) / 2,
+        toX: (areaBox.minX + areaBox.maxX) / 2,
+        toY: (areaBox.minY + areaBox.maxY) / 2,
+    };
+}
+
 /**
  * Asientos listos para VenueCanvas. `statusFor(section, seat)` devuelve el
  * estado del asiento (disponible, vendido, en_proceso o no_disponible).
+ * `x`/`y` son celdas del mapa completo y `size` la escala del asiento ahí;
+ * `zx`/`zy` son las celdas dentro de la zona.
  */
 export function venueSeats(sections, statusFor) {
     const offsets = venueOffsets(sections);
+    const placed = hasPlacement(sections);
 
     return seatedSections(sections).flatMap((section) => {
         const offset = offsets[section.key] ?? { x: 0, y: 0 };
+        const fit = placed ? areaFit(section, offset) : null;
 
         return section.rows.flatMap((row) =>
-            row.seats.map((seat) => ({
-                key: section.key,
-                id: seat.id,
-                fila: row.fila,
-                x: seat.x + offset.x,
-                y: row.y + offset.y,
-                zx: seat.x,
-                zy: row.y,
-                status: statusFor(section, seat),
-            })),
+            row.seats.map((seat) => {
+                const x = seat.x + offset.x;
+                const y = row.y + offset.y;
+
+                return {
+                    key: section.key,
+                    id: seat.id,
+                    fila: row.fila,
+                    x: fit ? fit.toX + (x - fit.fromX) * fit.size : x,
+                    y: fit ? fit.toY + (y - fit.fromY) * fit.size : y,
+                    size: fit ? fit.size : 1,
+                    inArea: fit !== null,
+                    zx: seat.x,
+                    zy: row.y,
+                    status: statusFor(section, seat),
+                };
+            }),
         );
     });
 }

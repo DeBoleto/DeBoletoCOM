@@ -49,6 +49,7 @@ const props = defineProps({
     activeKey: { type: String, default: null },
     selectedKeys: { type: Array, default: () => [] },
     mainStage: { type: Object, default: null },
+    areas: { type: Array, default: () => [] },
     readonly: { type: Boolean, default: false },
 });
 
@@ -122,28 +123,36 @@ function build() {
     nodes.clear();
 
     const zoneMode = props.activeKey !== null;
-    const radius = zoneMode ? RADIUS_ZONE : RADIUS_MAP;
 
     const areas = new Konva.Group({ listening: false });
     const dots = new Konva.Group();
 
-    if (!zoneMode && props.mainStage) addMainStage(areas, props.mainStage);
+    if (!zoneMode) {
+        for (const area of props.areas) addArea(areas, area);
+        if (props.mainStage) addMainStage(areas, props.mainStage);
+    }
 
     for (const seat of visibleSeats.value) {
         const { x, y } = position(seat);
         const color = props.zones[seat.key]?.color ?? "#94a3b8";
+        const size = zoneMode ? 1 : (seat.size ?? 1);
+        const cell = GRID * size;
+        const radius = zoneMode ? RADIUS_ZONE : RADIUS_MAP * size;
 
-        areas.add(
-            new Konva.Rect({
-                x: x - GRID / 2,
-                y: y - GRID / 2,
-                width: GRID,
-                height: GRID,
-                fill: color,
-                opacity: zoneMode ? 0.08 : 0.2,
-                perfectDrawEnabled: false,
-            }),
-        );
+        // Con el área dibujada detrás, la celda de cada asiento sobra en el mapa completo.
+        if (zoneMode || !seat.inArea) {
+            areas.add(
+                new Konva.Rect({
+                    x: x - cell / 2,
+                    y: y - cell / 2,
+                    width: cell,
+                    height: cell,
+                    fill: color,
+                    opacity: zoneMode ? 0.08 : 0.2,
+                    perfectDrawEnabled: false,
+                }),
+            );
+        }
 
         const circle = new Konva.Circle({
             x,
@@ -151,14 +160,14 @@ function build() {
             radius,
             fill: fill(seat),
             stroke: seat.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff",
-            strokeWidth: seat.status === "en_proceso" ? 1.5 : zoneMode ? 2 : 1.5,
+            strokeWidth: (seat.status === "en_proceso" ? 1.5 : zoneMode ? 2 : 1.5) * Math.sqrt(size),
             dash: seat.status === "en_proceso" ? [3, 2] : undefined,
             perfectDrawEnabled: false,
             shadowForStrokeEnabled: false,
             name: "seat",
             hitFunc(context, shape) {
                 context.beginPath();
-                context.arc(0, 0, GRID / 2, 0, Math.PI * 2);
+                context.arc(0, 0, cell / 2, 0, Math.PI * 2);
                 context.closePath();
                 context.fillStrokeShape(shape);
             },
@@ -188,6 +197,24 @@ function build() {
     layer.add(areas, dots);
     fit();
     animateEntrance();
+}
+
+// Las áreas vienen en px del mapa general, igual que el escenario.
+function addArea(group, area) {
+    const color = props.zones[area.key]?.color ?? "#94a3b8";
+
+    group.add(
+        new Konva.Line({
+            points: area.polygon.flatMap((point) => [point.x, point.y]),
+            closed: true,
+            fill: color,
+            opacity: props.zones[area.key]?.available === false ? 0.08 : 0.16,
+            stroke: color,
+            strokeWidth: 3,
+            lineJoin: "round",
+            perfectDrawEnabled: false,
+        }),
+    );
 }
 
 // El escenario viene en px del mapa general, la misma escala que los asientos (1 celda = GRID px).
@@ -430,7 +457,7 @@ function resize() {
 }
 
 watch(() => props.activeKey, build);
-watch(() => props.mainStage, build);
+watch(() => [props.mainStage, props.areas], build);
 watch(() => props.seats.map((seat) => seat.key + seat.id).join("|"), build);
 watch([() => props.seats, () => props.selectedKeys], paint);
 
