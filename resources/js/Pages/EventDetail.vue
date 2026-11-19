@@ -1108,10 +1108,6 @@ main {
 }
 
 .function-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
     background: var(--color-surface-1);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xs);
@@ -1135,15 +1131,23 @@ main {
 }
 
 .function-link {
-    display: contents;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    width: 100%;
+    padding: var(--space-4) var(--space-5);
     color: inherit;
     text-decoration: none;
+    border-radius: inherit;
+}
+
+.function-item:not(.function-item--clickable) .function-link {
+    cursor: default;
 }
 
 .function-link:focus-visible {
     outline: 2px solid var(--color-brand);
-    outline-offset: 4px;
-    border-radius: var(--radius-md);
+    outline-offset: 2px;
 }
 
 .function-arrow {
