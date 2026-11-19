@@ -7,13 +7,19 @@
         <main id="main-content">
             <div class="process-bar">
                 <div class="container process-bar-inner">
-                    <Link :href="route('event.detail', event.slug)" class="process-event" :aria-label="`Volver a ${event.name}`">
-                        <img v-if="event.image" :src="event.image" alt="" class="process-thumb" />
-                        <span class="process-event-text">
-                            <span class="process-event-name">{{ event.name }}</span>
-                            <span class="process-event-meta">{{ eventMeta }}</span>
-                        </span>
-                    </Link>
+                    <div class="process-event-wrap">
+                        <Link :href="route('event.detail', event.slug)" class="process-event" :aria-label="`Volver a ${event.name}`">
+                            <img v-if="event.image" :src="event.image" alt="" class="process-thumb" />
+                            <span class="process-event-text">
+                                <span class="process-event-name">{{ event.name }}</span>
+                                <span class="process-event-meta">{{ eventMeta }}</span>
+                            </span>
+                        </Link>
+                        <button v-if="props.function && functions.length > 1" type="button" class="process-change" @click="changeDate">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                            Cambiar fecha
+                        </button>
+                    </div>
                     <CheckoutSteps :current="0" class="process-steps" />
                     <Transition name="fade">
                         <HoldTimer v-if="deadline" :deadline="deadline" label="Tus lugares se apartan" @expired="expire" />
@@ -34,18 +40,7 @@
             <div v-else class="container venue">
                 <div class="venue-grid">
                     <aside class="venue-rail">
-                        <section class="event-card" aria-label="Datos del evento">
-                            <h1 class="event-card-name">{{ event.name }}</h1>
-                            <p class="event-card-line">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                                <span>{{ props.function.date }} · {{ props.function.time }}</span>
-                                <button v-if="functions.length > 1" type="button" class="event-card-change" @click="changeDate">Cambiar</button>
-                            </p>
-                            <p v-if="venueLine" class="event-card-line">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                                <span>{{ venueLine }}</span>
-                            </p>
-                        </section>
+                        <h1 class="sr-only">{{ event.name }}</h1>
 
                         <VenueZoneList :zones="zoneList" :active-key="activeKey" @select="focusZone" @show-all="showAllZones" />
                     </aside>
@@ -331,7 +326,6 @@ const eventMeta = computed(() =>
         .join(" · "),
 );
 
-const venueLine = computed(() => [props.event.venue, props.event.city, props.event.state].filter(Boolean).join(", "));
 
 const sections = computed(() => props.stage?.sections ?? []);
 const activeSection = computed(() => sections.value.find((section) => section.key === activeKey.value) ?? null);
@@ -904,6 +898,39 @@ main {
     text-decoration: none;
 }
 
+.process-event-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.process-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(78, 203, 160, 0.35);
+    border-radius: 999px;
+    background: var(--color-brand-dim);
+    color: var(--color-brand);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+}
+
+.process-change:hover {
+    border-color: var(--color-brand);
+}
+
+.process-change:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+}
+
 .process-thumb {
     width: 44px;
     height: 44px;
@@ -1009,53 +1036,6 @@ main {
 
 .venue-rail > * {
     min-width: 0;
-}
-
-.event-card {
-    display: grid;
-    gap: 6px;
-    padding: 14px 16px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background:
-        radial-gradient(120% 120% at 0% 0%, rgba(78, 203, 160, 0.12), transparent 60%),
-        var(--color-surface-1);
-}
-
-.event-card-name {
-    font-size: clamp(1rem, 4.2vw, var(--text-lg));
-    font-weight: 900;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-}
-
-.event-card-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-}
-
-.event-card-line svg {
-    flex-shrink: 0;
-    color: var(--color-brand);
-}
-
-.event-card-line span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-
-.event-card-change {
-    margin-left: auto;
-    padding: 4px 0 4px 8px;
-    border: none;
-    background: none;
-    color: var(--color-brand);
-    font-size: var(--text-xs);
-    font-weight: 800;
-    cursor: pointer;
 }
 
 .map-panel {
