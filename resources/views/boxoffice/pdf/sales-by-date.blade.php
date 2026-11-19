@@ -1,14 +1,16 @@
 @extends('boxoffice.pdf.layout')
 @use('App\Modules\BoxOffice\Support\Money')
 
+@section('per-function', '1')
+
 @section('content')
     @forelse ($functions as $item)
         <div class="function">
-            <h2>Función {{ $item['function']->fecha_natural }}, {{ $item['function']->hora_natural }} h</h2>
+            @include('boxoffice.pdf.partials.function-info', ['function' => $item['function']])
 
             @php($general = $item['sections']['general'])
+            <p class="section-title">Resumen general</p>
             <table class="breakdown">
-                <caption>Resumen general</caption>
                 <thead>
                     <tr>
                         <th style="width: 34%">Localidad</th>

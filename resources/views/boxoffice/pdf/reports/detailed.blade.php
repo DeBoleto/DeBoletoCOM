@@ -1,13 +1,16 @@
 @extends('boxoffice.pdf.layout')
 @use('App\Modules\BoxOffice\Support\Money')
 
+@section('per-function', '1')
+
 @section('content')
     @forelse ($functions as $item)
         <div class="function">
-            <h2>Función {{ $item['function']->fecha_natural }}, {{ $item['function']->hora_natural }} h</h2>
+            @include('boxoffice.pdf.partials.function-info', ['function' => $item['function']])
+
+            <p class="section-title">Resumen por localidad</p>
 
             <table class="breakdown">
-                <caption>Resumen por localidad</caption>
                 <thead>
                     <tr>
                         <th>Localidad</th>
@@ -55,8 +58,8 @@
             </table>
 
             @foreach ($item['payments'] as $section)
+                <p class="section-title">{{ $section['title'] }}</p>
                 <table class="breakdown">
-                    <caption>{{ $section['title'] }}</caption>
                     <thead>
                         <tr>
                             <th>Localidad</th>

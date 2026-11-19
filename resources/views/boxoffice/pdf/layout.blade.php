@@ -1,70 +1,85 @@
+@use('App\Modules\BoxOffice\Support\SpanishDate')
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <title>{{ $title }} — {{ $event->evento }}</title>
     <style>
-        @page { margin: 28px 34px 56px; }
+        @page { margin: 28px 34px 64px; }
         * { box-sizing: border-box; }
-        body { font-family: "DejaVu Sans", sans-serif; font-size: 10px; color: #16202b; margin: 0; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; margin: 0; }
+        hr { background-color: #2ba17c; height: 2px; border: 0; margin: 4px 0 10px; }
         .tabular { font-variant-numeric: tabular-nums; }
         .muted { color: #5a6672; }
         .right { text-align: right; }
         .center { text-align: center; }
-        .masthead { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-        .masthead td { vertical-align: top; padding: 0; }
-        .masthead h1 { font-size: 18px; margin: 0 0 2px; }
-        .masthead .event { font-size: 12px; font-weight: bold; margin: 0; }
-        .brand { font-size: 13px; font-weight: bold; color: #1f8f6b; }
-        .facts { width: 100%; border-collapse: collapse; margin-bottom: 14px; background: #f4f6f5; }
-        .facts td { padding: 7px 10px; vertical-align: top; }
-        .facts .label { color: #5a6672; font-size: 8.5px; display: block; }
-        .function { page-break-inside: avoid; margin-top: 16px; }
-        .function h2 { font-size: 12.5px; margin: 0 0 8px; padding-bottom: 5px; border-bottom: 2px solid #16202b; }
-        .breakdown { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        .breakdown caption { text-align: left; font-weight: bold; font-size: 10.5px; padding: 4px 0; color: #16202b; }
-        .breakdown .num { text-align: right; }
-        .breakdown th { background: #16202b; color: #fff; font-weight: bold; padding: 5px 7px; font-size: 9px; text-align: left; }
-        .breakdown td { padding: 5px 7px; border-bottom: 1px solid #dce2df; }
-        .breakdown tfoot td { font-weight: bold; border-top: 1.5px solid #16202b; border-bottom: 0; background: #f4f6f5; }
+        .masthead { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        .masthead td { vertical-align: middle; padding: 0; }
+        .masthead h1 { font-size: 20pt; font-weight: bold; color: #b6bcc0; text-transform: uppercase; margin: 0; }
+        .generated { font-size: 11pt; font-weight: bold; color: #000; text-align: right; margin: 0 0 6px; }
+        .event-title { font-size: 15pt; font-weight: bold; color: #333; text-transform: uppercase; margin: 18px 0 0; }
+        .info { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .info td { padding: 3px 4px; border: 1pt solid #333; vertical-align: top; }
+        .info .label { width: 25%; background: #333; color: #fff; font-weight: bold; text-align: right; }
+        .info .value { color: #333; text-align: left; }
+        .info .spacer { border: 0; }
+        .function { page-break-inside: avoid; }
+        .section-title { font-size: 9pt; font-weight: bold; color: #b6bcc0; margin: 14px 0 0; padding-bottom: 4px; border-bottom: 2px solid #2ba17c; }
+        .breakdown { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+        .breakdown th { background: #333; color: #fff; font-weight: bold; text-transform: uppercase; padding: 6px 4px; border: 1pt solid #333; }
+        .breakdown td { color: #333; padding: 3px 4px; border: 1pt solid #333; }
+        .breakdown th, .breakdown td, .breakdown .right { text-align: center; }
+        .breakdown tfoot td { font-weight: bold; }
+        .breakdown tfoot td:first-child { background: #333; color: #fff; text-transform: uppercase; }
         .breakdown .empty td { color: #8a949d; font-style: italic; }
         .page-break { page-break-after: always; }
-        footer { position: fixed; bottom: -40px; left: 0; right: 0; font-size: 8px; color: #8a949d; border-top: 1px solid #dce2df; padding-top: 6px; }
-        footer table { width: 100%; }
+        footer { position: fixed; bottom: -52px; left: 0; right: 0; font-size: 8pt; color: #333; border-top: 2px solid #2ba17c; padding-top: 5px; }
+        footer table { width: 100%; border-collapse: collapse; }
     </style>
 </head>
 <body>
     <footer>
         <table>
             <tr>
-                <td>Reporte generado por DeBoleto el {{ $generatedAt->format('d/m/Y H:i') }} h. Dudas o aclaraciones: contacto@deboleto.com, tel. (993) 396 3602</td>
+                <td colspan="2" class="center">Este es un reporte autogenerado por el sistema de DeBoleto, cualquier duda o aclaración respecto a los datos presentados, favor de comunicarse con nosotros.</td>
+            </tr>
+            <tr>
+                <td>contacto@deboleto.com</td>
+                <td class="right">Tels. (993) 396 3602 · {{ $generatedAt->format('d/m/Y H:i') }} h</td>
             </tr>
         </table>
     </footer>
 
     <table class="masthead">
         <tr>
-            <td>
-                <h1>{{ $title }}</h1>
-                <p class="event">{{ $event->evento }}</p>
-                <p class="muted" style="margin: 2px 0 0">{{ $period }}</p>
-            </td>
+            <td style="width: 70%"><h1>{{ $title }}</h1></td>
             <td class="right" style="width: 30%">
-                <span class="brand">DeBoleto</span><br>
-                <span class="muted">Taquilla</span>
+                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo_full.png'))) }}" alt="DeBoleto" style="height: 34px">
             </td>
         </tr>
     </table>
+    <p class="generated">Reporte generado: {{ SpanishDate::long($generatedAt) }}</p>
 
-    <table class="facts">
-        <tr>
+    @hasSection('per-function')
+        @isset($seller)
+            <table class="info">
+                <tr><td class="label">Vendedor</td><td class="value">{{ $seller->nombreCompleto() ?: $seller->correo }} ({{ $seller->correo }})</td></tr>
+                @if (! empty($period))<tr><td class="label">Periodo</td><td class="value">{{ $period }}</td></tr>@endif
+            </table>
+        @endisset
+    @else
+        <p class="event-title">{{ $event->evento }}</p>
+        <hr>
+        <table class="info">
             @isset($seller)
-                <td style="width: 34%"><span class="label">Vendedor</span>{{ $seller->nombreCompleto() ?: $seller->correo }}<br><span class="muted">{{ $seller->correo }}</span></td>
+                <tr><td class="label">Vendedor</td><td class="value">{{ $seller->nombreCompleto() ?: $seller->correo }} ({{ $seller->correo }})</td></tr>
             @endisset
-            <td style="width: 33%"><span class="label">Recinto</span>{{ $event->escenario }}<br><span class="muted">{{ $event->direccion }}</span></td>
-            <td style="width: 33%"><span class="label">Ciudad</span>{{ $event->ciudad }}, {{ $event->estado }}</td>
-        </tr>
-    </table>
+            <tr><td class="label">Estado y Ciudad</td><td class="value">{{ $event->ciudad }}, {{ $event->estado }}</td></tr>
+            <tr><td class="label">Lugar</td><td class="value">{{ $event->escenario }}</td></tr>
+            <tr><td class="label">Dirección</td><td class="value">{{ $event->direccion }}</td></tr>
+            @if (! empty($period))<tr><td class="label">Periodo</td><td class="value">{{ $period }}</td></tr>@endif
+        </table>
+    @endif
 
     @yield('content')
 </body>

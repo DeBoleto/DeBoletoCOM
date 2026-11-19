@@ -1,9 +1,11 @@
 @extends('boxoffice.pdf.layout')
 
+@section('per-function', '1')
+
 @section('content')
     @forelse ($functions as $item)
         <div class="function">
-            <h2>Función {{ $item['function']->fecha_natural }}, {{ $item['function']->hora_natural }} h</h2>
+            @include('boxoffice.pdf.partials.function-info', ['function' => $item['function']])
             @foreach ($item['sections'] as $section)
                 @include('boxoffice.pdf.partials.payment-table', ['section' => $section])
             @endforeach

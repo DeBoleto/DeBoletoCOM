@@ -1,6 +1,6 @@
 @use('App\Modules\BoxOffice\Support\Money')
+<p class="section-title">{{ $section['title'] }}</p>
 <table class="breakdown">
-    <caption>{{ $section['title'] }}</caption>
     <thead>
         <tr>
             <th style="width: 30%">Localidad</th>

@@ -1,18 +1,18 @@
 @extends('boxoffice.pdf.layout')
 @use('App\Modules\BoxOffice\Support\Money')
 
+@section('per-function', '1')
+
 @section('content')
     @forelse ($functions as $item)
         <div class="function">
-            <h2>Función {{ $item['function']->fecha_natural }}, {{ $item['function']->hora_natural }} h</h2>
-            <table class="facts">
-                <tr>
-                    <td><span class="label">Boletos vendidos</span><strong>{{ $item['sold'] }}</strong></td>
-                    <td><span class="label">Cortesías</span><strong>{{ $item['courtesies'] }}</strong></td>
-                    <td><span class="label">Reservados</span><strong>{{ $item['reserved'] }}</strong></td>
-                    <td><span class="label">Personas en el evento</span><strong>{{ $item['people'] }}</strong></td>
-                </tr>
-            </table>
+            @include('boxoffice.pdf.partials.function-info', ['function' => $item['function'], 'stats' => [
+                'Total Boletos Vendidos' => $item['sold'],
+                'Total Cortesías' => $item['courtesies'],
+                'Total Reservados' => $item['reserved'],
+                'Personas en el Evento' => $item['people'],
+            ]])
+            <p class="section-title">Desglose de Ventas</p>
             <table class="breakdown">
                 <thead>
                     <tr>
@@ -51,8 +51,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td>Totales</td>
-                        <td></td>
+                        <td colspan="2">Totales</td>
                         @if ($item['hasCapacity'])<td class="right tabular">{{ $item['totals']['capacity'] }}</td>@endif
                         <td class="right tabular">{{ $item['totals']['sold'] }}</td>
                         <td class="right tabular">{{ $item['totals']['courtesies'] }}</td>

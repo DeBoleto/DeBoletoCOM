@@ -2,8 +2,8 @@
 @use('App\Modules\BoxOffice\Support\Money')
 
 @section('content')
+    <p class="section-title">Totales por localidad</p>
     <table class="breakdown">
-        <caption>Totales por localidad</caption>
         <thead>
             <tr><th>Localidad</th><th class="right">Boletos</th><th class="right">Venta</th><th class="right">Comisión</th></tr>
         </thead>
@@ -30,8 +30,8 @@
     </table>
 
     @foreach ($sections as $section)
+        <p class="section-title">{{ $section['title'] }}</p>
         <table class="breakdown">
-            <caption>{{ $section['title'] }}</caption>
             <thead>
                 <tr><th>Folio</th><th>Hora</th><th>Localidad</th><th>Asiento</th><th class="right">Boletos</th><th class="right">Venta</th><th class="right">Comisión</th></tr>
             </thead>
