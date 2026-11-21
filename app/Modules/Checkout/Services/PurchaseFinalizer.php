@@ -27,6 +27,7 @@ class PurchaseFinalizer
     public function __construct(
         private readonly SeatHolds $holds,
         private readonly SeatUpdates $updates,
+        private readonly RaceRegistration $race,
     ) {}
 
     /**
@@ -107,6 +108,7 @@ class PurchaseFinalizer
             $markers = array_map('intval', (array) ($this->snapshot($locked)['markers'] ?? []));
             $purchaseIds = [$locked->pk_evento_compra, ...$markers];
 
+            $this->race->forget($purchaseIds);
             EventosFuncionesBoletos::query()->whereIn('pk_evento_compra', $purchaseIds)->delete();
             EventoEstacionamientoBoleto::query()->where('pk_evento_compra', $locked->pk_evento_compra)->delete();
             EventosCompras::query()->whereIn('pk_evento_compra', $markers)->delete();

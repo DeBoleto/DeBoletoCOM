@@ -31,6 +31,10 @@ class StoreSelectionRequest extends FormRequest
             'secciones.*.sillas_extra.*' => ['string', 'max:50'],
             'cantidades' => ['nullable', 'array', 'max:100'],
             'cantidades.*' => ['integer', 'min:0', 'max:50'],
+            'participantes' => ['nullable', 'array', 'max:50'],
+            'participantes.*.localidad' => ['nullable', 'integer'],
+            'participantes.*.respuestas' => ['nullable', 'array', 'max:60'],
+            'participantes.*.respuestas.*' => ['nullable', 'string', 'max:500'],
             'estacionamiento' => ['boolean'],
         ];
     }

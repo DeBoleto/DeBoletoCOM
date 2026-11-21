@@ -9,6 +9,7 @@ use App\Modules\Checkout\Http\CheckoutPresenter;
 use App\Modules\Checkout\Http\Requests\HoldSeatRequest;
 use App\Modules\Checkout\Http\Requests\StoreSelectionRequest;
 use App\Modules\Checkout\Jobs\SendConversionEvent;
+use App\Modules\Checkout\Services\RaceRegistration;
 use App\Modules\Checkout\Services\SeatHolds;
 use App\Modules\Checkout\Services\SelectionBuilder;
 use App\Modules\Checkout\Services\StageView;
@@ -39,7 +40,7 @@ class SeatsController extends Controller
         private readonly StageView $stages,
     ) {}
 
-    public function show(Request $request, SeatAvailability $availability, string $slug): Response|RedirectResponse
+    public function show(Request $request, SeatAvailability $availability, RaceRegistration $race, string $slug): Response|RedirectResponse
     {
         $event = $this->catalog->eventBySlug($slug);
         $functions = $this->catalog->openFunctions($event->pk_evento);
@@ -86,7 +87,8 @@ class SeatsController extends Controller
             'stage' => $stage,
             'localities' => $byQuantity ? $this->quantityLocalities($event, $localities, $function->pk_evento_funcion, $availability) : [],
             'parking' => $this->catalog->parkingOffer($eventRow),
-            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->stages->previousSelection($cart, $stage) : null,
+            'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->previousSelection($cart, $stage) : null,
+            'race' => $event->isRace() ? ['questions' => $race->questionnaire($event->pk_evento)] : null,
         ]);
     }
 
@@ -254,6 +256,22 @@ class SeatsController extends Controller
             'promotion' => $this->catalog->promotion($event, $locality),
             'rules' => $this->catalog->rules($locality),
         ])->values()->all();
+    }
+
+    /**
+     * Selección guardada para volver a mostrarla, con los participantes de
+     * una carrera tal como los envía el formulario.
+     */
+    private function previousSelection(WebCart $cart, ?array $stage): array
+    {
+        return $this->stages->previousSelection($cart, $stage) + [
+            'participants' => array_map(fn (array $participant) => [
+                'localidad' => $participant['locality_id'],
+                'respuestas' => (object) collect($participant['answers'])
+                    ->mapWithKeys(fn (array $answer) => [$answer['question_id'] => (string) ($answer['option_id'] ?? $answer['value'])])
+                    ->all(),
+            ], $cart->participants),
+        ];
     }
 
     private function releaseOtherHolds(WebCart $cart, string $owner): void

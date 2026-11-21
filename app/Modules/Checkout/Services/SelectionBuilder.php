@@ -20,8 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Convierte lo elegido en el mapa (o las cantidades por localidad) en un
- * carrito con precios calculados en el servidor y asientos apartados.
+ * Convierte lo elegido en el mapa (o las cantidades por localidad, o los
+ * participantes de una carrera) en un carrito con precios calculados en el
+ * servidor y asientos apartados.
  */
 class SelectionBuilder
 {
@@ -33,6 +34,7 @@ class SelectionBuilder
         private readonly SeatHolds $holds,
         private readonly SectionsStateBuilder $sections,
         private readonly SeatGapRule $gaps,
+        private readonly RaceRegistration $race,
     ) {}
 
     /**
@@ -44,13 +46,24 @@ class SelectionBuilder
     {
         $this->ensureCanPurchase($event, $customer);
 
+        $participants = [];
+
+        if ($event->isRace()) {
+            $participants = $this->race->validate(
+                $event->pk_evento,
+                (array) ($input['participantes'] ?? []),
+                $this->catalog->openLocalities($event->pk_evento)->pluck('pk_evento_localidad')->all(),
+            );
+            $input['cantidades'] = $this->race->quantities($participants);
+        }
+
         $selection = $event->sellsWithoutSeatMap()
             ? $this->fromQuantities($event, $functionId, (array) ($input['cantidades'] ?? []))
             : $this->fromSeatMap($event, $functionId, $input, $owner);
 
         $parking = (bool) ($input['estacionamiento'] ?? false) && $this->catalog->parkingOffer($row) !== null;
 
-        return new WebCart($selection, $parking, now()->addMinutes((int) config('checkout.hold_minutes'))->timestamp);
+        return new WebCart($selection, $parking, now()->addMinutes((int) config('checkout.hold_minutes'))->timestamp, $participants);
     }
 
     /**

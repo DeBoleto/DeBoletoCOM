@@ -38,6 +38,7 @@ class PendingPurchaseWriter
         private readonly SelectionBuilder $selections,
         private readonly QuoteCalculator $quotes,
         private readonly SeatUpdates $updates,
+        private readonly RaceRegistration $race,
     ) {}
 
     /**
@@ -80,9 +81,13 @@ class PendingPurchaseWriter
             ['lines' => $lines, 'markers' => $markers] = $this->issuer->expandTables($state, $event, $customer, $salesPeriodId);
             $lines = $this->applyCouponToPrices($lines, $quote);
 
+            $tickets = [];
+
             foreach ($lines as $line) {
-                $this->issuer->issue($purchase, $state, $line, $salesPeriodId, $customer);
+                $tickets[] = $this->issuer->issue($purchase, $state, $line, $salesPeriodId, $customer);
             }
+
+            $this->race->register($purchase->pk_evento_compra, $cart->participants, $tickets);
 
             if ($quote->parking !== null) {
                 EventoEstacionamientoBoleto::query()->create([

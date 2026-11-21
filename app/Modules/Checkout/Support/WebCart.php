@@ -7,7 +7,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * Selección de la compra web lista para pagar: boletos con precio, producto
- * adicional (estacionamiento) y hasta cuándo se respetan los asientos.
+ * adicional (estacionamiento), hasta cuándo se respetan los asientos y, en
+ * las carreras, los participantes registrados (ver RaceRegistration).
  */
 final class WebCart
 {
@@ -15,6 +16,7 @@ final class WebCart
         public readonly CheckoutState $selection,
         public readonly bool $parking,
         public readonly int $heldUntil,
+        public readonly array $participants = [],
     ) {}
 
     public function eventId(): int
@@ -59,6 +61,7 @@ final class WebCart
             'selection' => $this->selection->toArray(),
             'parking' => $this->parking,
             'held_until' => $this->heldUntil,
+            'participants' => $this->participants,
         ];
     }
 
@@ -68,6 +71,7 @@ final class WebCart
             CheckoutState::fromArray($data['selection']),
             (bool) ($data['parking'] ?? false),
             (int) $data['held_until'],
+            (array) ($data['participants'] ?? []),
         );
     }
 }

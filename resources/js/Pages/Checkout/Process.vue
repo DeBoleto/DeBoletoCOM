@@ -177,6 +177,27 @@
                         </ul>
                     </section>
 
+                    <section v-else-if="race" class="list-panel" aria-labelledby="participants-title">
+                        <div class="list-head">
+                            <h2 id="participants-title">Registra a los participantes</h2>
+                            <button v-if="functions.length > 1" type="button" class="change-date" @click="changeDate">
+                                <span>{{ selectedFunction.date }} · {{ selectedFunction.time }}</span>
+                                <span class="change-date-link">Cambiar</span>
+                            </button>
+                        </div>
+                        <p class="list-intro">Llena los datos de cada participante y elige su zona. Cada participante es un boleto.</p>
+                        <RaceParticipants
+                            :participants="participants"
+                            :questions="race.questions"
+                            :localities="localities"
+                            :errors="fieldErrors"
+                            :max-tickets="limits.maxTickets"
+                            :palette="palette"
+                            @add="addParticipant"
+                            @remove="removeParticipant"
+                        />
+                    </section>
+
                     <section v-else class="list-panel" aria-labelledby="localities-title">
                         <div class="list-head">
                             <h2 id="localities-title">Elige tus boletos</h2>
@@ -224,7 +245,7 @@
                             :parking="parking"
                             :parking-selected="wantsParking"
                             :submitting="submitting"
-                            :empty-hint="mode === 'map' ? 'Toca una zona del mapa para elegir tus lugares. Puedes combinar varias zonas.' : 'Elige cuántos boletos quieres de cada zona.'"
+                            :empty-hint="emptyHint"
                             @remove="removeTicket"
                             @special="setSpecial"
                             @extra="setExtraChair"
@@ -329,6 +350,7 @@ import ZoomControls from "@/components/checkout/ZoomControls.vue";
 import FunctionPicker from "@/components/checkout/process/FunctionPicker.vue";
 import ZoneRail from "@/components/checkout/process/ZoneRail.vue";
 import CartPanel from "@/components/checkout/process/CartPanel.vue";
+import RaceParticipants from "@/components/checkout/process/RaceParticipants.vue";
 import { getJson, money, postJson } from "@/components/checkout/api.js";
 import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
 
@@ -342,6 +364,7 @@ const props = defineProps({
     limits: { type: Object, required: true },
     parking: { type: Object, default: null },
     cart: { type: Object, default: null },
+    race: { type: Object, default: null },
 });
 
 const POLL_MS = realtimeEnabled ? 60000 : 15000;
@@ -360,6 +383,9 @@ const seatZoom = ref(1);
 const picks = reactive({});
 const infos = reactive({});
 const quantities = reactive({});
+const participants = ref([]);
+const fieldErrors = ref({});
+let participantKey = 0;
 const loadError = ref("");
 const wantsParking = ref(Boolean(props.cart?.parking));
 const submitting = ref(false);
@@ -450,6 +476,20 @@ const totalTickets = computed(() => {
 });
 
 const groups = computed(() => (props.mode === "quantities" ? quantityGroups() : mapGroups()));
+const emptyHint = computed(() => {
+    if (props.mode === "map") return "Toca una zona del mapa para elegir tus lugares. Puedes combinar varias zonas.";
+    if (props.race) return "Elige la zona de cada participante.";
+    return "Elige cuántos boletos quieres de cada zona.";
+});
+
+watch(
+    () => participants.value.map((participant) => participant.localidad),
+    (zones) => {
+        if (!props.race) return;
+        Object.keys(quantities).forEach((key) => delete quantities[key]);
+        for (const zone of zones) if (zone) quantities[zone] = (quantities[zone] ?? 0) + 1;
+    },
+);
 const estimate = computed(() => groups.value.reduce((sum, group) => sum + group.tickets.reduce((acc, ticket) => acc + ticket.price + (ticket.extraChair ? group.extraChairPrice : 0), 0), 0));
 
 watch(totalTickets, (count) => {
@@ -561,7 +601,7 @@ function quantityGroups() {
                 id: `${locality.id}-${ticket}`,
                 seat: null,
                 index: ticket,
-                label: `Boleto ${ticket + 1}`,
+                label: props.race ? participantLabel(locality.id, ticket) : `Boleto ${ticket + 1}`,
                 sub: "",
                 specialsAllowed: false,
                 price: locality.price,
@@ -569,6 +609,59 @@ function quantityGroups() {
                 extraChair: false,
             })),
         }));
+}
+
+function blankParticipant(localidad = null) {
+    return { key: ++participantKey, localidad, respuestas: Object.fromEntries((props.race?.questions ?? []).map((question) => [question.id, ""])) };
+}
+
+function participantsIn(localityId) {
+    return participants.value.map((participant, index) => ({ participant, index })).filter(({ participant }) => participant.localidad === localityId);
+}
+
+function participantLabel(localityId, position) {
+    const entry = participantsIn(localityId)[position];
+    if (!entry) return `Participante ${position + 1}`;
+    const nameQuestion = props.race.questions.find((question) => question.field === "nombre");
+    return (nameQuestion && entry.participant.respuestas[nameQuestion.id]) || `Participante ${entry.index + 1}`;
+}
+
+async function addParticipant() {
+    if (participants.value.length >= props.limits.maxTickets) return;
+    const open = props.localities.filter((locality) => locality.remaining > 0);
+    participants.value.push(blankParticipant(open.length === 1 ? open[0].id : null));
+    await nextTick();
+    document.getElementById(`participante-${participants.value.length - 1}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function removeParticipant(index) {
+    participants.value.splice(index, 1);
+    if (participants.value.length === 0) participants.value.push(blankParticipant());
+    fieldErrors.value = {};
+}
+
+function missingAnswers() {
+    const errors = {};
+
+    participants.value.forEach((participant, index) => {
+        if (!participant.localidad) errors[`participantes.${index}.localidad`] = "Elige la zona de este participante.";
+        for (const question of props.race.questions) {
+            if (question.required && !String(participant.respuestas[question.id] ?? "").trim()) {
+                errors[`participantes.${index}.respuestas.${question.id}`] = "Este dato es obligatorio.";
+            }
+        }
+    });
+
+    return errors;
+}
+
+async function showFieldErrors(errors) {
+    fieldErrors.value = errors;
+    const first = Object.keys(errors).find((key) => key.startsWith("participantes."));
+    if (!first) return;
+    sheetOpen.value = false;
+    await nextTick();
+    document.getElementById(`participante-${first.split(".")[1]}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function notify(text, tone = "error") {
@@ -723,6 +816,12 @@ function hold(key, seat, action) {
 }
 
 function removeTicket(group, ticket) {
+    if (props.race) {
+        const entry = participantsIn(Number(group.key))[ticket.index];
+        if (entry) removeParticipant(entry.index);
+        return;
+    }
+
     if (props.mode === "quantities") {
         quantities[group.key] = Math.max(0, (quantities[group.key] ?? 0) - 1);
         return;
@@ -753,9 +852,24 @@ function clearAll() {
         picks[key] = { seats: [], quantity: 0, specials: {}, extraChairs: [] };
     }
     Object.keys(quantities).forEach((key) => delete quantities[key]);
+    if (props.race) {
+        participants.value = [blankParticipant()];
+        fieldErrors.value = {};
+    }
 }
 
 function payload() {
+    if (props.race) {
+        return {
+            funcion: props.function.id,
+            estacionamiento: wantsParking.value,
+            participantes: participants.value.map((participant) => ({
+                localidad: participant.localidad,
+                respuestas: Object.fromEntries(Object.entries(participant.respuestas).map(([id, value]) => [id, value === null || value === undefined ? "" : String(value)])),
+            })),
+        };
+    }
+
     if (props.mode === "quantities") {
         return { funcion: props.function.id, cantidades: { ...quantities }, estacionamiento: wantsParking.value };
     }
@@ -785,6 +899,16 @@ function payload() {
 function submit() {
     if (totalTickets.value === 0 || submitting.value) return;
 
+    if (props.race) {
+        const missing = missingAnswers();
+        if (Object.keys(missing).length > 0) {
+            showFieldErrors(missing);
+            notify("Completa los datos de todos los participantes.");
+            return;
+        }
+        fieldErrors.value = {};
+    }
+
     for (const group of groups.value) {
         const promotion = infos[group.key]?.promotion;
         if (promotion && group.tickets.length <= promotion.count) {
@@ -804,7 +928,10 @@ function submit() {
                 auth.value?.open("phone");
             }
         },
-        onError: (errors) => notify(Object.values(errors)[0] ?? "Revisa tu selección."),
+        onError: (errors) => {
+            if (props.race) showFieldErrors(errors);
+            notify(Object.values(errors)[0] ?? "Revisa tu selección.");
+        },
         onFinish: () => {
             submitting.value = false;
         },
@@ -846,6 +973,14 @@ function onKey(event) {
 
 onMounted(async () => {
     window.addEventListener("keydown", onKey);
+
+    if (props.race) {
+        const saved = props.cart?.participants ?? [];
+        participants.value = saved.length
+            ? saved.map((participant) => ({ ...blankParticipant(participant.localidad), respuestas: { ...blankParticipant().respuestas, ...participant.respuestas } }))
+            : [blankParticipant(props.localities.filter((locality) => locality.remaining > 0).length === 1 ? props.localities.find((locality) => locality.remaining > 0).id : null)];
+        return;
+    }
 
     if (props.mode === "quantities") {
         Object.assign(quantities, props.cart?.quantities ?? {});
@@ -1327,6 +1462,12 @@ button.crumb:hover {
 .list-head .change-date {
     width: auto;
     margin: 0;
+}
+
+.list-intro {
+    margin: -4px 0 14px;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
 }
 
 .locality-list {
