@@ -4,6 +4,7 @@ namespace App\Modules\Events\Models;
 
 use Auth;
 use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class EventosCategorias extends Model
@@ -15,6 +16,19 @@ class EventosCategorias extends Model
     protected $primaryKey = 'pk_evento_categoria';
 
     protected $fillable = ['evento_categoria', 'creacion_pk_usuario', 'creacion_fecha', 'modificacion_pk_usuario', 'modificacion_fecha', 'eliminado'];
+
+    /**
+     * Categorías de carreras: las marca organizador con `carrera` = 1.
+     */
+    public function scopeCarreras(Builder $query): Builder
+    {
+        return $query->where('carrera', 1);
+    }
+
+    public static function isRace(?int $categoryId): bool
+    {
+        return $categoryId !== null && static::query()->whereKey($categoryId)->carreras()->exists();
+    }
 
     /* RELATIONSHIP - INICIO */
     public function eventos()

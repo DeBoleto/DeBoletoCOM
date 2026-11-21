@@ -37,9 +37,9 @@ class Eventos extends LegacyModel
 
     public const TYPE_EVENT = 1;
 
-    public const CATEGORY_RACE = 2;
-
     protected $table = 'eventos';
+
+    private ?bool $isRace = null;
 
     protected $primaryKey = 'pk_evento';
 
@@ -115,8 +115,18 @@ class Eventos extends LegacyModel
         return $query->whereIn('pk_evento_status', [self::STATUS_DRAFT, self::STATUS_PUBLISHED]);
     }
 
+    public function scopeCarreras(Builder $query): Builder
+    {
+        return $query->whereIn('pk_evento_categoria', EventosCategorias::query()->carreras()->select('pk_evento_categoria'));
+    }
+
+    public function isRace(): bool
+    {
+        return $this->isRace ??= EventosCategorias::isRace($this->pk_evento_categoria);
+    }
+
     public function sellsWithoutSeatMap(): bool
     {
-        return $this->pk_evento_categoria === self::CATEGORY_RACE || $this->sin_estructura;
+        return $this->sin_estructura || $this->isRace();
     }
 }

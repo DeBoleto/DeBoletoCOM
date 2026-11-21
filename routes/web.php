@@ -261,7 +261,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
     // vive en MySQL; si la consulta falla, el detalle se muestra sin él.
     $race = rescue(fn () => Eventos::query()
         ->where('pk_evento', $currentEventId)
-        ->where('pk_evento_categoria', Eventos::CATEGORY_RACE)
+        ->carreras()
         ->with('kit.kitsElementos')
         ->first(), null, false);
 

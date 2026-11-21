@@ -9,6 +9,7 @@ use App\Modules\BoxOffice\Queries\EventReportQuery;
 use App\Modules\BoxOffice\Services\Reports\EventReportBuilder;
 use App\Modules\BoxOffice\Support\SpanishDate;
 use App\Modules\Events\Models\Eventos;
+use App\Modules\Events\Models\EventosCategorias;
 use App\Modules\Events\Models\Views\EventoFuncionVista;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Events\Models\Views\UsuarioEventoVista;
@@ -150,7 +151,7 @@ class ReportsController extends Controller
     public function participants(Request $request): Response
     {
         return Inertia::render('BoxOffice/Reports/Participants', [
-            'events' => $this->eventOptions($request, fn ($query) => $query->where('pk_evento_categoria', Eventos::CATEGORY_RACE)),
+            'events' => $this->eventOptions($request, fn ($query) => $query->whereIn('pk_evento_categoria', EventosCategorias::query()->carreras()->select('pk_evento_categoria'))),
             'today' => now(config('boxoffice.timezone'))->toDateString(),
         ]);
     }

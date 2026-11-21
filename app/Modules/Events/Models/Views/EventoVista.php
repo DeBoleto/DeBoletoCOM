@@ -2,7 +2,7 @@
 
 namespace App\Modules\Events\Models\Views;
 
-use App\Modules\Events\Models\Eventos;
+use App\Modules\Events\Models\EventosCategorias;
 use App\Modules\Shared\Models\ReadOnlyViewModel;
 
 /**
@@ -35,6 +35,8 @@ class EventoVista extends ReadOnlyViewModel
 {
     protected $table = 'view_eventos';
 
+    private ?bool $isRace = null;
+
     protected $primaryKey = 'pk_evento';
 
     protected $hidden = ['escenario_xml'];
@@ -57,12 +59,12 @@ class EventoVista extends ReadOnlyViewModel
 
     public function sellsWithoutSeatMap(): bool
     {
-        return $this->isRace() || $this->sin_estructura;
+        return $this->sin_estructura || $this->isRace();
     }
 
     public function isRace(): bool
     {
-        return $this->pk_evento_categoria === Eventos::CATEGORY_RACE;
+        return $this->isRace ??= EventosCategorias::isRace($this->pk_evento_categoria);
     }
 
     public function direccionVisible(): string
