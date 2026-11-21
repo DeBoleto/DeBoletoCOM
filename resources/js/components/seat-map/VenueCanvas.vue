@@ -68,7 +68,6 @@ let entrance = null;
 let fitScale = 1;
 let lastTap = { id: null, at: 0 };
 let pinch = null;
-let pendingZone = null;
 let lastMapTap = { at: 0, x: 0, y: 0 };
 const nodes = new Map();
 
@@ -339,15 +338,12 @@ function zoomOut() {
     zoomAt(stage.scaleX() / ZOOM_STEP, center());
 }
 
-// En el mapa completo un toque abre la zona y dos toques seguidos acercan el
-// mapa donde se tocó: se espera a ver si llega el segundo toque antes de abrirla.
-function mapTap(key) {
+// En el mapa completo un toque no hace nada: dos toques seguidos acercan el
+// mapa centrado donde se tocó.
+function mapTap() {
     const pointer = stage.getPointerPosition();
     const now = Date.now();
     const second = pointer && now - lastMapTap.at < DOUBLE_TAP_MS && Math.hypot(pointer.x - lastMapTap.x, pointer.y - lastMapTap.y) < 40;
-
-    window.clearTimeout(pendingZone);
-    pendingZone = null;
 
     if (second) {
         lastMapTap = { at: 0, x: 0, y: 0 };
@@ -356,26 +352,19 @@ function mapTap(key) {
     }
 
     lastMapTap = { at: now, x: pointer?.x ?? 0, y: pointer?.y ?? 0 };
-
-    if (key !== null && props.zones[key]?.available) {
-        pendingZone = window.setTimeout(() => {
-            pendingZone = null;
-            emit("zone", key);
-        }, DOUBLE_TAP_MS);
-    }
 }
 
 function onStageTap(event) {
     if (seatMode() || pinch) return;
     if (event.target !== stage && event.target.name() === "seat") return;
-    mapTap(null);
+    mapTap();
 }
 
 function onSeat(event, seat) {
     event.cancelBubble = true;
 
     if (!seatMode()) {
-        mapTap(seat.key);
+        mapTap();
         return;
     }
 
@@ -395,8 +384,8 @@ function enter(event, stale, circle) {
     const seat = latest(stale);
     const picking = seatMode();
     const available = props.zones[seat.key]?.available;
-    const clickable = picking ? !props.readonly && available && seat.status === "disponible" : available;
-    stage.container().style.cursor = clickable ? "pointer" : "default";
+    const clickable = picking && !props.readonly && available && seat.status === "disponible";
+    stage.container().style.cursor = clickable ? "pointer" : picking ? "default" : "zoom-in";
 
     if (picking && clickable && !reduceMotion) {
         circle.to({ scaleX: 1.35, scaleY: 1.35, duration: 0.15 });
@@ -545,7 +534,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    window.clearTimeout(pendingZone);
     observer?.disconnect();
     entrance?.stop();
     stage?.destroy();

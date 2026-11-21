@@ -59,7 +59,7 @@ import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/ve
 
 /**
  * Mapa completo del recinto para taquilla y administración: todas las zonas
- * en un lienzo, tocar una zona la acerca y, salvo en solo lectura, a partir
+ * en un lienzo, un doble toque acerca el mapa en ese punto y, salvo en solo lectura, a partir
  * de x3 los asientos se eligen directo en el mapa completo.
  */
 const props = defineProps({
@@ -102,7 +102,7 @@ const zones = computed(() =>
 );
 
 const hint = computed(() => {
-    if (props.readonly) return "Toca una zona para verla · doble toque para acercar";
-    return direct.value ? "Selección de asientos activa · aleja para ver zonas" : "Toca una zona o dale doble toque para elegir asientos";
+    if (props.readonly) return "Doble toque para acercar";
+    return direct.value ? "Selección de asientos activa · aleja para ver zonas" : "Doble toque para acercar y elegir asientos";
 });
 </script>

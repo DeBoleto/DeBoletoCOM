@@ -63,7 +63,7 @@
                                 <strong>{{ money(activeInfo?.price ?? sectionPrice(activeSection)) }}</strong> por boleto
                             </p>
                             <p v-else class="map-hint" :class="{ 'is-direct': directPick }">
-                                {{ directPick ? "Toca un asiento para elegirlo" : "Toca una zona o tócala dos veces para acercar y elegir asientos" }}
+                                {{ directPick ? "Toca un asiento para elegirlo" : "Toca dos veces el mapa para acercar y elegir asientos" }}
                             </p>
                         </div>
 
@@ -394,7 +394,7 @@ const tooltip = computed(() => {
         return {
             title: section.name,
             color: zoneColor(section),
-            detail: section.available ? `${money(sectionPrice(section))} · Toca para ver asientos` : "No disponible",
+            detail: section.available ? `${money(sectionPrice(section))} · Doble clic para acercar` : "No disponible",
         };
     }
 
