@@ -185,7 +185,7 @@
                                 <span class="change-date-link">Cambiar</span>
                             </button>
                         </div>
-                        <p class="list-intro">Llena los datos de cada participante y elige su zona. Cada participante es un boleto.</p>
+                        <p class="list-intro">Llena los datos de cada participante y elige su categoría. Cada participante es un boleto.</p>
                         <RaceParticipants
                             :participants="participants"
                             :questions="race.questions"
@@ -478,7 +478,7 @@ const totalTickets = computed(() => {
 const groups = computed(() => (props.mode === "quantities" ? quantityGroups() : mapGroups()));
 const emptyHint = computed(() => {
     if (props.mode === "map") return "Toca una zona del mapa para elegir tus lugares. Puedes combinar varias zonas.";
-    if (props.race) return "Elige la zona de cada participante.";
+    if (props.race) return "Elige la categoría de cada participante.";
     return "Elige cuántos boletos quieres de cada zona.";
 });
 
@@ -644,7 +644,7 @@ function missingAnswers() {
     const errors = {};
 
     participants.value.forEach((participant, index) => {
-        if (!participant.localidad) errors[`participantes.${index}.localidad`] = "Elige la zona de este participante.";
+        if (!participant.localidad) errors[`participantes.${index}.localidad`] = "Elige la categoría de este participante.";
         for (const question of props.race.questions) {
             if (question.required && !String(participant.respuestas[question.id] ?? "").trim()) {
                 errors[`participantes.${index}.respuestas.${question.id}`] = "Este dato es obligatorio.";

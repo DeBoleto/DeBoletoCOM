@@ -86,7 +86,7 @@ class RaceRegistration
             $answers = [];
 
             if (! in_array($localityId, $localityIds, true)) {
-                $errors["participantes.{$index}.localidad"] = "Elige la zona del participante {$number}.";
+                $errors["participantes.{$index}.localidad"] = "Elige la categoría del participante {$number}.";
             }
 
             foreach ($questions as $question) {
