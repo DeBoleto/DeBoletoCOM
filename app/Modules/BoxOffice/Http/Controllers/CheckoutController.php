@@ -7,6 +7,7 @@ use App\Modules\BoxOffice\Exceptions\SeatsUnavailableException;
 use App\Modules\BoxOffice\Http\Requests\ConfirmPurchaseRequest;
 use App\Modules\BoxOffice\Http\Requests\SelectTicketsRequest;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
+use App\Modules\BoxOffice\Services\CashRegister\CashRegister;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
@@ -28,6 +29,7 @@ use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Users\Models\Usuarios;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -151,7 +153,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function confirm(ConfirmPurchaseRequest $request, PurchaseService $purchases, ConfirmationGuard $guard, int $evento): RedirectResponse
+    public function confirm(ConfirmPurchaseRequest $request, PurchaseService $purchases, ConfirmationGuard $guard, CashRegister $registers, int $evento): RedirectResponse
     {
         $event = $this->sellableEvent($evento);
         $state = $this->store->get($evento);
@@ -164,10 +166,21 @@ class CheckoutController extends Controller
             return redirect()->route('boxoffice.tickets.checkout.complete', $evento);
         }
 
+        $register = $registers->current($request->user());
+
+        if ($register === null) {
+            return redirect()->route('boxoffice.cash.open')->with('error', 'Abre tu caja para vender boletos.');
+        }
+
         try {
             $purchaseId = $guard->once(
                 "{$request->user()->pk_usuario}:sale:{$evento}:{$request->validated('token')}",
-                fn () => $purchases->purchase($state, $event, $request->user())->pk_evento_compra,
+                fn () => DB::transaction(function () use ($purchases, $registers, $register, $state, $event, $request) {
+                    $purchase = $purchases->purchase($state, $event, $request->user());
+                    $registers->attach($register, $purchase);
+
+                    return $purchase->pk_evento_compra;
+                }),
             );
         } catch (SeatsUnavailableException $exception) {
             return redirect()

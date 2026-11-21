@@ -28,6 +28,8 @@ return [
         'reports_admin' => 50,
         'whatsapp_report' => 64,
         'events_create' => 33,
+        // Además de administradores y promotores, quien tenga este privilegio puede autorizar cierres de caja.
+        'cash_close_authorize' => env('BOXOFFICE_CASH_CLOSE_PRIVILEGE'),
     ],
 
     // Si es true, cada sección (primer segmento después de /boxoffice) exige

@@ -3,6 +3,7 @@
 use App\Modules\BoxOffice\Http\Controllers\AccessCountController;
 use App\Modules\BoxOffice\Http\Controllers\AuthController;
 use App\Modules\BoxOffice\Http\Controllers\CapacityController;
+use App\Modules\BoxOffice\Http\Controllers\CashRegisterController;
 use App\Modules\BoxOffice\Http\Controllers\CheckoutController;
 use App\Modules\BoxOffice\Http\Controllers\CourtesyCheckoutController;
 use App\Modules\BoxOffice\Http\Controllers\CourtesyController;
@@ -15,6 +16,7 @@ use App\Modules\BoxOffice\Http\Controllers\StageInfoController;
 use App\Modules\BoxOffice\Http\Controllers\StageVenueController;
 use App\Modules\BoxOffice\Http\Controllers\TicketChangeController;
 use App\Modules\BoxOffice\Http\Controllers\TicketEventsController;
+use App\Modules\BoxOffice\Http\Middleware\EnsureCashRegisterOpen;
 use App\Modules\BoxOffice\Http\Middleware\EnsureMenuPrivilege;
 use App\Modules\BoxOffice\Http\Middleware\ShareBoxOfficeData;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
@@ -42,10 +44,11 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                 ->prefix('tickets')
                 ->name('tickets.')
                 ->group(function () {
-                    Route::get('/', TicketEventsController::class)->name('index');
+                    Route::get('/', TicketEventsController::class)->middleware(EnsureCashRegisterOpen::class)->name('index');
 
                     Route::prefix('checkout/{evento}')
                         ->whereNumber('evento')
+                        ->middleware(EnsureCashRegisterOpen::class)
                         ->name('checkout.')
                         ->controller(CheckoutController::class)
                         ->group(function () {
@@ -71,6 +74,18 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                             Route::post('whatsapp', 'whatsapp')->middleware('throttle:10,1')->name('whatsapp');
                             Route::post('cliente', 'customer')->middleware('throttle:20,1')->name('customer');
                         });
+                });
+
+            Route::middleware(EnsureMenuPrivilege::class.':tickets,boletos-venta')
+                ->prefix('caja')
+                ->name('cash.')
+                ->controller(CashRegisterController::class)
+                ->group(function () {
+                    Route::get('/', 'show')->name('show');
+                    Route::get('abrir', 'create')->name('open');
+                    Route::post('abrir', 'store')->name('store');
+                    Route::post('cerrar', 'close')->middleware('throttle:10,1')->name('close');
+                    Route::get('cortes/{apertura}', 'closed')->whereNumber('apertura')->name('closed');
                 });
 
             Route::middleware(EnsureMenuPrivilege::class.':boletos-venta,tickets')->group(function () {

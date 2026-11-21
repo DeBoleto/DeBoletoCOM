@@ -1,5 +1,21 @@
 <template>
     <BackOfficeLayout :title="title">
+        <template v-if="cashRegister" #actions>
+            <Link
+                :href="route('boxoffice.cash.show')"
+                class="inline-flex items-center gap-2 rounded-lg border border-bo-line bg-bo-card px-3 py-2 text-sm font-semibold hover:border-bo-slate"
+            >
+                <BoIcon name="cash" :size="16" />
+                <span class="hidden sm:inline">Cerrar caja</span>
+                <span class="sm:hidden">Caja</span>
+            </Link>
+        </template>
+
+        <p v-if="cashRegister" class="mb-4 inline-flex items-center gap-2 rounded-full bg-bo-green-soft px-3 py-1 text-xs font-semibold text-bo-green-dark">
+            <BoIcon name="lock" :size="14" />
+            Caja{{ cashRegister.name ? ` ${cashRegister.name}` : "" }} abierta desde {{ cashRegister.openedAt }}
+        </p>
+
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <p class="text-sm text-bo-slate">
                 <span class="tabular font-semibold text-bo-ink">{{ filtered.length }}</span>
@@ -75,6 +91,7 @@ const props = defineProps({
     title: { type: String, default: "Vender boletos" },
     actionLabel: { type: String, default: "Vender boletos" },
     actionRoute: { type: String, default: "boxoffice.tickets.checkout.start" },
+    cashRegister: { type: Object, default: null },
 });
 
 const search = ref("");
