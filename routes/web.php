@@ -257,13 +257,14 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             ->all();
     }
 
-    // Carreras: el kit que se entrega (elementos, fecha y lugar de entrega)
-    // vive en MySQL; si la consulta falla, el detalle se muestra sin él.
+    // Carreras (categoría con carrera = 1): el kit que se entrega (elementos,
+    // fecha y lugar de entrega) vive en MySQL; si la consulta falla se
+    // registra y el detalle se muestra sin él.
     $race = rescue(fn () => Eventos::query()
         ->where('pk_evento', $currentEventId)
         ->carreras()
         ->with('kit.kitsElementos')
-        ->first(), null, false);
+        ->first());
 
     $kit = $race?->kit ? [
         'items' => $race->kit->kitsElementos

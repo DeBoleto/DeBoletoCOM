@@ -156,7 +156,7 @@
                                         <dd>
                                             {{ formatDate(kit.deliveryDate) }}
                                             <template
-                                                v-if="formatTime(kit.deliveryDate)"
+                                                v-if="hasTime(kit.deliveryDate)"
                                             >
                                                 ·
                                                 {{ formatTime(kit.deliveryDate) }}
@@ -743,6 +743,11 @@ function formatTime(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} hrs`;
+}
+
+function hasTime(iso) {
+    const d = new Date(iso);
+    return !isNaN(d.getTime()) && (d.getHours() !== 0 || d.getMinutes() !== 0);
 }
 
 function getDay(iso) {
