@@ -8,6 +8,7 @@ use App\Modules\BoxOffice\Http\Requests\ConfirmPurchaseRequest;
 use App\Modules\BoxOffice\Http\Requests\SelectTicketsRequest;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
 use App\Modules\BoxOffice\Services\CashRegister\CashRegister;
+use App\Modules\BoxOffice\Services\Checkout\BoxOfficeSeatHolds;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
@@ -19,7 +20,6 @@ use App\Modules\BoxOffice\Services\Checkout\SectionsStateBuilder;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\BoxOffice\Services\Checkout\TicketPricing;
 use App\Modules\BoxOffice\Support\EventImage;
-use App\Modules\Events\Models\EventoReservaBoleto;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Models\EventosLocalidadesEspeciales;
@@ -45,13 +45,14 @@ class CheckoutController extends Controller
         private readonly SaleCatalog $catalog,
         private readonly CheckoutStore $store,
         private readonly SectionsStateBuilder $sections,
+        private readonly BoxOfficeSeatHolds $holds,
     ) {}
 
     public function start(int $evento): RedirectResponse
     {
         $this->sellableEvent($evento);
         $this->store->forget($evento);
-        EventoReservaBoleto::releaseFor($this->store->owner());
+        $this->holds->releaseAll();
 
         return redirect()->route('boxoffice.tickets.checkout.selection', $evento);
     }
@@ -102,7 +103,9 @@ class CheckoutController extends Controller
             throw ValidationException::withMessages(['funcion' => 'La función no pertenece a este evento.']);
         }
 
-        EventoReservaBoleto::releaseFor($this->store->owner());
+        if ($request->sellsByQuantity()) {
+            $this->holds->releaseAll();
+        }
 
         $state = $request->sellsByQuantity()
             ? $this->quantitiesState($request, $pricing, $event, $functionId)
@@ -219,7 +222,7 @@ class CheckoutController extends Controller
     {
         $this->sellableEvent($evento);
         $this->store->forget($evento);
-        EventoReservaBoleto::releaseFor($this->store->owner());
+        $this->holds->releaseAll();
 
         return $request->boolean('otra_venta')
             ? redirect()->route('boxoffice.tickets.checkout.start', $evento)
@@ -229,7 +232,7 @@ class CheckoutController extends Controller
     public function cancel(int $evento): RedirectResponse
     {
         $this->store->forget($evento);
-        EventoReservaBoleto::releaseFor($this->store->owner());
+        $this->holds->releaseAll();
 
         return redirect()->route('boxoffice.tickets.index');
     }
@@ -249,6 +252,8 @@ class CheckoutController extends Controller
         foreach ($resolved as $section) {
             $gaps->ensure($event->pk_evento, $functionId, $section);
         }
+
+        $this->holds->claim($event->pk_evento, $functionId, $resolved);
 
         $priced = array_map(fn (array $section) => [
             'locality' => $section['locality'],

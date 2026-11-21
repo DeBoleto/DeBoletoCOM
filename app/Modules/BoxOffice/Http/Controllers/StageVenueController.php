@@ -4,6 +4,7 @@ namespace App\Modules\BoxOffice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
+use App\Modules\BoxOffice\Services\Checkout\BoxOfficeSeatHolds;
 use App\Modules\BoxOffice\Services\Checkout\SaleCatalog;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Gate;
  */
 class StageVenueController extends Controller
 {
-    public function __invoke(Request $request, SaleCatalog $catalog, SeatAvailability $availability, int $evento): JsonResponse
+    public function __invoke(Request $request, SaleCatalog $catalog, SeatAvailability $availability, BoxOfficeSeatHolds $holds, int $evento): JsonResponse
     {
         Gate::authorize(BoxOfficeAbilities::EVENT, $evento);
 
@@ -49,8 +50,17 @@ class StageVenueController extends Controller
                 continue;
             }
 
-            $known = $statusesByLocality[$locality->pk_evento_localidad]
-                ??= $catalog->seatStatuses($evento, $functionId, $locality->pk_evento_localidad);
+            if (! isset($statusesByLocality[$locality->pk_evento_localidad])) {
+                $known = $catalog->seatStatuses($evento, $functionId, $locality->pk_evento_localidad);
+
+                foreach ($holds->heldByOthers($evento, $functionId, $locality->evento_localidad) as $seat) {
+                    $known[$seat] ??= 'en_proceso';
+                }
+
+                $statusesByLocality[$locality->pk_evento_localidad] = $known;
+            }
+
+            $known = $statusesByLocality[$locality->pk_evento_localidad];
 
             $seats = collect($section['rows'])->flatMap(fn (array $row) => $row['seats']);
             $statuses = $seats->mapWithKeys(fn (array $seat) => isset($known[$seat['id']]) ? [$seat['id'] => $known[$seat['id']]] : [])->all();

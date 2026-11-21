@@ -4,8 +4,10 @@ namespace App\Modules\BoxOffice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
+use App\Modules\BoxOffice\Services\Checkout\BoxOfficeSeatHolds;
 use App\Modules\BoxOffice\Services\Checkout\SaleCatalog;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
+use App\Modules\Events\Models\EventosLocalidades;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\Gate;
  */
 class StageInfoController extends Controller
 {
-    public function __invoke(Request $request, SaleCatalog $catalog, SeatAvailability $availability, int $evento): JsonResponse
+    public function __invoke(Request $request, SaleCatalog $catalog, SeatAvailability $availability, BoxOfficeSeatHolds $holds, int $evento): JsonResponse
     {
         Gate::authorize(BoxOfficeAbilities::EVENT, $evento);
 
@@ -46,7 +48,24 @@ class StageInfoController extends Controller
                 : null,
             'statuses' => $generalAdmission
                 ? (object) []
-                : $catalog->seatStatuses($evento, $functionId, $locality->pk_evento_localidad),
+                : (object) $this->statuses($catalog, $holds, $evento, $functionId, $locality),
         ]);
+    }
+
+    /**
+     * Vendidos y no disponibles, más los asientos que otra persona tiene en
+     * proceso de compra.
+     *
+     * @return array<string, string>
+     */
+    private function statuses(SaleCatalog $catalog, BoxOfficeSeatHolds $holds, int $evento, int $functionId, EventosLocalidades $locality): array
+    {
+        $statuses = $catalog->seatStatuses($evento, $functionId, $locality->pk_evento_localidad);
+
+        foreach ($holds->heldByOthers($evento, $functionId, $locality->evento_localidad) as $seat) {
+            $statuses[$seat] ??= 'en_proceso';
+        }
+
+        return $statuses;
     }
 }

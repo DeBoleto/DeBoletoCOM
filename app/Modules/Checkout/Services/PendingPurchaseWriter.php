@@ -37,6 +37,7 @@ class PendingPurchaseWriter
         private readonly WebCatalog $catalog,
         private readonly SelectionBuilder $selections,
         private readonly QuoteCalculator $quotes,
+        private readonly SeatUpdates $updates,
     ) {}
 
     /**
@@ -113,6 +114,8 @@ class PendingPurchaseWriter
                 'promo_id' => $quote->coupon?->id,
                 'promo_total' => $quote->discount,
             ]);
+
+            $this->updates->changed($state->functionId);
 
             return new PendingPurchase($purchase, $log, $quote->total());
         });

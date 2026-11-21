@@ -12,6 +12,7 @@ use App\Modules\BoxOffice\Http\Controllers\ExchangeController;
 use App\Modules\BoxOffice\Http\Controllers\PurchaseController;
 use App\Modules\BoxOffice\Http\Controllers\ReportsController;
 use App\Modules\BoxOffice\Http\Controllers\SalesController;
+use App\Modules\BoxOffice\Http\Controllers\StageHoldController;
 use App\Modules\BoxOffice\Http\Controllers\StageInfoController;
 use App\Modules\BoxOffice\Http\Controllers\StageVenueController;
 use App\Modules\BoxOffice\Http\Controllers\TicketChangeController;
@@ -55,6 +56,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                             Route::get('/', 'start')->name('start');
                             Route::get('asientos', StageInfoController::class)->name('stage');
                             Route::get('asientos/mapa', StageVenueController::class)->name('venue');
+                            Route::post('asientos/apartar', StageHoldController::class)->middleware('throttle:120,1')->name('hold');
                             Route::get('seleccion', 'selection')->name('selection');
                             Route::post('seleccion', 'storeSelection')->name('selection.store');
                             Route::get('resumen', 'summary')->name('summary');
@@ -117,6 +119,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                         Route::post('/', 'storeSelection')->name('selection.store');
                         Route::get('asientos', StageInfoController::class)->name('stage');
                         Route::get('asientos/mapa', StageVenueController::class)->name('venue');
+                        Route::post('asientos/apartar', StageHoldController::class)->middleware('throttle:120,1')->name('hold');
                         Route::get('confirmar', 'confirm')->name('confirm');
                         Route::post('confirmar', 'store')->name('store');
                         Route::get('listo', 'done')->name('done');
@@ -158,6 +161,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                         Route::post('/', 'storeSelection')->name('selection.store');
                         Route::get('asientos', StageInfoController::class)->name('stage');
                         Route::get('asientos/mapa', StageVenueController::class)->name('venue');
+                        Route::post('asientos/apartar', StageHoldController::class)->middleware('throttle:120,1')->name('hold');
                         Route::get('resumen', 'summary')->name('summary');
                         Route::post('confirmar', 'confirm')->name('confirm');
                         Route::get('listo', 'done')->name('done');

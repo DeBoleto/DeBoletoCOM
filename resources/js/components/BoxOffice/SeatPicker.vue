@@ -20,6 +20,9 @@
                 @zone="focusZone"
                 @toggle="pickSeat"
             />
+            <p v-if="notice" class="mt-3 rounded-lg bg-bo-pending/10 px-3 py-2 text-sm font-medium text-bo-pending" role="status">
+                {{ notice }}
+            </p>
             <p v-if="seatGap" class="mt-3 rounded-lg bg-bo-sold-soft px-3 py-2 text-sm font-medium text-bo-sold" role="alert">
                 Selecciona asientos pegados: quedó libre el asiento {{ seatGap.seat }} de la fila {{ seatGap.fila }} en {{ seatGap.zone }}, entre dos de los asientos elegidos.
             </p>
@@ -105,12 +108,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import QuantityStepper from "./QuantityStepper.vue";
 import VenueMap from "./VenueMap.vue";
 import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
+import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
 
 /**
  * Selector de zona y asientos. Emite la selección como
@@ -147,9 +151,14 @@ const infos = reactive({});
 const venue = reactive({});
 const picks = reactive({});
 const error = ref("");
+const notice = ref("");
 const loading = ref(false);
+const holdQueue = {};
+const REFRESH_MS = realtimeEnabled ? 60000 : 20000;
 let requestId = 0;
 let venueRequest = 0;
+let refreshId;
+let noticeId;
 
 const activeSection = computed(() => props.stage?.sections.find((section) => section.key === sectionKey.value) ?? null);
 const info = computed(() => (sectionKey.value !== null ? (infos[sectionKey.value] ?? null) : null));
@@ -192,6 +201,7 @@ const seatGap = computed(() => {
 });
 
 const venueRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".venue"));
+const holdRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".hold"));
 
 const quantityMax = computed(() => {
     const remaining = info.value?.remaining ?? 0;
@@ -238,13 +248,63 @@ function publish() {
     emit("change", sectionKey.value !== null ? selectionFor(sectionKey.value) : selectionFor(null));
 }
 
-function resetAll() {
-    Object.keys(picks).forEach((key) => delete picks[key]);
+function resetAll(functionId = props.functionId) {
+    Object.keys(picks).forEach((key) => {
+        releaseSeats(key, picks[key].seats, functionId);
+        delete picks[key];
+    });
 }
 
 function clear(key) {
+    releaseSeats(key, readPick(key).seats);
     delete picks[key];
     publish();
+}
+
+function showNotice(message) {
+    notice.value = message;
+    window.clearTimeout(noticeId);
+    noticeId = window.setTimeout(() => (notice.value = ""), 6000);
+}
+
+function csrfToken() {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+}
+
+// Aparta o libera el asiento en el servidor. Las solicitudes de un mismo
+// asiento van en orden para que tocarlo dos veces rápido no se cruce.
+function sendHold(key, seatId, action, functionId = props.functionId) {
+    const section = props.stage?.sections.find((candidate) => candidate.key === key);
+    if (!section || !functionId || isGeneral(infos[key])) return Promise.resolve(true);
+
+    const id = `${functionId}:${key}:${seatId}`;
+    const run = async () => {
+        try {
+            const response = await fetch(route(holdRoute.value, props.eventId), {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { Accept: "application/json", "Content-Type": "application/json", "X-XSRF-TOKEN": csrfToken() },
+                body: JSON.stringify({ funcion: functionId, seccion: section.sectionId, asiento: String(seatId), accion: action }),
+            });
+
+            if (response.ok) return true;
+
+            const data = await response.json().catch(() => ({}));
+            if (action === "apartar") showNotice(data.message ?? `El asiento ${seatId} ya no está disponible.`);
+            return action !== "apartar";
+        } catch {
+            if (action === "apartar") showNotice("No pudimos apartar el asiento. Revisa tu conexión e intenta de nuevo.");
+            return action !== "apartar";
+        }
+    };
+
+    holdQueue[id] = (holdQueue[id] ?? Promise.resolve()).then(run);
+    return holdQueue[id];
+}
+
+function releaseSeats(key, seats, functionId = props.functionId) {
+    seats.forEach((seatId) => sendHold(key, seatId, "liberar", functionId));
 }
 
 function selectSection(key) {
@@ -274,8 +334,8 @@ function pickSeat(seat) {
     toggleSeat(seat);
 }
 
-async function loadVenue() {
-    Object.keys(venue).forEach((key) => delete venue[key]);
+async function loadVenue({ keep = false } = {}) {
+    if (!keep) Object.keys(venue).forEach((key) => delete venue[key]);
     if (!props.functionId || !props.stage) return;
 
     const current = ++venueRequest;
@@ -288,6 +348,7 @@ async function loadVenue() {
         const data = await response.json();
         if (current !== venueRequest) return;
         Object.assign(venue, data.zones ?? {});
+        return true;
     } catch {
         // El mapa se queda con los estados por sección que ya se hayan cargado.
     }
@@ -327,21 +388,63 @@ async function load(key, { force = false } = {}) {
 
 function dropTaken(key, data) {
     const pick = picks[key];
-    if (!pick) return;
+    if (!pick) return [];
     const statuses = data.statuses ?? {};
-    pick.seats = pick.seats.filter((seat) => (statuses[seat] ?? "disponible") === "disponible");
+    const lost = pick.seats.filter((seat) => (statuses[seat] ?? "disponible") !== "disponible");
+    pick.seats = pick.seats.filter((seat) => !lost.includes(seat));
     if (isGeneral(data)) pick.quantity = Math.min(pick.quantity, data.remaining ?? 0);
+    return lost;
 }
 
-function toggleSeat(seat) {
+// Actualiza la disponibilidad con una sola consulta del mapa completo: sirve
+// tanto para el mapa como para las zonas ya abiertas.
+async function refresh() {
+    if (!props.functionId || !props.stage || document.hidden) return;
+    if (!(await loadVenue({ keep: true }))) return;
+
+    const lost = [];
+
+    for (const key of Object.keys(infos)) {
+        const zone = venue[key];
+        if (!zone || !infos[key]) continue;
+
+        infos[key] = isGeneral(infos[key])
+            ? { ...infos[key], remaining: zone.remaining ?? infos[key].remaining }
+            : { ...infos[key], statuses: zone.statuses ?? {} };
+
+        const name = props.stage.sections.find((section) => section.key === key)?.name ?? "";
+        lost.push(...dropTaken(key, infos[key]).map((seat) => `${seat} (${name})`));
+    }
+
+    if (lost.length) showNotice(`Alguien más tomó: ${lost.join(", ")}. Elige otros asientos.`);
+    publish();
+}
+
+async function toggleSeat(seat) {
     const pick = pickFor(seat.key);
     const index = pick.seats.indexOf(seat.id);
     const limit = props.multiple ? props.maxTickets - totalTickets.value : props.maxTickets - pick.seats.length;
 
-    if (index >= 0) pick.seats.splice(index, 1);
-    else if (limit > 0) pick.seats.push(seat.id);
+    if (index >= 0) {
+        pick.seats.splice(index, 1);
+        publish();
+        sendHold(seat.key, seat.id, "liberar");
+        return;
+    }
 
+    if (limit <= 0) return;
+
+    const functionId = props.functionId;
+    pick.seats.push(seat.id);
     publish();
+
+    if (await sendHold(seat.key, seat.id, "apartar", functionId)) return;
+    if (functionId !== props.functionId) return;
+
+    const current = picks[seat.key];
+    if (current) current.seats = current.seats.filter((id) => id !== seat.id);
+    publish();
+    refresh();
 }
 
 function setQuantity(value) {
@@ -351,8 +454,8 @@ function setQuantity(value) {
 
 watch(
     () => props.functionId,
-    () => {
-        resetAll();
+    (functionId, previous) => {
+        resetAll(previous);
         Object.keys(infos).forEach((key) => delete infos[key]);
         loadVenue();
         if (sectionKey.value !== null) load(sectionKey.value, { force: true });
@@ -360,7 +463,17 @@ watch(
     },
 );
 
-onMounted(loadVenue);
+useSeatUpdates(() => props.functionId, refresh);
+
+onMounted(() => {
+    loadVenue();
+    refreshId = window.setInterval(refresh, REFRESH_MS);
+});
+
+onUnmounted(() => {
+    window.clearInterval(refreshId);
+    window.clearTimeout(noticeId);
+});
 
 defineExpose({ clear, focus: focusZone, seatGap });
 </script>

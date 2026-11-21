@@ -8,6 +8,7 @@ use App\Modules\BoxOffice\Http\Requests\CreateCourtesiesRequest;
 use App\Modules\BoxOffice\Http\Requests\PickSeatsRequest;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
+use App\Modules\BoxOffice\Services\Checkout\BoxOfficeSeatHolds;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
 use App\Modules\BoxOffice\Services\Checkout\PurchaseService;
@@ -40,7 +41,7 @@ class CourtesyCheckoutController extends Controller
 {
     private readonly CheckoutStore $store;
 
-    public function __construct(CheckoutStore $store, private readonly SaleCatalog $catalog)
+    public function __construct(CheckoutStore $store, private readonly SaleCatalog $catalog, private readonly BoxOfficeSeatHolds $holds)
     {
         $this->store = $store->for('courtesy');
     }
@@ -74,6 +75,7 @@ class CourtesyCheckoutController extends Controller
     {
         $event = $this->event($evento);
         $this->store->forget($evento);
+        $this->holds->releaseAll();
 
         return Inertia::render('BoxOffice/Shared/PickSeats', $props->for($event) + [
             'title' => 'Crear cortesías',
@@ -96,6 +98,7 @@ class CourtesyCheckoutController extends Controller
 
         $resolved = $resolver->resolve($event, $functionId, $request->validated());
         $gaps->ensure($evento, $functionId, $resolved);
+        $this->holds->claim($evento, $functionId, [$resolved]);
         ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolved;
 
         $lines = array_map(
@@ -214,6 +217,7 @@ class CourtesyCheckoutController extends Controller
     public function finish(int $evento): RedirectResponse
     {
         $this->store->forget($evento);
+        $this->holds->releaseAll();
 
         return redirect()->route($this->routeName('index'))->with('success', 'Cortesías listas.');
     }

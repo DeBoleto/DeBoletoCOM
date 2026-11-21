@@ -14,6 +14,10 @@ return [
 
     'hold_minutes' => 7,
 
+    // Conexión de Redis donde viven los apartados (además del espejo en
+    // eventos_reserva_boleto que lee deboletox).
+    'holds_redis_connection' => env('SEAT_HOLDS_REDIS_CONNECTION', 'default'),
+
     /*
     |--------------------------------------------------------------------------
     | Límites de la compra

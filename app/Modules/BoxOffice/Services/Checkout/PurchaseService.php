@@ -3,6 +3,7 @@
 namespace App\Modules\BoxOffice\Services\Checkout;
 
 use App\Modules\BoxOffice\Exceptions\SeatsUnavailableException;
+use App\Modules\Checkout\Services\SeatUpdates;
 use App\Modules\Events\Enums\CommissionType;
 use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Models\Views\EventoVista;
@@ -20,6 +21,8 @@ class PurchaseService
         private readonly SeatAvailability $availability,
         private readonly PurchaseTotals $totals,
         private readonly TicketIssuer $issuer,
+        private readonly BoxOfficeSeatHolds $holds,
+        private readonly SeatUpdates $updates,
     ) {}
 
     /**
@@ -39,6 +42,8 @@ class PurchaseService
             if ($localities->count() !== $localityIds->count() || ! $this->availability->isAvailable($state)) {
                 throw new SeatsUnavailableException;
             }
+
+            $this->holds->claimState($state, $localities);
 
             $salesPeriodId = $this->issuer->salesPeriodId($event->pk_evento);
 
@@ -72,6 +77,9 @@ class PurchaseService
                 $state->promotion,
                 (float) $localCommission,
             );
+
+            DB::afterCommit(fn () => $this->holds->releaseAll());
+            $this->updates->changed($state->functionId);
 
             return $purchase;
         });

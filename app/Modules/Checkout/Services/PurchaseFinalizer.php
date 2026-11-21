@@ -3,7 +3,6 @@
 namespace App\Modules\Checkout\Services;
 
 use App\Modules\Checkout\Events\WebPurchasePaid;
-use App\Modules\Events\Models\EventoReservaBoleto;
 use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Orders\Enums\PurchaseStatus;
 use App\Modules\Orders\Models\ContraCargoCompra;
@@ -25,6 +24,11 @@ use Illuminate\Support\Facades\Log;
  */
 class PurchaseFinalizer
 {
+    public function __construct(
+        private readonly SeatHolds $holds,
+        private readonly SeatUpdates $updates,
+    ) {}
+
     /**
      * Marca la compra como pagada y emite los boletos.
      *
@@ -71,7 +75,7 @@ class PurchaseFinalizer
             $locked->forceFill(['estatus' => PurchaseStatus::Paid->value, 'pk_openpay' => $charge->id] + $this->cardColumns($charge))->save();
 
             if (isset($snapshot['owner'])) {
-                EventoReservaBoleto::releaseFor($snapshot['owner']);
+                $this->holds->releaseAll($snapshot['owner']);
             }
 
             $this->recordResponse($charge);
@@ -108,6 +112,7 @@ class PurchaseFinalizer
             EventosCompras::query()->whereIn('pk_evento_compra', $markers)->delete();
 
             $locked->forceFill(['estatus' => $status->value])->save();
+            $this->updates->changed((int) $locked->pk_evento_funcion);
 
             return true;
         });

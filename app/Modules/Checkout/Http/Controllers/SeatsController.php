@@ -15,7 +15,6 @@ use App\Modules\Checkout\Services\StageView;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
-use App\Modules\Events\Models\EventoReservaBoleto;
 use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Users\Models\Usuarios;
@@ -259,10 +258,7 @@ class SeatsController extends Controller
 
     private function releaseOtherHolds(WebCart $cart, string $owner): void
     {
-        EventoReservaBoleto::query()
-            ->where('pk_usuario', $owner)
-            ->where('pk_evento_funcion', '!=', $cart->selection->functionId)
-            ->delete();
+        $this->holds->releaseOtherFunctions($owner, $cart->selection->functionId);
 
         $names = EventosLocalidades::query()
             ->whereIn('pk_evento_localidad', array_keys($cart->numberedSeatsByLocality()))

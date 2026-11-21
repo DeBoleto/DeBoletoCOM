@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('checkout:reconcile')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('checkout:sweep-holds')->everyFifteenSeconds()->withoutOverlapping();

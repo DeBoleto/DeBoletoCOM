@@ -2,6 +2,7 @@
 
 use App\Modules\BoxOffice\Http\Controllers\CourtesyCheckoutController;
 use App\Modules\BoxOffice\Http\Controllers\ReportsController;
+use App\Modules\BoxOffice\Http\Controllers\StageHoldController;
 use App\Modules\BoxOffice\Http\Controllers\StageInfoController;
 use App\Modules\BoxOffice\Http\Controllers\StageVenueController;
 use App\Modules\BoxOffice\Http\Middleware\EnsureMenuPrivilege;
@@ -75,6 +76,7 @@ Route::middleware(['web', ShareBoxOfficeData::class.':admin'])
                         Route::post('/', 'storeSelection')->name('selection.store');
                         Route::get('asientos', StageInfoController::class)->name('stage');
                         Route::get('asientos/mapa', StageVenueController::class)->name('venue');
+                        Route::post('asientos/apartar', StageHoldController::class)->middleware('throttle:120,1')->name('hold');
                         Route::get('confirmar', 'confirm')->name('confirm');
                         Route::post('confirmar', 'store')->name('store');
                         Route::get('listo', 'done')->name('done');

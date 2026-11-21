@@ -8,6 +8,7 @@ use App\Modules\BoxOffice\Http\Requests\ConfirmPurchaseRequest;
 use App\Modules\BoxOffice\Http\Requests\PickSeatsRequest;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutState;
+use App\Modules\BoxOffice\Services\Checkout\BoxOfficeSeatHolds;
 use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
 use App\Modules\BoxOffice\Services\Checkout\PurchaseService;
@@ -55,7 +56,7 @@ class TicketChangeController extends Controller
 
     private readonly CheckoutStore $store;
 
-    public function __construct(CheckoutStore $store, private readonly SaleCatalog $catalog)
+    public function __construct(CheckoutStore $store, private readonly SaleCatalog $catalog, private readonly BoxOfficeSeatHolds $holds)
     {
         $this->store = $store->for('change');
     }
@@ -63,6 +64,7 @@ class TicketChangeController extends Controller
     public function index(): Response
     {
         $this->store->forgetValue(self::OLD_TICKET);
+        $this->holds->releaseAll();
 
         return Inertia::render('BoxOffice/Change/Index');
     }
@@ -156,6 +158,7 @@ class TicketChangeController extends Controller
 
         $resolved = $resolver->resolve($event, $functionId, $request->validated());
         $gaps->ensure($evento, $functionId, $resolved);
+        $this->holds->claim($evento, $functionId, [$resolved]);
         ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolved;
 
         $lines = array_map(
@@ -278,6 +281,7 @@ class TicketChangeController extends Controller
     public function finish(int $evento): RedirectResponse
     {
         $this->store->forget($evento);
+        $this->holds->releaseAll();
 
         return redirect()->route('boxoffice.change.index')->with('success', 'Cambio de boleto finalizado.');
     }

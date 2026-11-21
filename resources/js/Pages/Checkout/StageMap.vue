@@ -280,6 +280,7 @@ import FunctionPicker from "@/components/checkout/process/FunctionPicker.vue";
 import CartPanel from "@/components/checkout/process/CartPanel.vue";
 import VenueZoneList from "@/components/checkout/stage-map/VenueZoneList.vue";
 import { getJson, money, postJson } from "@/components/checkout/api.js";
+import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
 
 const props = defineProps({
     event: { type: Object, required: true },
@@ -291,7 +292,7 @@ const props = defineProps({
     cart: { type: Object, default: null },
 });
 
-const POLL_MS = 15000;
+const POLL_MS = realtimeEnabled ? 60000 : 15000;
 const STATUS_LABEL = { disponible: "Disponible", vendido: "Vendido", en_proceso: "En proceso de compra", no_disponible: "No disponible" };
 const VENUE_STATUS = { vendido: "vendido", no_disponible: "no_disponible", proceso: "en_proceso", mio: "disponible" };
 
@@ -318,6 +319,8 @@ const rulesShown = new Set();
 const requestIds = {};
 let venueRequest = 0;
 let pollId;
+
+useSeatUpdates(() => props.function?.id ?? null, poll);
 let toastId = 0;
 
 const eventMeta = computed(() =>
