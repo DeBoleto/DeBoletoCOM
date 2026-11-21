@@ -78,10 +78,23 @@
 
                 <section v-if="event.mode === 'quantities'" class="rounded-xl border border-bo-line bg-bo-card p-5" aria-labelledby="localities-title">
                     <h2 id="localities-title" class="font-semibold">Boletos por localidad</h2>
+                    <p
+                        v-if="promotions?.general"
+                        class="mt-3 flex items-center gap-2 rounded-lg border border-fuchsia-200 bg-fuchsia-50 px-3 py-2 text-sm font-semibold text-fuchsia-800"
+                        role="note"
+                    >
+                        <BoIcon name="gift" :size="18" class="shrink-0 text-fuchsia-600" />
+                        Promoción {{ promotions.general }} en todo el evento
+                    </p>
                     <ul class="mt-3 divide-y divide-bo-line">
                         <li v-for="locality in localities" :key="locality.id" class="flex items-center justify-between gap-4 py-3">
                             <div>
-                                <p class="font-medium">{{ locality.name }}</p>
+                                <p class="flex flex-wrap items-center gap-2 font-medium">
+                                    {{ locality.name }}
+                                    <span v-if="promotions?.zones?.[locality.id]" class="rounded-full bg-fuchsia-100 px-2 py-0.5 text-xs font-bold text-fuchsia-700">
+                                        {{ promotions.zones[locality.id].label }}
+                                    </span>
+                                </p>
                                 <p class="tabular text-sm text-bo-slate">{{ money(locality.price) }}</p>
                             </div>
                             <QuantityStepper v-model="quantities[locality.id]" :max="maxTickets" :label="locality.name" />
@@ -97,6 +110,7 @@
                     :function-id="functionId"
                     stage-route="boxoffice.tickets.checkout.stage"
                     :max-tickets="maxTickets"
+                    :promotions="promotions"
                     multiple
                     @change="onPick"
                 >
@@ -234,6 +248,7 @@ const props = defineProps({
     discounts: { type: Array, required: true },
     extraChair: { type: Object, default: null },
     previous: { type: Object, default: null },
+    promotions: { type: Object, default: null },
 });
 
 const maxTickets = 50;

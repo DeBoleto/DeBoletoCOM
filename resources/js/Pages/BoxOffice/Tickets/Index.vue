@@ -53,6 +53,14 @@
                             <BoIcon name="calendar" :size="14" class="text-bo-green" />
                             {{ event.date }}
                         </span>
+                        <span
+                            v-if="event.promotion"
+                            class="absolute top-3 right-3 inline-flex max-w-[55%] items-center gap-1 rounded-full bg-fuchsia-600 px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                            :title="promotionText(event.promotion)"
+                        >
+                            <BoIcon name="gift" :size="14" class="shrink-0" />
+                            <span class="truncate">{{ promotionText(event.promotion) }}</span>
+                        </span>
                         <p class="absolute right-3 bottom-3 left-3 line-clamp-2 text-[15px] leading-snug font-semibold text-white drop-shadow">
                             {{ event.name }}
                         </p>
@@ -85,6 +93,7 @@ import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 import EventThumb from "@/components/BoxOffice/EventThumb.vue";
 import EmptyState from "@/components/BoxOffice/EmptyState.vue";
+import { promotionText } from "@/components/BoxOffice/format.js";
 
 const props = defineProps({
     events: { type: Array, required: true },

@@ -37,6 +37,10 @@
                     <span class="zone-swatch" :style="{ background: zone.color }" aria-hidden="true" />
                     <span class="zone-body">
                         <span class="zone-name">{{ zone.name }}</span>
+                        <span v-if="zone.promotion && zone.available" class="zone-promo">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
+                            Promoción {{ zone.promotion }}
+                        </span>
                         <span v-if="!zone.available" class="zone-sub">No disponible</span>
                         <span v-else class="zone-sub">
                             <s v-if="zone.originalPrice && zone.originalPrice > zone.price">{{ money(zone.originalPrice) }}</s>
@@ -167,6 +171,22 @@ const emit = defineEmits(["select", "hover", "show-all"]);
     display: flex;
     flex-direction: column;
     min-width: 0;
+}
+
+.zone-promo {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 4px;
+    width: fit-content;
+    margin: 2px 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(236, 72, 153, 0.16);
+    color: #f9a8d4;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.4;
 }
 
 .zone-name {

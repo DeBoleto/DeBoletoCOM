@@ -17,6 +17,7 @@ use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
 use App\Modules\Events\Models\EventosLocalidades;
+use App\Modules\Events\Support\EventPromotions;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Users\Models\Usuarios;
 use Illuminate\Http\JsonResponse;
@@ -40,7 +41,7 @@ class SeatsController extends Controller
         private readonly StageView $stages,
     ) {}
 
-    public function show(Request $request, SeatAvailability $availability, RaceRegistration $race, string $slug): Response|RedirectResponse
+    public function show(Request $request, SeatAvailability $availability, RaceRegistration $race, EventPromotions $promotions, string $slug): Response|RedirectResponse
     {
         $event = $this->catalog->eventBySlug($slug);
         $functions = $this->catalog->openFunctions($event->pk_evento);
@@ -85,6 +86,7 @@ class SeatsController extends Controller
             'function' => CheckoutPresenter::function($function),
             'mode' => $byQuantity ? 'quantities' : 'map',
             'stage' => $stage,
+            'promotions' => $promotions->forEvent($event->pk_evento),
             'localities' => $byQuantity ? $this->quantityLocalities($event, $localities, $function->pk_evento_funcion, $availability) : [],
             'parking' => $this->catalog->parkingOffer($eventRow),
             'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->previousSelection($cart, $stage) : null,

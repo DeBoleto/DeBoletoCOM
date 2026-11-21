@@ -25,6 +25,7 @@ use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Models\EventosLocalidadesEspeciales;
 use App\Modules\Events\Models\Views\EventoFuncionVista;
 use App\Modules\Events\Models\Views\EventoVista;
+use App\Modules\Events\Support\EventPromotions;
 use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Users\Models\Usuarios;
 use Illuminate\Http\RedirectResponse;
@@ -57,7 +58,7 @@ class CheckoutController extends Controller
         return redirect()->route('boxoffice.tickets.checkout.selection', $evento);
     }
 
-    public function selection(Request $request, int $evento): Response
+    public function selection(Request $request, EventPromotions $promotions, int $evento): Response
     {
         $event = $this->sellableEvent($evento);
         $localities = $this->catalog->localities($evento);
@@ -83,6 +84,7 @@ class CheckoutController extends Controller
                 ])->values(),
             ])->values(),
             'stage' => $byQuantity ? null : $this->catalog->stage($event, $localities),
+            'promotions' => $promotions->forEvent($evento),
             'paymentTypes' => $this->paymentTypes($request->user()),
             'discounts' => config('boxoffice.allowed_discounts'),
             'extraChair' => $this->extraChair($event),

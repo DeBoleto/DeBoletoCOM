@@ -290,6 +290,7 @@ const props = defineProps({
     limits: { type: Object, required: true },
     parking: { type: Object, default: null },
     cart: { type: Object, default: null },
+    promotions: { type: Object, default: null },
 });
 
 const POLL_MS = realtimeEnabled ? 60000 : 15000;
@@ -377,6 +378,7 @@ const zoneList = computed(() =>
             price: sectionPrice(section),
             originalPrice: section.price?.originalPrice ?? null,
             remaining: venue[section.key]?.remaining ?? null,
+            promotion: props.promotions?.zones?.[section.localityId]?.label ?? null,
             count: countFor(section.key),
         }))
         .sort((a, b) => Number(b.available) - Number(a.available) || b.price - a.price),

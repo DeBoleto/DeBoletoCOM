@@ -218,7 +218,7 @@
                                 <div class="locality-info">
                                     <p class="locality-name">{{ locality.name }}</p>
                                     <p class="locality-price">{{ money(locality.price) }}</p>
-                                    <p v-if="locality.promotion" class="locality-promo">Promoción {{ locality.promotion.label }}</p>
+                                    <p v-if="promotions?.zones?.[locality.id] || locality.promotion" class="locality-promo">Promoción {{ promotions?.zones?.[locality.id]?.label ?? locality.promotion.label }}</p>
                                     <p v-if="locality.remaining > 0 && locality.remaining <= 20" class="locality-left">Quedan {{ locality.remaining }}</p>
                                     <button v-if="locality.rules" type="button" class="link-btn" @click="rules = { zone: locality.name, text: locality.rules }">
                                         Ver reglas de la zona
@@ -365,6 +365,7 @@ const props = defineProps({
     parking: { type: Object, default: null },
     cart: { type: Object, default: null },
     race: { type: Object, default: null },
+    promotions: { type: Object, default: null },
 });
 
 const POLL_MS = realtimeEnabled ? 60000 : 15000;
@@ -425,6 +426,7 @@ const zones = computed(() =>
             available: section.available,
             price: sectionPrice(section),
             originalPrice: section.price?.originalPrice ?? null,
+            promotion: props.promotions?.zones?.[section.localityId]?.label ?? null,
             count: countFor(section.key),
         }))
         .sort((a, b) => Number(b.available) - Number(a.available) || b.price - a.price),

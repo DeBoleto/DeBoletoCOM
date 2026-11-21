@@ -11,6 +11,19 @@
             </p>
         </div>
         <template v-if="stage">
+            <div
+                v-if="promotionNotice"
+                class="mt-3 flex items-start gap-2 rounded-lg border border-fuchsia-200 bg-fuchsia-50 px-3 py-2 text-sm text-fuchsia-800"
+                role="note"
+            >
+                <BoIcon name="gift" :size="18" class="mt-0.5 shrink-0 text-fuchsia-600" />
+                <p>
+                    <span class="font-semibold">{{ promotionNotice.title }}</span>
+                    <span v-if="promotionNotice.zones.length">
+                        {{ promotionNotice.zones.map((zone) => `${zone.name} (${zone.label})`).join(", ") }}
+                    </span>
+                </p>
+            </div>
             <VenueMap
                 class="mt-3"
                 :stage="stage"
@@ -37,6 +50,13 @@
                     @click="focusZone(section.key)"
                 >
                     {{ section.name }}
+                    <span
+                        v-if="zonePromotion(section)"
+                        class="rounded-full px-1.5 text-xs font-bold"
+                        :class="sectionKey === section.key ? 'bg-white text-fuchsia-700' : 'bg-fuchsia-100 text-fuchsia-700'"
+                    >
+                        {{ zonePromotion(section) }}
+                    </span>
                     <span
                         v-if="badges[section.key]"
                         class="tabular inline-grid min-w-5 place-items-center rounded-full px-1.5 text-xs font-bold"
@@ -111,6 +131,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import QuantityStepper from "./QuantityStepper.vue";
 import VenueMap from "./VenueMap.vue";
+import BoIcon from "./BoIcon.vue";
 import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
@@ -129,9 +150,33 @@ const props = defineProps({
     showPrices: { type: Boolean, default: true },
     maxTickets: { type: Number, default: 50 },
     multiple: { type: Boolean, default: false },
+    promotions: { type: Object, default: null },
 });
 
 const emit = defineEmits(["change"]);
+
+function zonePromotion(section) {
+    return props.promotions?.zones?.[section.localityId]?.label ?? null;
+}
+
+const promotionNotice = computed(() => {
+    if (!props.promotions) return null;
+
+    const seen = new Set();
+    const zones = (props.stage?.sections ?? [])
+        .filter((section) => props.promotions.zones?.[section.localityId]?.own)
+        .filter((section) => !seen.has(section.localityId) && seen.add(section.localityId))
+        .map((section) => ({ name: section.name, label: props.promotions.zones[section.localityId].label }));
+
+    if (props.promotions.general) {
+        return {
+            title: `Promoción ${props.promotions.general} en todo el evento${zones.length ? "; además:" : "."}`,
+            zones,
+        };
+    }
+
+    return zones.length ? { title: zones.length === 1 ? "Zona con promoción:" : "Zonas con promoción:", zones } : null;
+});
 
 const legend = computed(() => {
     const colors = zoneSeatColors(activeSection.value?.areaColor || activeSection.value?.color);

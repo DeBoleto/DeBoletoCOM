@@ -7,13 +7,14 @@ use App\Modules\BoxOffice\Services\CashRegister\CashRegister;
 use App\Modules\BoxOffice\Support\EventImage;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\Views\UsuarioEventoVista;
+use App\Modules\Events\Support\EventPromotions;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TicketEventsController extends Controller
 {
-    public function __invoke(Request $request, CashRegister $registers): Response
+    public function __invoke(Request $request, CashRegister $registers, EventPromotions $promotions): Response
     {
         $events = UsuarioEventoVista::query()
             ->delUsuario($request->user()->pk_usuario)
@@ -23,6 +24,7 @@ class TicketEventsController extends Controller
             ->get(['pk_evento', 'evento', 'imagen', 'escenario', 'direccion', 'ciudad', 'estado', 'inicio_fecha', 'inicio_fecha_natural']);
 
         $register = $registers->current($request->user());
+        $badges = $promotions->forEvents($events->pluck('pk_evento')->map(fn ($id) => (int) $id)->all());
 
         return Inertia::render('BoxOffice/Tickets/Index', [
             'cashRegister' => $register === null ? null : [
@@ -37,6 +39,7 @@ class TicketEventsController extends Controller
                 'city' => $event->ciudad,
                 'state' => $event->estado,
                 'date' => $event->inicio_fecha_natural,
+                'promotion' => $badges[$event->pk_evento]['badge'] ?? null,
             ])->values(),
         ]);
     }

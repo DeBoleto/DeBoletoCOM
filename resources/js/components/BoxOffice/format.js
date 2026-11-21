@@ -8,6 +8,11 @@ export function money(value) {
     return currency.format(Number(value) || 0);
 }
 
+export function promotionText(badge) {
+    if (!badge) return "";
+    return badge.scope === "zones" && badge.label !== "Promociones" ? `${badge.label} en zonas` : badge.label;
+}
+
 export function iconForMenu(faClass) {
     const value = String(faClass || "").toLowerCase();
 

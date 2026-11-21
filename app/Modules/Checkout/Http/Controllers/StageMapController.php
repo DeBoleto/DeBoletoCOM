@@ -11,6 +11,7 @@ use App\Modules\Checkout\Services\StageView;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCartStore;
 use App\Modules\Events\Models\EventosLocalidades;
+use App\Modules\Events\Support\EventPromotions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class StageMapController extends Controller
         private readonly StageView $stages,
     ) {}
 
-    public function show(Request $request, int $evento): Response|RedirectResponse
+    public function show(Request $request, EventPromotions $promotions, int $evento): Response|RedirectResponse
     {
         $event = $this->catalog->event($evento);
         $slug = (string) $event->getAttribute('friendly_url');
@@ -82,6 +83,7 @@ class StageMapController extends Controller
             ...$props,
             'function' => CheckoutPresenter::function($function),
             'stage' => $stage,
+            'promotions' => $promotions->forEvent($event->pk_evento),
             'parking' => $this->catalog->parkingOffer($this->catalog->eventRow($event->pk_evento)),
             'cart' => $cart && $cart->selection->functionId === $function->pk_evento_funcion ? $this->stages->previousSelection($cart, $stage) : null,
         ]);
