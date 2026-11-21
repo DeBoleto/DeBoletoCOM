@@ -69,6 +69,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                             Route::get('imprimir', 'print')->name('print');
                             Route::get('digital', 'digital')->name('digital');
                             Route::post('whatsapp', 'whatsapp')->middleware('throttle:10,1')->name('whatsapp');
+                            Route::post('cliente', 'customer')->middleware('throttle:20,1')->name('customer');
                         });
                 });
 

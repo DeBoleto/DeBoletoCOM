@@ -80,15 +80,38 @@
                 </form>
             </section>
 
+            <section
+                v-if="delivered.size"
+                class="mt-6 flex flex-col gap-3 rounded-xl border bg-bo-card p-4 sm:flex-row sm:items-center sm:justify-between"
+                :class="customer ? 'border-bo-line' : 'border-bo-pending'"
+                aria-label="Cliente de la compra"
+            >
+                <div class="flex min-w-0 items-center gap-3">
+                    <BoIcon name="user" />
+                    <div v-if="customer" class="min-w-0">
+                        <p class="truncate font-semibold">{{ customer.name }}</p>
+                        <p class="truncate text-sm text-bo-slate">{{ customer.phone }} · {{ customer.email }}</p>
+                    </div>
+                    <p v-else class="text-sm text-bo-pending">Faltan los datos del cliente.</p>
+                </div>
+                <button
+                    type="button"
+                    class="rounded-lg border border-bo-line px-3 py-2 text-sm font-semibold hover:border-bo-slate"
+                    @click="openCustomer"
+                >
+                    {{ customer ? "Cambiar cliente" : "Capturar datos" }}
+                </button>
+            </section>
+
             <div class="mt-8 flex flex-col-reverse items-stretch justify-between gap-3 border-t border-bo-line pt-6 sm:flex-row sm:items-center">
-                <p class="text-sm" :class="delivered.size ? 'text-bo-slate' : 'text-bo-pending'">
-                    {{ delivered.size ? "Boletos entregados." : "Entrega los boletos antes de finalizar." }}
+                <p class="text-sm" :class="canFinish ? 'text-bo-slate' : 'text-bo-pending'">
+                    {{ !delivered.size ? "Entrega los boletos antes de finalizar." : !customer ? "Captura los datos del cliente antes de finalizar." : "Boletos entregados." }}
                 </p>
                 <div class="flex gap-3">
                     <button
                         type="button"
                         class="rounded-lg border border-bo-line bg-bo-card px-4 py-2.5 font-semibold hover:border-bo-slate disabled:opacity-50"
-                        :disabled="!delivered.size || finishing"
+                        :disabled="!canFinish || finishing"
                         @click="finish(true)"
                     >
                         Nueva venta
@@ -96,7 +119,7 @@
                     <button
                         type="button"
                         class="rounded-lg bg-bo-green px-5 py-2.5 font-semibold text-white hover:bg-bo-green-dark disabled:opacity-50"
-                        :disabled="!delivered.size || finishing"
+                        :disabled="!canFinish || finishing"
                         @click="finish(false)"
                     >
                         Finalizar
@@ -104,6 +127,55 @@
                 </div>
             </div>
         </div>
+
+        <dialog
+            ref="customerDialog"
+            class="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-bo-line bg-bo-card p-0 text-bo-ink shadow-xl backdrop:bg-bo-ink/50"
+            aria-labelledby="customer-title"
+            @close="customerForm.errors = {}"
+        >
+            <form class="flex flex-col gap-4 p-6" novalidate @submit.prevent="saveCustomer">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 id="customer-title" class="text-lg font-semibold">Datos del cliente</h2>
+                        <p class="text-sm text-bo-slate">La compra quedará a nombre del cliente. Si ya tiene cuenta se usa la existente.</p>
+                    </div>
+                    <button type="button" class="rounded-md p-1 text-bo-slate hover:text-bo-ink" aria-label="Cerrar" @click="customerDialog?.close()">
+                        <BoIcon name="close" :size="18" />
+                    </button>
+                </div>
+
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label v-for="field in customerFields" :key="field.key" class="flex flex-col gap-1 text-sm font-semibold" :class="field.wide ? 'sm:col-span-2' : ''">
+                        {{ field.label }}
+                        <input
+                            v-model="customerForm.data[field.key]"
+                            :type="field.type"
+                            :inputmode="field.inputmode"
+                            :autocomplete="field.autocomplete"
+                            :maxlength="field.maxlength"
+                            :placeholder="field.placeholder"
+                            class="rounded-lg border-bo-line py-2 text-sm font-normal focus:border-bo-green focus:ring-bo-green"
+                            :class="field.key === 'telefono' ? 'tabular' : ''"
+                            :aria-invalid="!!customerForm.errors[field.key]"
+                            required
+                        />
+                        <span v-if="customerForm.errors[field.key]" class="text-xs font-normal text-bo-sold" role="alert">{{ customerForm.errors[field.key] }}</span>
+                    </label>
+                </div>
+
+                <p v-if="customerForm.errors.general" class="text-sm text-bo-sold" role="alert">{{ customerForm.errors.general }}</p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="rounded-lg border border-bo-line px-4 py-2 text-sm font-semibold hover:border-bo-slate" @click="customerDialog?.close()">
+                        Después
+                    </button>
+                    <button type="submit" class="rounded-lg bg-bo-green px-4 py-2 text-sm font-semibold text-white hover:bg-bo-green-dark disabled:opacity-50" :disabled="customerForm.saving">
+                        {{ customerForm.saving ? "Guardando…" : "Guardar cliente" }}
+                    </button>
+                </div>
+            </form>
+        </dialog>
     </BackOfficeLayout>
 </template>
 
@@ -127,11 +199,66 @@ const delivered = reactive(new Set());
 const phone = ref("");
 const finishing = ref(false);
 const whatsapp = reactive({ sending: false, error: "", sent: "" });
+const customer = ref(null);
+const customerDialog = ref(null);
+const customerForm = reactive({ data: { nombre: "", apellido: "", telefono: "", correo: "" }, errors: {}, saving: false });
+let customerAsked = false;
+
+const customerFields = [
+    { key: "nombre", label: "Nombre", type: "text", autocomplete: "off", maxlength: 100 },
+    { key: "apellido", label: "Apellido", type: "text", autocomplete: "off", maxlength: 100 },
+    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", autocomplete: "off", maxlength: 14, placeholder: "10 dígitos" },
+    { key: "correo", label: "Correo", type: "email", autocomplete: "off", maxlength: 150, wide: true },
+];
 
 const phoneDigits = computed(() => phone.value.replace(/\D/g, ""));
+const canFinish = computed(() => delivered.size > 0 && customer.value !== null);
 
 function markDelivered(channel) {
     delivered.add(channel);
+
+    if (!customerAsked && !customer.value) {
+        customerAsked = true;
+        openCustomer();
+    }
+}
+
+function openCustomer() {
+    if (!customerForm.data.telefono && whatsapp.sent) customerForm.data.telefono = whatsapp.sent;
+    customerDialog.value?.showModal();
+}
+
+async function saveCustomer() {
+    customerForm.saving = true;
+    customerForm.errors = {};
+
+    try {
+        const response = await fetch(route("boxoffice.tickets.purchase.customer", props.purchaseId), {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": csrfToken(),
+            },
+            body: JSON.stringify(customerForm.data),
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            customerForm.errors = data.errors
+                ? Object.fromEntries(Object.entries(data.errors).map(([key, messages]) => [key, messages[0]]))
+                : { general: data.message ?? "No se pudo guardar el cliente." };
+            return;
+        }
+
+        customer.value = data.customer;
+        customerDialog.value?.close();
+    } catch {
+        customerForm.errors = { general: "Sin conexión con el servidor. Intenta de nuevo." };
+    } finally {
+        customerForm.saving = false;
+    }
 }
 
 function csrfToken() {
