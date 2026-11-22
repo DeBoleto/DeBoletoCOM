@@ -54,6 +54,12 @@
                             loading="lazy"
                             decoding="async"
                         />
+                        <span
+                            v-if="event.promotion"
+                            class="nearby-promo"
+                            :title="`Promoción ${event.promotion}`"
+                            >{{ event.promotion }}</span
+                        >
                         <div class="nearby-card-overlay">
                             <div class="nearby-card-info">
                                 <span class="nearby-card-title">{{
@@ -111,6 +117,12 @@
                                 class="ticket-title"
                                 :aria-label="`Ver evento: ${event.title}`"
                                 >{{ event.title }}</a
+                            >
+                            <span
+                                v-if="event.promotion"
+                                class="ticket-promo"
+                                :title="`Promoción ${event.promotion}`"
+                                >{{ event.promotion }}</span
                             >
                             <span class="ticket-meta">
                                 <svg
@@ -486,6 +498,42 @@ onMounted(() => {
 
 .nearby-card:hover .nearby-card-img {
     transform: scale(1.05);
+}
+
+.nearby-promo {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 1;
+    max-width: calc(100% - 2 * var(--space-3));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: #c026d3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ticket-promo {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-full);
+    background: #c026d3;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .nearby-card-overlay {

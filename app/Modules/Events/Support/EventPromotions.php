@@ -5,6 +5,7 @@ namespace App\Modules\Events\Support;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\EventosLocalidades;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Etiquetas de las promociones de un evento para mostrarlas en tarjetas y
@@ -46,6 +47,39 @@ class EventPromotions
             ->groupBy('pk_evento');
 
         return $events->map(fn (Eventos $event) => $this->summary($event, $localities->get($event->pk_evento, collect())))->all();
+    }
+
+    /**
+     * Texto de la etiqueta de cada evento con promoción, para las tarjetas
+     * del sitio. Se guarda unos minutos porque el inicio lo pide en cada visita.
+     *
+     * @param  list<int>  $eventIds
+     * @return array<int, string>
+     */
+    public function badges(array $eventIds): array
+    {
+        if ($eventIds === []) {
+            return [];
+        }
+
+        sort($eventIds);
+
+        return Cache::remember('event_promotion_badges:'.md5(implode(',', $eventIds)), 120, fn () => collect($this->forEvents($eventIds))
+            ->map(fn (array $promotions) => self::badgeText($promotions['badge']))
+            ->filter()
+            ->all());
+    }
+
+    /**
+     * @param  array{label: string, scope: 'general'|'zones'}|null  $badge
+     */
+    public static function badgeText(?array $badge): ?string
+    {
+        if ($badge === null) {
+            return null;
+        }
+
+        return $badge['scope'] === 'zones' && $badge['label'] !== 'Promociones' ? $badge['label'].' en zonas' : $badge['label'];
     }
 
     public static function nxmLabel(int $count): ?string

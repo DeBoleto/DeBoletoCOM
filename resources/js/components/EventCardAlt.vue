@@ -16,9 +16,12 @@
             />
         </picture>
 
-        <span v-if="hasPromos" class="promo-pill" aria-label="Promoción">{{
-            promoLabel
-        }}</span>
+        <span
+            v-if="promoLabel"
+            class="promo-pill"
+            :title="`Promoción ${promoLabel}`"
+            >{{ promoLabel }}</span
+        >
 
         <div class="card-meta">
             <h3 class="meta-title">{{ event.title }}</h3>
@@ -44,15 +47,14 @@ const image = computed(() => props.event.image || "");
 const webpSrc = computed(() => image.value.replace(".png", ".webp"));
 const avifSrc = computed(() => image.value.replace(".png", ".avif"));
 
-const hasPromos = computed(() => {
-    const p = props.event.promociones;
-    return Array.isArray(p) ? p.length > 0 : Boolean(p);
-});
-
 const promoLabel = computed(() => {
+    if (props.event.promotion) {
+        return props.event.promotion;
+    }
+
     const p = props.event.promociones;
     const value = Array.isArray(p) ? p[0] : p;
-    return value ? String(value).toUpperCase() : "PROMOCIÓN";
+    return value ? String(value) : "";
 });
 
 const locationLine = computed(() =>
@@ -108,11 +110,16 @@ const locationLine = computed(() =>
 .promo-pill {
     position: absolute;
     top: var(--space-3);
-    left: var(--space-3);
+    right: var(--space-3);
     z-index: 1;
+    max-width: calc(100% - 2 * var(--space-3));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-full);
-    background: #0066ff;
+    background: #c026d3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     color: #fff;
     font-size: 11px;
     font-weight: 700;

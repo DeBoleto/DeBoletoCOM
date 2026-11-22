@@ -44,6 +44,12 @@
                 >Agotado</span
             >
             <span
+                v-else-if="event.promotion"
+                class="card-badge card-badge--promo"
+                :title="`Promoción ${event.promotion}`"
+                >{{ event.promotion }}</span
+            >
+            <span
                 v-else-if="event.availability === 'low'"
                 class="card-badge card-badge--low"
                 aria-label="Pocos boletos disponibles"
@@ -291,6 +297,17 @@ const eventSchema = computed(() => {
 .card-badge--low {
     background: rgba(245, 158, 11, 0.9);
     color: #fff;
+}
+.card-badge--promo {
+    max-width: calc(100% - 96px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: #c026d3;
+    color: #fff;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .card-wishlist {
