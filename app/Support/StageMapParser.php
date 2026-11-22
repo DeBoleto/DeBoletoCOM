@@ -126,6 +126,8 @@ class StageMapParser
                 'labels' => $labels,
                 'rows' => $rows,
                 'capacity' => isset($section['capacity']) ? (int) $section['capacity'] : null,
+                // web="false": la sección solo se vende en taquilla.
+                'web' => strtolower(trim((string) ($section['web'] ?? ''))) !== 'false',
                 'offset' => [
                     'x' => (int) ($section['numx'] ?? 0),
                     'y' => (int) ($section['num'] ?? 0),

@@ -71,7 +71,9 @@ function polygonOf(section) {
 export function venueAreas(sections) {
     if (!hasPlacement(sections)) return [];
 
-    return (sections ?? []).filter(polygonOf).map((section) => ({ key: section.key, polygon: section.polygon }));
+    return (sections ?? [])
+        .filter(polygonOf)
+        .map((section) => ({ key: section.key, polygon: section.polygon, general: section.capacity !== null }));
 }
 
 /**

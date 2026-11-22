@@ -79,7 +79,7 @@ const selected = computed(() => new Set(props.selectedKeys));
 const index = computed(() => new Map(props.seats.map((seat) => [`${seat.key}:${seat.id}`, seat])));
 const zoneButtons = computed(() =>
     Object.entries(props.zones)
-        .filter(([, zone]) => zone.available && zone.hasSeats)
+        .filter(([, zone]) => zone.available)
         .map(([key, zone]) => ({ key, name: zone.name })),
 );
 
@@ -127,7 +127,9 @@ function build() {
 
     const zoneMode = props.activeKey !== null;
 
-    const areas = new Konva.Group({ listening: false });
+    // Solo escuchan las áreas de acceso general: no tienen asientos, así que
+    // tocar su área es la forma de abrirlas desde el mapa.
+    const areas = new Konva.Group();
     const dots = new Konva.Group();
 
     if (!zoneMode) {
@@ -153,6 +155,7 @@ function build() {
                     fill: color,
                     opacity: zoneMode ? 0.08 : 0.2,
                     perfectDrawEnabled: false,
+                    listening: false,
                 }),
             );
         }
@@ -204,18 +207,59 @@ function build() {
 
 // Las áreas vienen en px del mapa general, igual que el escenario.
 function addArea(group, area) {
-    const color = props.zones[area.key]?.color ?? "#94a3b8";
+    const zone = props.zones[area.key];
+    const color = zone?.color ?? "#94a3b8";
+    const clickable = area.general && zone?.available !== false && !props.readonly;
+
+    const shape = new Konva.Line({
+        points: area.polygon.flatMap((point) => [point.x, point.y]),
+        closed: true,
+        fill: color,
+        opacity: zone?.available === false ? 0.08 : area.general ? 0.3 : 0.16,
+        stroke: color,
+        strokeWidth: 3,
+        lineJoin: "round",
+        perfectDrawEnabled: false,
+        listening: clickable,
+    });
+    group.add(shape);
+
+    if (area.general && zone?.name) addAreaLabel(group, area.polygon, zone.name);
+    if (!clickable) return;
+
+    shape.on("click tap", (event) => {
+        event.cancelBubble = true;
+        emit("zone", area.key);
+    });
+    shape.on("mouseenter", () => {
+        stage.container().style.cursor = "pointer";
+        shape.opacity(0.45);
+    });
+    shape.on("mouseleave", () => {
+        stage.container().style.cursor = "default";
+        shape.opacity(0.3);
+    });
+}
+
+// Nombre centrado en el área; las zonas generales no tienen asientos que la identifiquen.
+function addAreaLabel(group, polygon, name) {
+    const xs = polygon.map((point) => point.x);
+    const ys = polygon.map((point) => point.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const height = Math.max(...ys) - Math.min(...ys);
+    const fontSize = Math.max(12, Math.min(28, height * 0.45, (width / Math.max(name.length, 1)) * 1.5));
 
     group.add(
-        new Konva.Line({
-            points: area.polygon.flatMap((point) => [point.x, point.y]),
-            closed: true,
-            fill: color,
-            opacity: props.zones[area.key]?.available === false ? 0.08 : 0.16,
-            stroke: color,
-            strokeWidth: 3,
-            lineJoin: "round",
-            perfectDrawEnabled: false,
+        new Konva.Text({
+            x: Math.min(...xs),
+            y: Math.min(...ys) + height / 2 - fontSize / 2,
+            width,
+            text: name,
+            align: "center",
+            fontSize,
+            fontStyle: "bold",
+            fill: "#334155",
+            listening: false,
         }),
     );
 }
@@ -233,6 +277,7 @@ function addMainStage(group, bar) {
             height: bar.height,
             fill: "#000000",
             cornerRadius: 4,
+            listening: false,
         }),
         new Konva.Text({
             x: bar.x,
@@ -243,6 +288,7 @@ function addMainStage(group, bar) {
             fontSize,
             fontStyle: "bold",
             fill: "#ffffff",
+            listening: false,
         }),
     );
 }

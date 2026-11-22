@@ -79,9 +79,21 @@ class WebCatalog
             ->values();
     }
 
+    /**
+     * Mapa del recinto sin las secciones marcadas como no visibles en web
+     * (section@web="false"); esas solo se venden en taquilla.
+     */
     public function stage(EventoVista $event, Collection $localities): ?array
     {
-        return $this->catalog->stage($event, $localities);
+        $stage = $this->catalog->stage($event, $localities);
+
+        if ($stage === null) {
+            return null;
+        }
+
+        $stage['sections'] = array_values(array_filter($stage['sections'], fn (array $section) => $section['web']));
+
+        return $stage;
     }
 
     public function section(?array $stage, string $sectionId): ?array

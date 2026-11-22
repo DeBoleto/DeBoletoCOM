@@ -131,6 +131,19 @@ class StageMapParserTest extends TestCase
         $this->assertSame(['x' => 5, 'y' => 10], $stage['sections'][0]['offset']);
     }
 
+    public function test_reads_web_visibility(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><sections>'
+            .'<section name="A" section_id="A" locality_id="1" capacity="10" web="true" />'
+            .'<section name="B" section_id="B" locality_id="1" capacity="10" web="false" />'
+            .'<section name="C" section_id="C" locality_id="1" capacity="10" />'
+            .'</sections></stage>',
+        );
+
+        $this->assertSame([true, false, true], array_column($stage['sections'], 'web'));
+    }
+
     public function test_main_stage_without_size_is_ignored(): void
     {
         $stage = StageMapParser::parseXml(
