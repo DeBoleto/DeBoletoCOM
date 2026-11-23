@@ -81,7 +81,6 @@
             </section>
 
             <section
-                v-if="delivered.size"
                 class="mt-6 flex flex-col gap-3 rounded-xl border bg-bo-card p-4 sm:flex-row sm:items-center sm:justify-between"
                 :class="customer ? 'border-bo-line' : 'border-bo-pending'"
                 aria-label="Cliente de la compra"
@@ -193,15 +192,16 @@ const props = defineProps({
     isBond: { type: Boolean, default: false },
     total: { type: Number, required: true },
     tickets: { type: Number, required: true },
+    customer: { type: Object, default: null },
 });
 
 const delivered = reactive(new Set());
 const phone = ref("");
 const finishing = ref(false);
 const whatsapp = reactive({ sending: false, error: "", sent: "" });
-const customer = ref(null);
+const customer = ref(props.customer);
 const customerDialog = ref(null);
-const customerForm = reactive({ data: { nombre: "", apellido: "", telefono: "", correo: "" }, errors: {}, saving: false });
+const customerForm = reactive({ data: { nombre: "", apellido: "", telefono: props.customer?.phone ?? "", correo: props.customer?.email ?? "" }, errors: {}, saving: false });
 let customerAsked = false;
 
 const customerFields = [

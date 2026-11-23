@@ -69,7 +69,7 @@
                 </dl>
             </article>
 
-            <form class="space-y-5" @submit.prevent="confirm">
+            <form v-if="step === 'payment'" class="space-y-5" @submit.prevent="toCustomer">
                 <section class="rounded-xl border border-bo-line bg-bo-card p-5">
                     <p class="text-sm text-bo-slate">Forma de pago</p>
                     <p class="text-lg font-semibold">{{ payment.paymentType.label }}</p>
@@ -109,9 +109,9 @@
                 <button
                     type="submit"
                     class="w-full rounded-lg bg-bo-green px-4 py-3.5 text-lg font-semibold text-white hover:bg-bo-green-dark disabled:cursor-not-allowed disabled:opacity-50"
-                    :disabled="!form.acepto || form.processing"
+                    :disabled="!form.acepto"
                 >
-                    {{ form.processing ? "Registrando venta…" : `Cobrar ${money(totals.total)}` }}
+                    Cobrar {{ money(totals.total) }}
                 </button>
 
                 <div class="flex justify-between">
@@ -128,6 +128,51 @@
                         Cancelar venta
                     </Link>
                 </div>
+            </form>
+
+            <form v-else class="space-y-5" novalidate @submit.prevent="confirm">
+                <section class="rounded-xl border border-bo-line bg-bo-card p-5" aria-labelledby="customer-step-title">
+                    <h3 id="customer-step-title" class="text-lg font-semibold">Datos del cliente</h3>
+                    <p class="text-sm text-bo-slate">La compra quedará a nombre del cliente. Si el teléfono o el correo ya tienen cuenta, se usa la existente.</p>
+
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        <label
+                            v-for="(field, index) in customerFields"
+                            :key="field.key"
+                            class="flex flex-col gap-1 text-sm font-semibold"
+                            :class="field.wide ? 'sm:col-span-2' : ''"
+                        >
+                            {{ field.label }}
+                            <input
+                                :ref="index === 0 ? 'firstCustomerInput' : undefined"
+                                v-model="form[field.key]"
+                                :type="field.type"
+                                :inputmode="field.inputmode"
+                                autocomplete="off"
+                                :maxlength="field.maxlength"
+                                :placeholder="field.placeholder"
+                                class="rounded-lg border-bo-line py-2 text-sm font-normal focus:border-bo-green focus:ring-bo-green"
+                                :class="field.key === 'telefono' ? 'tabular' : ''"
+                                :aria-invalid="!!form.errors[field.key]"
+                                required
+                            />
+                            <span v-if="form.errors[field.key]" class="text-xs font-normal text-bo-sold">{{ form.errors[field.key] }}</span>
+                        </label>
+                    </div>
+                </section>
+
+                <button
+                    type="submit"
+                    class="w-full rounded-lg bg-bo-green px-4 py-3.5 text-lg font-semibold text-white hover:bg-bo-green-dark disabled:cursor-not-allowed disabled:opacity-50"
+                    :disabled="!customerReady || form.processing"
+                >
+                    {{ form.processing ? "Registrando venta…" : `Registrar venta ${money(totals.total)}` }}
+                </button>
+
+                <button type="button" class="inline-flex items-center gap-1 text-sm font-medium text-bo-slate hover:text-bo-ink" @click="step = 'payment'">
+                    <BoIcon name="chevronLeft" :size="16" />
+                    Volver al cobro
+                </button>
             </form>
         </div>
     </dialog>
@@ -152,12 +197,26 @@ const emit = defineEmits(["close"]);
 const dialog = ref(null);
 const receivedInput = ref(null);
 const received = ref("");
-const form = useForm({ acepto: false, token: "" });
+const firstCustomerInput = ref(null);
+const step = ref("payment");
+const form = useForm({ acepto: false, token: "", nombre: "", apellido: "", telefono: "", correo: "" });
+
+const customerFields = [
+    { key: "nombre", label: "Nombre", type: "text", maxlength: 100 },
+    { key: "apellido", label: "Apellido", type: "text", maxlength: 100 },
+    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", maxlength: 14, placeholder: "10 dígitos" },
+    { key: "correo", label: "Correo", type: "email", maxlength: 150, wide: true },
+];
+
+const customerReady = computed(
+    () => form.nombre.trim() && form.apellido.trim() && form.telefono.replace(/\D/g, "").length === 10 && form.correo.includes("@"),
+);
 
 const totals = computed(() => props.payment?.totals ?? {});
 const change = computed(() => Math.round((Number(received.value || 0) - (totals.value.total ?? 0)) * 100) / 100);
 
 function open() {
+    step.value = "payment";
     received.value = "";
     form.reset();
     form.clearErrors();
@@ -171,12 +230,25 @@ function close() {
     dialog.value?.close();
 }
 
+function toCustomer() {
+    if (!form.acepto) return;
+
+    step.value = "customer";
+    nextTick(() => {
+        const input = firstCustomerInput.value;
+        (Array.isArray(input) ? input[0] : input)?.focus();
+    });
+}
+
 function confirm() {
     form.post(route("boxoffice.tickets.checkout.confirm", props.event.id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: (page) => {
             if (!page.props.payment) close();
+        },
+        onError: (errors) => {
+            if (errors.acepto || errors.token) step.value = "payment";
         },
     });
 }

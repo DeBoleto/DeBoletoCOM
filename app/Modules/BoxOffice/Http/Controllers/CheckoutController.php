@@ -4,7 +4,7 @@ namespace App\Modules\BoxOffice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Exceptions\SeatsUnavailableException;
-use App\Modules\BoxOffice\Http\Requests\ConfirmPurchaseRequest;
+use App\Modules\BoxOffice\Http\Requests\ConfirmSaleRequest;
 use App\Modules\BoxOffice\Http\Requests\SelectTicketsRequest;
 use App\Modules\BoxOffice\Policies\BoxOfficeAbilities;
 use App\Modules\BoxOffice\Services\CashRegister\CashRegister;
@@ -19,6 +19,7 @@ use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
 use App\Modules\BoxOffice\Services\Checkout\SectionsStateBuilder;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\BoxOffice\Services\Checkout\TicketPricing;
+use App\Modules\BoxOffice\Services\Customers\PurchaseCustomer;
 use App\Modules\BoxOffice\Support\EventImage;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\EventosLocalidades;
@@ -27,6 +28,7 @@ use App\Modules\Events\Models\Views\EventoFuncionVista;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Events\Support\EventPromotions;
 use App\Modules\Orders\Enums\PaymentType;
+use App\Modules\Orders\Models\EventosCompras;
 use App\Modules\Users\Models\Usuarios;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -140,7 +142,7 @@ class CheckoutController extends Controller
         return redirect()->route('boxoffice.tickets.checkout.selection', $evento)->with(self::OPEN_PAYMENT, $state !== null);
     }
 
-    public function confirm(ConfirmPurchaseRequest $request, PurchaseService $purchases, ConfirmationGuard $guard, CashRegister $registers, int $evento): RedirectResponse
+    public function confirm(ConfirmSaleRequest $request, PurchaseService $purchases, PurchaseCustomer $customers, ConfirmationGuard $guard, CashRegister $registers, int $evento): RedirectResponse
     {
         $event = $this->sellableEvent($evento);
         $state = $this->store->get($evento);
@@ -162,9 +164,10 @@ class CheckoutController extends Controller
         try {
             $purchaseId = $guard->once(
                 "{$request->user()->pk_usuario}:sale:{$evento}:{$request->validated('token')}",
-                fn () => DB::transaction(function () use ($purchases, $registers, $register, $state, $event, $request) {
+                fn () => DB::transaction(function () use ($purchases, $customers, $registers, $register, $state, $event, $request) {
                     $purchase = $purchases->purchase($state, $event, $request->user());
                     $registers->attach($register, $purchase);
+                    $customers->assign($purchase, $request->customer());
 
                     return $purchase->pk_evento_compra;
                 }),
@@ -199,6 +202,7 @@ class CheckoutController extends Controller
             'isBond' => (int) $event->bono === 1,
             'total' => $state->total(),
             'tickets' => count($state->lines),
+            'customer' => $this->customerOf($state->purchaseId),
         ]);
     }
 
@@ -219,6 +223,18 @@ class CheckoutController extends Controller
         $this->holds->releaseAll();
 
         return redirect()->route('boxoffice.tickets.index');
+    }
+
+    private function customerOf(int $purchaseId): ?array
+    {
+        $customerId = EventosCompras::query()->whereKey($purchaseId)->value('pk_usuario');
+        $customer = $customerId ? Usuarios::query()->find($customerId) : null;
+
+        return $customer ? [
+            'name' => trim("{$customer->nombre} {$customer->apellido_paterno}"),
+            'phone' => $customer->telefono,
+            'email' => $customer->correo,
+        ] : null;
     }
 
     private function paymentSummary(EventoVista $event, CheckoutState $state): array
