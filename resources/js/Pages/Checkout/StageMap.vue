@@ -393,7 +393,8 @@ const tooltip = computed(() => {
             zone: section.name,
             color: zoneColor(section),
             status: section.available ? "" : "No disponible",
-            detail: section.available ? `${money(sectionPrice(section))} · Doble clic para acercar` : "",
+            detail: section.available ? money(sectionPrice(section)) : "",
+            hint: section.available ? "Doble clic para acercar" : "",
         };
     }
 

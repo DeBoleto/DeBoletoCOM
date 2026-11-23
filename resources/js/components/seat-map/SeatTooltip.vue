@@ -1,7 +1,7 @@
 <template>
     <Teleport to="body">
         <div class="seat-tip" :class="{ 'seat-tip--below': below }" :style="position" aria-hidden="true">
-            <div v-if="row !== null || seat !== null" class="seat-tip-place">
+            <div v-if="hasPlace" class="seat-tip-place">
                 <div class="seat-tip-cell">
                     <span class="seat-tip-caption">Fila</span>
                     <strong class="seat-tip-value">{{ row ?? "—" }}</strong>
@@ -11,10 +11,13 @@
                     <strong class="seat-tip-value">{{ seat ?? "—" }}</strong>
                 </div>
             </div>
+            <div v-if="status || detail || hint" class="seat-tip-info" :class="{ 'seat-tip-info--ruled': hasPlace }">
+                <span v-if="status" class="seat-tip-status">{{ status }}</span>
+                <strong v-if="detail" class="seat-tip-price">{{ detail }}</strong>
+                <span v-if="hint" class="seat-tip-hint">{{ hint }}</span>
+            </div>
             <div class="seat-tip-zone" :style="{ background: zoneColor, color: ink }">
-                <span v-if="status" class="seat-tip-status" :style="{ borderColor: ink }">{{ status }}</span>
                 <strong class="seat-tip-name">{{ zone }}</strong>
-                <span v-if="detail" class="seat-tip-detail">{{ detail }}</span>
             </div>
         </div>
     </Teleport>
@@ -24,8 +27,8 @@
 import { computed } from "vue";
 
 /**
- * Tarjeta flotante de un asiento o zona del mapa: fila y asiento en grande
- * sobre blanco y una franja con el color de la zona, con texto blanco u
+ * Tarjeta flotante de un asiento o zona del mapa: fila, asiento, precio y
+ * ayuda sobre blanco y una franja con el color de la zona, con texto blanco u
  * oscuro según lo que contraste mejor con ese color.
  */
 const props = defineProps({
@@ -37,10 +40,11 @@ const props = defineProps({
     seat: { type: [String, Number], default: null },
     status: { type: String, default: "" },
     detail: { type: String, default: "" },
+    hint: { type: String, default: "" },
 });
 
 const FALLBACK = "#be3455";
-const HALF_WIDTH = 120;
+const HALF_WIDTH = 150;
 
 const hexColor = computed(() => {
     const value = String(props.color ?? "").trim();
@@ -64,6 +68,8 @@ const ink = computed(() => {
     return (luminance + 0.05) / 0.05 > 1.05 / (luminance + 0.05) ? "#111827" : "#ffffff";
 });
 
+const hasPlace = computed(() => props.row !== null || props.seat !== null);
+
 const below = computed(() => props.y < 170);
 
 const position = computed(() => {
@@ -79,13 +85,13 @@ const position = computed(() => {
     position: fixed;
     z-index: 80;
     width: max-content;
-    min-width: 190px;
-    max-width: 240px;
+    min-width: 220px;
+    max-width: 300px;
     overflow: hidden;
-    border-radius: 18px;
+    border-radius: 10px;
     background: #ffffff;
     box-shadow:
-        0 18px 40px -12px rgba(15, 23, 42, 0.45),
+        0 14px 32px -12px rgba(15, 23, 42, 0.45),
         0 0 0 1px rgba(15, 23, 42, 0.08);
     color: #111827;
     font-family: inherit;
@@ -107,17 +113,17 @@ const position = computed(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 10px 14px 8px;
+    gap: 1px;
+    padding: 8px 14px 6px;
 }
 
 .seat-tip-cell + .seat-tip-cell {
-    border-left: 3px solid #e5e7eb;
+    border-left: 2px solid #e5e7eb;
 }
 
 .seat-tip-caption {
     color: #6b7280;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -125,46 +131,63 @@ const position = computed(() => {
 
 .seat-tip-value {
     color: #111827;
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 800;
-    line-height: 1.05;
+    line-height: 1.1;
     font-variant-numeric: tabular-nums;
 }
 
-.seat-tip-zone {
+.seat-tip-info {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 10px 16px 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 7px 14px;
 }
 
-.seat-tip-name {
-    overflow: hidden;
-    font-size: 17px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
+.seat-tip-info--ruled {
+    justify-content: center;
+    border-top: 1px solid #eef0f3;
 }
 
-.seat-tip-detail {
-    font-size: 12px;
-    font-weight: 600;
-    opacity: 0.9;
+.seat-tip-price {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.seat-tip-hint {
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 .seat-tip-status {
-    align-self: flex-start;
-    margin-bottom: 4px;
     padding: 1px 8px;
-    border: 1px solid;
     border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+}
+
+.seat-tip-zone {
+    padding: 7px 14px;
+}
+
+.seat-tip-name {
+    display: block;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 @keyframes seat-tip-in {

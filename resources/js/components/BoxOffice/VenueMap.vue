@@ -118,7 +118,7 @@ const tooltip = computed(() => {
             zone: zone.name,
             color: zone.color,
             status: zone.available ? "" : "No disponible",
-            detail: "Doble clic para acercar",
+            hint: "Doble clic para acercar",
         };
     }
 
@@ -130,7 +130,7 @@ const tooltip = computed(() => {
         row: current.seat.fila ?? null,
         seat: current.seat.id,
         status: mine ? "Seleccionado" : STATUS_LABEL[current.seat.status] ?? "",
-        detail: !props.readonly && current.seat.status === "disponible" && !mine ? "Disponible" : "",
+        hint: !props.readonly && current.seat.status === "disponible" && !mine ? "Disponible" : "",
     };
 });
 
