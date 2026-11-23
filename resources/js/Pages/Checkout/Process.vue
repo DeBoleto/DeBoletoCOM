@@ -304,15 +304,7 @@
                 </div>
             </Transition>
 
-            <div
-                v-if="hoverSeat && tooltip"
-                class="seat-tooltip"
-                :style="{ left: `${hoverSeat.clientX}px`, top: `${hoverSeat.clientY}px` }"
-                aria-hidden="true"
-            >
-                <strong>{{ tooltip.title }}</strong>
-                <span>{{ tooltip.detail }}</span>
-            </div>
+            <SeatTooltip v-if="hoverSeat && tooltip" :x="hoverSeat.clientX" :y="hoverSeat.clientY" v-bind="tooltip" />
         </main>
 
         <SiteFooter />
@@ -337,6 +329,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import ZoneCanvas from "@/components/seat-map/ZoneCanvas.vue";
 import SeatCanvas from "@/components/seat-map/SeatCanvas.vue";
+import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
@@ -463,12 +456,15 @@ const sectionWithStatus = computed(() => {
 const tooltip = computed(() => {
     const seat = hoverSeat.value?.seat;
     if (!seat || !activeInfo.value) return null;
-    const row = seatRows.value[seat.id];
-    const status = selectedKeys.value.includes(`${activeKey.value}:${seat.id}`) ? "Tu selección" : STATUS_LABEL[seat.status] ?? seat.status;
+    const mine = selectedKeys.value.includes(`${activeKey.value}:${seat.id}`);
 
     return {
-        title: `Asiento ${seat.id}${row ? ` · Fila ${row}` : ""}`,
-        detail: seat.status === "disponible" ? `${money(activeInfo.value.price)} · ${status}` : status,
+        zone: activeSection.value?.name ?? "",
+        color: activeSection.value ? zoneColor(activeSection.value) : "",
+        row: seatRows.value[seat.id] ?? null,
+        seat: seat.id,
+        status: mine ? "Tu selección" : seat.status === "disponible" ? "" : STATUS_LABEL[seat.status] ?? seat.status,
+        detail: seat.status === "disponible" || mine ? money(activeInfo.value.price) : "",
     };
 });
 
@@ -1725,31 +1721,6 @@ button.crumb:hover {
     transform: translateY(100%);
 }
 
-.seat-tooltip {
-    position: fixed;
-    z-index: 75;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    background: #0a0a0f;
-    border: 1px solid var(--color-border-strong);
-    box-shadow: var(--shadow-md);
-    font-size: var(--text-xs);
-    pointer-events: none;
-    transform: translate(-50%, calc(-100% - 14px));
-    white-space: nowrap;
-}
-
-.seat-tooltip strong {
-    font-size: var(--text-sm);
-}
-
-.seat-tooltip span {
-    color: var(--color-brand);
-    font-weight: 700;
-}
 
 .rules-text {
     white-space: pre-line;

@@ -12,7 +12,10 @@
             @zone="emit('zone', $event)"
             @toggle="emit('toggle', $event)"
             @direct="direct = $event"
+            @hover="hover = $event"
         />
+
+        <SeatTooltip v-if="tooltip" :x="hover.clientX" :y="hover.clientY" v-bind="tooltip" />
 
         <p v-if="!seats.length" class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-bo-slate">
             {{ emptyText }}
@@ -55,6 +58,7 @@
 import { computed, ref } from "vue";
 import BoIcon from "./BoIcon.vue";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
+import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
 import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
 
 /**
@@ -74,8 +78,11 @@ const props = defineProps({
 
 const emit = defineEmits(["zone", "toggle"]);
 
+const STATUS_LABEL = { vendido: "Vendido", en_proceso: "En proceso", no_disponible: "No disponible" };
+
 const canvas = ref(null);
 const direct = ref(false);
+const hover = ref(null);
 
 const sections = computed(() => props.stage?.sections ?? []);
 const mainStage = computed(() => venueMainStage(props.stage));
@@ -100,6 +107,32 @@ const zones = computed(() =>
         ]),
     ),
 );
+
+const tooltip = computed(() => {
+    const current = hover.value;
+    const zone = current && zones.value[current.seat.key];
+    if (!zone) return null;
+
+    if (!current.zoneMode) {
+        return {
+            zone: zone.name,
+            color: zone.color,
+            status: zone.available ? "" : "No disponible",
+            detail: "Doble clic para acercar",
+        };
+    }
+
+    const mine = props.selectedKeys.includes(`${current.seat.key}:${current.seat.id}`);
+
+    return {
+        zone: zone.name,
+        color: zone.color,
+        row: current.seat.fila ?? null,
+        seat: current.seat.id,
+        status: mine ? "Seleccionado" : STATUS_LABEL[current.seat.status] ?? "",
+        detail: !props.readonly && current.seat.status === "disponible" && !mine ? "Disponible" : "",
+    };
+});
 
 const hint = computed(() => {
     if (props.readonly) return "Doble toque para acercar";

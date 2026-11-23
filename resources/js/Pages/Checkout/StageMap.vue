@@ -235,15 +235,7 @@
                 </div>
             </Transition>
 
-            <div
-                v-if="tooltip"
-                class="seat-tooltip"
-                :style="{ left: `${hoverSeat.clientX}px`, top: `${hoverSeat.clientY}px` }"
-                aria-hidden="true"
-            >
-                <strong :style="{ color: tooltip.color }">{{ tooltip.title }}</strong>
-                <span>{{ tooltip.detail }}</span>
-            </div>
+            <SeatTooltip v-if="tooltip" :x="hoverSeat.clientX" :y="hoverSeat.clientY" v-bind="tooltip" />
         </main>
 
         <MobileBottomNav v-if="totalTickets === 0" @open-login="auth?.open('phone')" />
@@ -266,6 +258,7 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
+import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
 import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
 import { singleSeatGap } from "@/components/seat-map/seatGap.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
@@ -397,19 +390,23 @@ const tooltip = computed(() => {
 
     if (!hover.zoneMode) {
         return {
-            title: section.name,
+            zone: section.name,
             color: zoneColor(section),
-            detail: section.available ? `${money(sectionPrice(section))} · Doble clic para acercar` : "No disponible",
+            status: section.available ? "" : "No disponible",
+            detail: section.available ? `${money(sectionPrice(section))} · Doble clic para acercar` : "",
         };
     }
 
     const mine = selectedKeys.value.includes(`${hover.seat.key}:${hover.seat.id}`);
-    const status = mine ? "Tu selección" : STATUS_LABEL[hover.seat.status] ?? hover.seat.status;
+    const available = hover.seat.status === "disponible";
 
     return {
-        title: `Fila ${hover.seat.fila} · Asiento ${hover.seat.id}`,
+        zone: section.name,
         color: zoneColor(section),
-        detail: hover.seat.status === "disponible" ? `${money(infos[section.key]?.price ?? sectionPrice(section))} · ${status}` : status,
+        row: hover.seat.fila ?? null,
+        seat: hover.seat.id,
+        status: mine ? "Tu selección" : available ? "" : STATUS_LABEL[hover.seat.status] ?? hover.seat.status,
+        detail: available || mine ? money(infos[section.key]?.price ?? sectionPrice(section)) : "",
     };
 });
 
@@ -1522,31 +1519,6 @@ button.crumb:hover {
     transform: translateY(100%);
 }
 
-.seat-tooltip {
-    position: fixed;
-    z-index: 75;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-sm);
-    background: #0a0a0f;
-    box-shadow: var(--shadow-md);
-    font-size: var(--text-xs);
-    white-space: nowrap;
-    pointer-events: none;
-    transform: translate(-50%, calc(-100% - 14px));
-}
-
-.seat-tooltip strong {
-    font-size: var(--text-sm);
-}
-
-.seat-tooltip span {
-    color: var(--color-text-secondary);
-    font-weight: 700;
-}
 
 .rules-text {
     color: var(--color-text-secondary);
@@ -1604,12 +1576,6 @@ button.crumb:hover {
 @keyframes bump {
     from {
         transform: scale(0.4);
-    }
-}
-
-@media (hover: none) {
-    .seat-tooltip {
-        display: none;
     }
 }
 
