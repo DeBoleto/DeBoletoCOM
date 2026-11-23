@@ -144,6 +144,18 @@ class StageMapParserTest extends TestCase
         $this->assertSame([true, false, true], array_column($stage['sections'], 'web'));
     }
 
+    public function test_reads_section_rotation(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><sections>'
+            .'<section name="A" section_id="A" locality_id="1" rotation="-22.5"><rows><row y="3"><seat seat_id="A1" x="3" /></row></rows></section>'
+            .'<section name="B" section_id="B" locality_id="1" capacity="10" />'
+            .'</sections></stage>',
+        );
+
+        $this->assertSame([-22.5, 0.0], array_column($stage['sections'], 'rotation'));
+    }
+
     public function test_main_stage_without_size_is_ignored(): void
     {
         $stage = StageMapParser::parseXml(

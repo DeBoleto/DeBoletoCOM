@@ -132,6 +132,8 @@ class StageMapParser
                     'x' => (int) ($section['numx'] ?? 0),
                     'y' => (int) ($section['num'] ?? 0),
                 ],
+                // Grados que se giran los asientos en el mapa completo (editor v2).
+                'rotation' => (float) ($section['rotation'] ?? 0),
                 'price' => self::matchPrice($localityId, $zones),
             ];
             $sectionIndex++;

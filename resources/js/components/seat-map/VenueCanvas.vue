@@ -148,8 +148,11 @@ function build() {
         if (zoneMode || !seat.inArea) {
             areas.add(
                 new Konva.Rect({
-                    x: x - cell / 2,
-                    y: y - cell / 2,
+                    x,
+                    y,
+                    offsetX: cell / 2,
+                    offsetY: cell / 2,
+                    rotation: zoneMode ? 0 : (seat.angle ?? 0),
                     width: cell,
                     height: cell,
                     fill: color,

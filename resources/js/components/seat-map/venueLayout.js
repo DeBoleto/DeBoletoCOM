@@ -76,14 +76,31 @@ export function venueAreas(sections) {
         .map((section) => ({ key: section.key, polygon: section.polygon, general: section.capacity !== null }));
 }
 
+function rotate(point, center, radians) {
+    if (!radians) return point;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+
+    return { x: center.x + dx * cos - dy * sin, y: center.y + dx * sin + dy * cos };
+}
+
+function radiansOf(section) {
+    return ((Number(section.rotation) || 0) * Math.PI) / 180;
+}
+
 /**
  * Escala y centra los asientos de la sección dentro de su área (en celdas),
- * para que llenen el área sin importar el tamaño de celda del XML.
+ * para que llenen el área sin importar el tamaño de celda del XML. Con
+ * `rotation` el área se mide ya girada de vuelta, para que los asientos
+ * sigan la inclinación del polígono.
  */
 function areaFit(section, offset) {
     const polygon = polygonOf(section);
     if (!polygon) return null;
 
+    const radians = radiansOf(section);
     const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x + offset.x));
     const ys = section.rows.map((row) => row.y + offset.y);
     const seatBox = {
@@ -92,11 +109,17 @@ function areaFit(section, offset) {
         maxX: Math.max(...xs) + 0.5,
         maxY: Math.max(...ys) + 0.5,
     };
+    const cells = polygon.map((point) => ({ x: point.x / GRID, y: point.y / GRID }));
+    const pivot = {
+        x: (Math.min(...cells.map((point) => point.x)) + Math.max(...cells.map((point) => point.x))) / 2,
+        y: (Math.min(...cells.map((point) => point.y)) + Math.max(...cells.map((point) => point.y))) / 2,
+    };
+    const upright = cells.map((point) => rotate(point, pivot, -radians));
     const areaBox = {
-        minX: Math.min(...polygon.map((point) => point.x)) / GRID,
-        minY: Math.min(...polygon.map((point) => point.y)) / GRID,
-        maxX: Math.max(...polygon.map((point) => point.x)) / GRID,
-        maxY: Math.max(...polygon.map((point) => point.y)) / GRID,
+        minX: Math.min(...upright.map((point) => point.x)),
+        minY: Math.min(...upright.map((point) => point.y)),
+        maxX: Math.max(...upright.map((point) => point.x)),
+        maxY: Math.max(...upright.map((point) => point.y)),
     };
     const areaWidth = (areaBox.maxX - areaBox.minX) * (1 - AREA_MARGIN * 2);
     const areaHeight = (areaBox.maxY - areaBox.minY) * (1 - AREA_MARGIN * 2);
@@ -107,6 +130,8 @@ function areaFit(section, offset) {
 
     return {
         size,
+        radians,
+        pivot,
         fromX: (seatBox.minX + seatBox.maxX) / 2,
         fromY: (seatBox.minY + seatBox.maxY) / 2,
         toX: (areaBox.minX + areaBox.maxX) / 2,
@@ -117,8 +142,9 @@ function areaFit(section, offset) {
 /**
  * Asientos listos para VenueCanvas. `statusFor(section, seat)` devuelve el
  * estado del asiento (disponible, vendido, en_proceso o no_disponible).
- * `x`/`y` son celdas del mapa completo y `size` la escala del asiento ahí;
- * `zx`/`zy` son las celdas dentro de la zona.
+ * `x`/`y` son celdas del mapa completo, `size` la escala del asiento ahí y
+ * `angle` los grados que gira su sección; `zx`/`zy` son las celdas dentro de
+ * la zona (sin girar).
  */
 export function venueSeats(sections, statusFor) {
     const offsets = venueOffsets(sections);
@@ -127,19 +153,28 @@ export function venueSeats(sections, statusFor) {
     return seatedSections(sections).flatMap((section) => {
         const offset = offsets[section.key] ?? { x: 0, y: 0 };
         const fit = placed ? areaFit(section, offset) : null;
+        const radians = placed ? radiansOf(section) : 0;
+        // Sin área se gira alrededor del centro de los asientos, igual que el editor.
+        const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x + offset.x));
+        const ys = section.rows.map((row) => row.y + offset.y);
+        const center = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
 
         return section.rows.flatMap((row) =>
             row.seats.map((seat) => {
                 const x = seat.x + offset.x;
                 const y = row.y + offset.y;
+                const point = fit
+                    ? rotate({ x: fit.toX + (x - fit.fromX) * fit.size, y: fit.toY + (y - fit.fromY) * fit.size }, fit.pivot, fit.radians)
+                    : rotate({ x, y }, center, radians);
 
                 return {
                     key: section.key,
                     id: seat.id,
                     fila: row.fila,
-                    x: fit ? fit.toX + (x - fit.fromX) * fit.size : x,
-                    y: fit ? fit.toY + (y - fit.fromY) * fit.size : y,
+                    x: point.x,
+                    y: point.y,
                     size: fit ? fit.size : 1,
+                    angle: (radians * 180) / Math.PI,
                     inArea: fit !== null,
                     zx: seat.x,
                     zy: row.y,
