@@ -29,6 +29,7 @@
                 :stage="stage"
                 :statuses="seatStatuses"
                 :selected-keys="selectedKeys"
+                :gap-keys="gapKeys"
                 :active-key="focusKey"
                 @zone="focusZone"
                 @toggle="pickSeat"
@@ -37,7 +38,7 @@
                 {{ notice }}
             </p>
             <p v-if="seatGap" class="mt-3 rounded-lg bg-bo-sold-soft px-3 py-2 text-sm font-medium text-bo-sold" role="alert">
-                Selecciona asientos pegados: quedó libre el asiento {{ seatGap.seat }} de la fila {{ seatGap.fila }} en {{ seatGap.zone }}, entre dos de los asientos elegidos.
+                {{ seatGapMessage(seatGap, "los asientos elegidos") }}
             </p>
             <div class="mt-3 flex flex-wrap gap-2">
                 <button
@@ -132,7 +133,7 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import QuantityStepper from "./QuantityStepper.vue";
 import VenueMap from "./VenueMap.vue";
 import BoIcon from "./BoIcon.vue";
-import { singleSeatGap } from "@/components/seat-map/seatGap.js";
+import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
 import { SEAT_STATUS, zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import { money } from "./format.js";
 import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
@@ -233,17 +234,16 @@ const seatStatuses = computed(() =>
     ),
 );
 
-const seatGap = computed(() => {
-    for (const section of props.stage?.sections ?? []) {
-        if (isGeneral(infos[section.key])) continue;
-
-        const statuses = seatStatuses.value[section.key] ?? {};
-        const gap = singleSeatGap(section, readPick(section.key).seats, (seatId) => (statuses[seatId] ?? "disponible") !== "disponible");
-        if (gap) return gap;
-    }
-
-    return null;
-});
+const seatGaps = computed(() =>
+    (props.stage?.sections ?? [])
+        .filter((section) => !isGeneral(infos[section.key]))
+        .flatMap((section) => {
+            const statuses = seatStatuses.value[section.key] ?? {};
+            return findSeatGaps(section, readPick(section.key).seats, (seatId) => (statuses[seatId] ?? "disponible") !== "disponible");
+        }),
+);
+const seatGap = computed(() => seatGaps.value[0] ?? null);
+const gapKeys = computed(() => seatGaps.value.map((gap) => `${gap.key}:${gap.seat}`));
 
 const venueRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".venue"));
 const holdRoute = computed(() => props.stageRoute.replace(/\.stage$/, ".hold"));

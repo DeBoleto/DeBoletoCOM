@@ -66,7 +66,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { registerKonva } from "./registerKonva.js";
-import { SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
+import { SEAT_GAP, SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
 
 registerKonva();
 
@@ -90,6 +90,7 @@ const props = defineProps({
     section: { type: Object, required: true },
     zoom: { type: Number, default: 1 },
     selectedKeys: { type: Array, default: () => [] },
+    gapIds: { type: Array, default: () => [] },
     variant: { type: String, default: "blocks" },
 });
 
@@ -284,14 +285,20 @@ function statusLabel(status) {
     return STATUS_LABEL[status] || status;
 }
 
+function isGap(seat) {
+    return props.gapIds.includes(seat.id);
+}
+
 function seatFill(seat) {
     if (isSelected(seat)) return palette.value.selected;
+    if (isGap(seat)) return SEAT_GAP.fill;
     if (seat.status === "disponible") return palette.value.available;
     return (SEAT_STATUS[seat.status] ?? SEAT_STATUS.no_disponible).fill;
 }
 
 function seatTextFill(seat) {
     if (isSelected(seat)) return palette.value.selectedText;
+    if (isGap(seat)) return SEAT_GAP.text;
     if (seat.status === "disponible") return palette.value.availableText;
     return (SEAT_STATUS[seat.status] ?? SEAT_STATUS.no_disponible).text;
 }
@@ -351,8 +358,8 @@ function dotConfig(seat) {
         y: toY(seat.y),
         radius: dotRadius.value * grow,
         fill: seatFill(seat),
-        stroke: selected ? palette.value.glow : hovered ? palette.value.hover : (outline ?? undefined),
-        strokeWidth: selected ? Math.max(2, dotRadius.value * 0.2) : hovered ? 2 : outline ? 1.5 : 0,
+        stroke: selected ? palette.value.glow : isGap(seat) ? SEAT_GAP.stroke : hovered ? palette.value.hover : (outline ?? undefined),
+        strokeWidth: selected ? Math.max(2, dotRadius.value * 0.2) : isGap(seat) || hovered ? 2 : outline ? 1.5 : 0,
         dash: outline ? [3, 2] : undefined,
         shadowColor: selected ? palette.value.glow : "#0f172a",
         shadowBlur: selected ? dotRadius.value * 1.4 : hovered ? 8 : 0,

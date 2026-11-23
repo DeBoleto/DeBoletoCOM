@@ -26,7 +26,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Konva from "konva";
-import { SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
+import { SEAT_GAP, SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
 
 const GRID = 20;
 const RADIUS_MAP = 6;
@@ -50,6 +50,7 @@ const props = defineProps({
     zones: { type: Object, required: true },
     activeKey: { type: String, default: null },
     selectedKeys: { type: Array, default: () => [] },
+    gapKeys: { type: Array, default: () => [] },
     mainStage: { type: Object, default: null },
     areas: { type: Array, default: () => [] },
     readonly: { type: Boolean, default: false },
@@ -76,6 +77,7 @@ const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(pref
 const activeSeats = computed(() => props.seats.filter((seat) => seat.key === props.activeKey));
 const visibleSeats = computed(() => (props.activeKey === null ? props.seats : activeSeats.value));
 const selected = computed(() => new Set(props.selectedKeys));
+const gaps = computed(() => new Set(props.gapKeys));
 const index = computed(() => new Map(props.seats.map((seat) => [`${seat.key}:${seat.id}`, seat])));
 const zoneButtons = computed(() =>
     Object.entries(props.zones)
@@ -112,8 +114,18 @@ function position(seat) {
     return props.activeKey === null ? { x: seat.x * GRID, y: seat.y * GRID } : { x: seat.zx * GRID, y: seat.zy * GRID };
 }
 
+function isGap(seat) {
+    return gaps.value.has(`${seat.key}:${seat.id}`);
+}
+
+function stroke(seat) {
+    if (isGap(seat)) return SEAT_GAP.stroke;
+    return seat.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff";
+}
+
 function fill(seat) {
     if (isSelected(seat)) return colorsFor(seat).selected;
+    if (isGap(seat)) return SEAT_GAP.fill;
     if (seat.status === "disponible") return colorsFor(seat).available;
     return (SEAT_STATUS[seat.status] ?? SEAT_STATUS.no_disponible).fill;
 }
@@ -168,7 +180,7 @@ function build() {
             y,
             radius,
             fill: fill(seat),
-            stroke: seat.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff",
+            stroke: stroke(seat),
             strokeWidth: (seat.status === "en_proceso" ? 1.5 : zoneMode ? 2 : 1.5) * Math.sqrt(size),
             dash: seat.status === "en_proceso" ? [3, 2] : undefined,
             perfectDrawEnabled: false,
@@ -306,7 +318,7 @@ function paint() {
     for (const { circle, mark, seat } of nodes.values()) {
         const current = latest(seat);
         circle.fill(fill(current));
-        circle.stroke(current.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff");
+        circle.stroke(stroke(current));
         circle.dash(current.status === "en_proceso" ? [3, 2] : []);
         mark.visible(marks && isSelected(current));
     }
@@ -555,7 +567,7 @@ function resize() {
 watch(() => props.activeKey, build);
 watch(() => [props.mainStage, props.areas], build);
 watch(() => props.seats.map((seat) => seat.key + seat.id).join("|"), build);
-watch([() => props.seats, () => props.selectedKeys], paint);
+watch([() => props.seats, () => props.selectedKeys, () => props.gapKeys], paint);
 
 onMounted(() => {
     stage = new Konva.Stage({

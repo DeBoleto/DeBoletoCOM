@@ -6,7 +6,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * No se puede dejar un solo asiento libre entre dos asientos elegidos de la
- * misma fila: se piden asientos pegados. Aplica a la web y a la taquilla.
+ * misma fila ni a la orilla de la fila junto a uno elegido: se piden asientos
+ * pegados. Aplica a la web y a la taquilla.
  */
 class SeatGapRule
 {
@@ -45,10 +46,18 @@ class SeatGapRule
 
                 $left = $byX->get($seat['x'] - 1);
                 $right = $byX->get($seat['x'] + 1);
+                $isChosen = fn (?array $neighbor) => $neighbor !== null && isset($chosen[(string) $neighbor['id']]);
+                $isEdge = fn (?array $neighbor) => $neighbor === null || ! ($neighbor['selectable'] ?? true);
 
-                if ($left && $right && isset($chosen[(string) $left['id']], $chosen[(string) $right['id']])) {
+                if ($isChosen($left) && $isChosen($right)) {
                     throw ValidationException::withMessages([
                         'asientos' => "Selecciona asientos pegados: quedó libre el asiento {$id} de la fila {$row['fila']} entre dos de los asientos elegidos.",
+                    ]);
+                }
+
+                if (($isEdge($left) && $isChosen($right)) || ($isEdge($right) && $isChosen($left))) {
+                    throw ValidationException::withMessages([
+                        'asientos' => "Selecciona asientos pegados: quedó libre el asiento {$id} de la fila {$row['fila']} a la orilla, junto a los asientos elegidos.",
                     ]);
                 }
             }

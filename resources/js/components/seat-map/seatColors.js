@@ -34,6 +34,8 @@ export function zoneSeatColors(color) {
     };
 }
 
+export const SEAT_GAP = { fill: "#ef4444", stroke: "#b91c1c", text: "#ffffff" };
+
 export const SEAT_STATUS = {
     vendido: { fill: "#cbd5e1", text: "#64748b" },
     en_proceso: { fill: "#ffffff", text: "#64748b", stroke: "#94a3b8" },

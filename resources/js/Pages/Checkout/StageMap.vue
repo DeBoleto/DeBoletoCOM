@@ -28,6 +28,9 @@
             </div>
 
             <TransitionGroup tag="div" name="toast" class="toasts" aria-live="polite">
+                <p v-if="seatGaps.length" key="seat-gap" class="toast toast--error" role="alert">
+                    {{ seatGapMessage(seatGaps[0]) }}
+                </p>
                 <p v-for="toast in toasts" :key="toast.id" class="toast" :class="`toast--${toast.tone}`" role="status">
                     {{ toast.text }}
                 </p>
@@ -115,6 +118,7 @@
                                         :zones="canvasZones"
                                         :active-key="activeKey"
                                         :selected-keys="selectedKeys"
+                                        :gap-keys="gapKeys"
                                         :main-stage="mainStage"
                                         :areas="areas"
                                         @zone="focusZone"
@@ -260,7 +264,7 @@ import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
 import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
-import { singleSeatGap } from "@/components/seat-map/seatGap.js";
+import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -748,17 +752,15 @@ function payload() {
     };
 }
 
-function findSeatGap() {
-    for (const section of sections.value) {
-        if (isGeneral(section.key)) continue;
-
-        const statuses = venue[section.key]?.statuses ?? {};
-        const gap = singleSeatGap(section, readPick(section.key).seats, (seatId) => Boolean(statuses[seatId]) && statuses[seatId] !== "mio");
-        if (gap) return gap;
-    }
-
-    return null;
-}
+const seatGaps = computed(() =>
+    sections.value
+        .filter((section) => !isGeneral(section.key))
+        .flatMap((section) => {
+            const statuses = venue[section.key]?.statuses ?? {};
+            return findSeatGaps(section, readPick(section.key).seats, (seatId) => Boolean(statuses[seatId]) && statuses[seatId] !== "mio");
+        }),
+);
+const gapKeys = computed(() => seatGaps.value.map((gap) => `${gap.key}:${gap.seat}`));
 
 async function submit() {
     if (submitting.value) return;
@@ -768,9 +770,8 @@ async function submit() {
         return;
     }
 
-    const gap = findSeatGap();
+    const gap = seatGaps.value[0];
     if (gap) {
-        notify(`Selecciona asientos pegados: quedó libre el asiento ${gap.seat} de la fila ${gap.fila} en ${gap.zone}, entre dos de tus lugares.`);
         if (activeKey.value !== gap.key) focusZone(gap.key);
         return;
     }

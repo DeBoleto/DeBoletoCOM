@@ -22,6 +22,9 @@
             </div>
 
             <TransitionGroup tag="div" name="toast" class="toasts" aria-live="polite">
+                <p v-if="seatGaps.length" key="seat-gap" class="toast toast--error" role="alert">
+                    {{ seatGapMessage(seatGaps[0]) }}
+                </p>
                 <p v-for="toast in toasts" :key="toast.id" class="toast" :class="`toast--${toast.tone}`" role="status">
                     {{ toast.text }}
                 </p>
@@ -135,6 +138,7 @@
                                             :section="sectionWithStatus"
                                             :zoom="seatZoom"
                                             :selected-keys="selectedKeys"
+                                            :gap-ids="activeGapIds"
                                             variant="dots"
                                             @toggle="toggleSeat"
                                             @hover="hoverSeat = $event"
@@ -345,6 +349,7 @@ import ZoneRail from "@/components/checkout/process/ZoneRail.vue";
 import CartPanel from "@/components/checkout/process/CartPanel.vue";
 import RaceParticipants from "@/components/checkout/process/RaceParticipants.vue";
 import { getJson, money, postJson } from "@/components/checkout/api.js";
+import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
 import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
 
 const props = defineProps({
@@ -408,6 +413,17 @@ const activeSection = computed(() => sections.value.find((section) => section.ke
 const seatColors = computed(() => zoneSeatColors(activeSection.value && zoneColor(activeSection.value)));
 const activeInfo = computed(() => (activeKey.value === null ? null : infos[activeKey.value] ?? null));
 const activeIsGeneral = computed(() => isGeneral(activeKey.value));
+const seatGaps = computed(() =>
+    props.mode === "map"
+        ? sections.value
+              .filter((section) => !isGeneral(section.key) && readPick(section.key).seats.length > 1)
+              .flatMap((section) => {
+                  const statuses = infos[section.key]?.statuses ?? {};
+                  return findSeatGaps(section, readPick(section.key).seats, (seatId) => Boolean(statuses[seatId]) && statuses[seatId] !== "mio");
+              })
+        : [],
+);
+const activeGapIds = computed(() => seatGaps.value.filter((gap) => gap.key === activeKey.value).map((gap) => gap.seat));
 const disabledKeys = computed(() => sections.value.filter((section) => !section.available).map((section) => section.key));
 
 const zones = computed(() =>
@@ -896,6 +912,12 @@ function payload() {
 
 function submit() {
     if (totalTickets.value === 0 || submitting.value) return;
+
+    const gap = seatGaps.value[0];
+    if (gap) {
+        if (activeKey.value !== gap.key) focusZone(gap.key);
+        return;
+    }
 
     if (props.race) {
         const missing = missingAnswers();
