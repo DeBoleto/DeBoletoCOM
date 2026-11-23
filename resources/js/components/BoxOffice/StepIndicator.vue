@@ -32,6 +32,6 @@ import BoIcon from "./BoIcon.vue";
 
 defineProps({
     current: { type: Number, required: true },
-    steps: { type: Array, default: () => ["Boletos", "Cobro", "Entrega"] },
+    steps: { type: Array, default: () => ["Boletos", "Entrega"] },
 });
 </script>

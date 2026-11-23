@@ -18,7 +18,7 @@
             </ul>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[1fr_340px] xl:items-start">
+        <div class="grid gap-6 xl:grid-cols-[1fr_360px] xl:items-start">
             <div class="min-w-0 space-y-6">
                 <section class="rounded-xl border border-bo-line bg-bo-card p-5" aria-labelledby="function-title">
                     <h2 id="function-title" class="font-semibold">Función</h2>
@@ -36,43 +36,6 @@
                             <span class="block font-medium">{{ item.date }}</span>
                             <span class="tabular block text-sm text-bo-slate">{{ item.time }} h</span>
                         </button>
-                    </div>
-                </section>
-
-                <section class="grid gap-6 rounded-xl border border-bo-line bg-bo-card p-5 md:grid-cols-2">
-                    <div>
-                        <h2 id="payment-title" class="font-semibold">Forma de pago</h2>
-                        <div class="mt-3 inline-flex flex-wrap rounded-lg border border-bo-line p-1" role="radiogroup" aria-labelledby="payment-title">
-                            <button
-                                v-for="type in paymentTypes"
-                                :key="type.value"
-                                type="button"
-                                role="radio"
-                                :aria-checked="paymentType === type.value"
-                                class="rounded-md px-4 py-2 text-sm font-medium"
-                                :class="paymentType === type.value ? 'bg-bo-ink text-white' : 'text-bo-slate hover:text-bo-ink'"
-                                @click="paymentType = type.value"
-                            >
-                                {{ type.label }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-end gap-4">
-                        <label class="flex items-center gap-2.5 py-2 text-sm font-medium">
-                            <input v-model="promotion" type="checkbox" class="size-5 rounded border-bo-line text-bo-green focus:ring-bo-green" />
-                            Aplicar 2x1
-                        </label>
-                        <label class="text-sm font-medium">
-                            <span class="mb-1.5 block">Descuento</span>
-                            <select
-                                v-model="discount"
-                                class="rounded-lg border-bo-line py-2 pr-9 text-sm focus:border-bo-green focus:ring-bo-green"
-                            >
-                                <option :value="null">Sin descuento</option>
-                                <option v-for="value in discounts" :key="value" :value="value">{{ value }} %</option>
-                            </select>
-                        </label>
                     </div>
                 </section>
 
@@ -154,7 +117,42 @@
                 </SeatPicker>
             </div>
 
-            <aside class="xl:sticky xl:top-24" aria-label="Resumen de la venta">
+            <aside class="space-y-4 xl:sticky xl:top-24" aria-label="Resumen de la venta">
+                <section class="rounded-xl border border-bo-line bg-bo-card p-5" aria-labelledby="payment-title">
+                    <h2 id="payment-title" class="font-semibold">Forma de pago</h2>
+                    <div class="mt-3 grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-bo-line p-1" role="radiogroup" aria-labelledby="payment-title">
+                        <button
+                            v-for="type in paymentTypes"
+                            :key="type.value"
+                            type="button"
+                            role="radio"
+                            :aria-checked="paymentType === type.value"
+                            class="rounded-md px-2 py-2 text-sm font-medium leading-tight"
+                            :class="paymentType === type.value ? 'bg-bo-ink text-white' : 'text-bo-slate hover:text-bo-ink'"
+                            @click="paymentType = type.value"
+                        >
+                            {{ type.label }}
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap items-end justify-between gap-3">
+                        <label class="flex items-center gap-2.5 py-2 text-sm font-medium">
+                            <input v-model="promotion" type="checkbox" class="size-5 rounded border-bo-line text-bo-green focus:ring-bo-green" />
+                            Aplicar 2x1
+                        </label>
+                        <label class="text-sm font-medium">
+                            <span class="mb-1.5 block">Descuento</span>
+                            <select
+                                v-model="discount"
+                                class="rounded-lg border-bo-line py-2 pr-9 text-sm focus:border-bo-green focus:ring-bo-green"
+                            >
+                                <option :value="null">Sin descuento</option>
+                                <option v-for="value in discounts" :key="value" :value="value">{{ value }} %</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+
                 <div class="bo-stub border border-bo-line shadow-[0_1px_0_rgba(22,32,43,0.04)]" :style="{ '--stub-cut': 'calc(100% - 152px)' }">
                     <div class="p-5">
                         <p class="text-sm text-bo-slate">Tu venta</p>
@@ -226,16 +224,19 @@
                 </div>
             </aside>
         </div>
+
+        <PaymentDialog ref="paymentDialog" :event="event" :payment="currentPayment" />
     </BackOfficeLayout>
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { Link, useForm } from "@inertiajs/vue3";
 import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 import StepIndicator from "@/components/BoxOffice/StepIndicator.vue";
 import QuantityStepper from "@/components/BoxOffice/QuantityStepper.vue";
+import PaymentDialog from "@/components/BoxOffice/PaymentDialog.vue";
 import SeatPicker from "@/components/BoxOffice/SeatPicker.vue";
 import { money } from "@/components/BoxOffice/format.js";
 
@@ -249,11 +250,13 @@ const props = defineProps({
     extraChair: { type: Object, default: null },
     previous: { type: Object, default: null },
     promotions: { type: Object, default: null },
+    payment: { type: Object, default: null },
 });
 
 const maxTickets = 50;
 
 const picker = ref(null);
+const paymentDialog = ref(null);
 const functionId = ref(props.previous?.functionId ?? (props.functions.length === 1 ? props.functions[0].id : null));
 const paymentType = ref(props.previous?.paymentType ?? props.paymentTypes[0]?.value);
 const discount = ref(props.previous?.discount ?? null);
@@ -264,6 +267,22 @@ const specials = reactive({});
 const extraChairs = ref([]);
 
 const form = useForm({});
+
+const currentPayment = ref(props.payment);
+
+watch(
+    () => props.payment,
+    async (value) => {
+        if (!value) return;
+        currentPayment.value = value;
+        await nextTick();
+        paymentDialog.value?.open();
+    },
+);
+
+onMounted(() => {
+    if (props.payment) paymentDialog.value?.open();
+});
 
 const localityOf = (pick) => props.localities.find((locality) => locality.id === pick.localityId) ?? null;
 
@@ -394,6 +413,7 @@ function submit() {
 
     form.transform(() => payload).post(route("boxoffice.tickets.checkout.selection.store", props.event.id), {
         preserveScroll: true,
+        preserveState: true,
     });
 }
 </script>

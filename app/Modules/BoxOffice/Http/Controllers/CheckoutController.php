@@ -38,10 +38,13 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Asistente de venta de taquilla: selección → resumen → venta registrada.
+ * Asistente de venta de taquilla: selección con el cobro en un modal → venta
+ * registrada.
  */
 class CheckoutController extends Controller
 {
+    private const OPEN_PAYMENT = 'boxoffice_checkout_payment';
+
     public function __construct(
         private readonly SaleCatalog $catalog,
         private readonly CheckoutStore $store,
@@ -93,6 +96,9 @@ class CheckoutController extends Controller
                 'paymentType' => $state->paymentType->value,
                 'discount' => $state->discount,
             ] : null,
+            'payment' => $state && ! $state->isPurchased() && $request->session()->get(self::OPEN_PAYMENT)
+                ? $this->paymentSummary($event, $state)
+                : null,
         ]);
     }
 
@@ -115,47 +121,19 @@ class CheckoutController extends Controller
 
         $this->store->put($state);
 
-        return redirect()->route('boxoffice.tickets.checkout.summary', $evento);
+        return redirect()->route('boxoffice.tickets.checkout.selection', $evento)->with(self::OPEN_PAYMENT, true);
     }
 
-    public function summary(int $evento): Response|RedirectResponse
+    public function summary(int $evento): RedirectResponse
     {
-        $event = $this->sellableEvent($evento);
+        $this->sellableEvent($evento);
         $state = $this->store->get($evento);
 
-        if ($state === null) {
-            return redirect()->route('boxoffice.tickets.checkout.selection', $evento);
-        }
-
-        if ($state->isPurchased()) {
+        if ($state?->isPurchased()) {
             return redirect()->route('boxoffice.tickets.checkout.complete', $evento);
         }
 
-        $function = EventoFuncionVista::query()->findOrFail($state->functionId);
-
-        return Inertia::render('BoxOffice/Tickets/Checkout/Summary', [
-            'event' => $this->presentEvent($event) + ['comments' => $event->comentarios],
-            'function' => ['date' => $function->fecha_natural, 'time' => $function->hora_natural],
-            'paymentType' => ['value' => $state->paymentType->value, 'label' => $state->paymentType->label()],
-            'promotionText' => $state->promotionText,
-            'discount' => $state->discount,
-            'confirmToken' => (string) Str::uuid(),
-            'lines' => array_map(fn (TicketLine $line, int $index) => [
-                'label' => $line->isGeneralAdmission() ? 'Boleto '.($index + 1) : $line->seat,
-                'locality' => $line->localityName,
-                'type' => $line->specialLocalityName,
-                'price' => $line->price,
-                'courtesy' => $line->courtesy,
-            ], $state->lines, array_keys($state->lines)),
-            'totals' => [
-                'subtotal' => $state->subtotal(),
-                'service' => $state->serviceFees(),
-                'payment' => $state->paymentFees(),
-                'total' => $state->total(),
-                'paid' => $state->paidCount(),
-                'courtesies' => $state->courtesyCount(),
-            ],
-        ]);
+        return redirect()->route('boxoffice.tickets.checkout.selection', $evento)->with(self::OPEN_PAYMENT, $state !== null);
     }
 
     public function confirm(ConfirmPurchaseRequest $request, PurchaseService $purchases, ConfirmationGuard $guard, CashRegister $registers, int $evento): RedirectResponse
@@ -237,6 +215,34 @@ class CheckoutController extends Controller
         $this->holds->releaseAll();
 
         return redirect()->route('boxoffice.tickets.index');
+    }
+
+    private function paymentSummary(EventoVista $event, CheckoutState $state): array
+    {
+        $function = EventoFuncionVista::query()->findOrFail($state->functionId);
+
+        return [
+            'function' => ['date' => $function->fecha_natural, 'time' => $function->hora_natural],
+            'paymentType' => ['value' => $state->paymentType->value, 'label' => $state->paymentType->label()],
+            'promotionText' => $state->promotionText,
+            'discount' => $state->discount,
+            'confirmToken' => (string) Str::uuid(),
+            'lines' => array_map(fn (TicketLine $line, int $index) => [
+                'label' => $line->isGeneralAdmission() ? 'Boleto '.($index + 1) : $line->seat,
+                'locality' => $line->localityName,
+                'type' => $line->specialLocalityName,
+                'price' => $line->price,
+                'courtesy' => $line->courtesy,
+            ], $state->lines, array_keys($state->lines)),
+            'totals' => [
+                'subtotal' => $state->subtotal(),
+                'service' => $state->serviceFees(),
+                'payment' => $state->paymentFees(),
+                'total' => $state->total(),
+                'paid' => $state->paidCount(),
+                'courtesies' => $state->courtesyCount(),
+            ],
+        ];
     }
 
     private function seatMapState(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $resolver, SeatGapRule $gaps, EventoVista $event, int $functionId): CheckoutState

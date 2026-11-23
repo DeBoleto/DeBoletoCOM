@@ -3,7 +3,7 @@
         <template #header>
             <div class="flex min-w-0 items-center gap-4">
                 <h1 class="truncate text-lg font-semibold">{{ event.name }}</h1>
-                <StepIndicator :current="3" class="hidden md:flex" />
+                <StepIndicator :current="2" class="hidden md:flex" />
             </div>
         </template>
 
