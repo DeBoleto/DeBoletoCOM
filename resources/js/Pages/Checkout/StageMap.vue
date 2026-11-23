@@ -265,6 +265,7 @@ import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
 import { venueAreas, venueMainStage, venueSeats } from "@/components/seat-map/venueLayout.js";
 import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
+import { freeTickets } from "@/components/seat-map/ticketPromotion.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
 import SiteHeader from "@/components/SiteHeader.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -429,6 +430,7 @@ const groups = computed(() =>
             const specials = info?.specials ?? [];
             const specialPrices = Object.fromEntries(specials.map((special) => [special.id, special.price]));
             const list = general ? Array.from({ length: pick.quantity }, () => null) : pick.seats;
+            const free = freeTickets(list.length, info?.promotion?.count ?? 0);
             const rows = Object.fromEntries(section.rows.flatMap((row) => row.seats.map((seat) => [seat.id, row.fila])));
 
             return {
@@ -452,7 +454,8 @@ const groups = computed(() =>
                         specialKey,
                         specialsAllowed,
                         special,
-                        price: special ? specialPrices[special] ?? unitPrice : unitPrice,
+                        price: free[index] ? 0 : special ? specialPrices[special] ?? unitPrice : unitPrice,
+                        promotion: free[index] ? info.promotion.label : null,
                         extraChairAvailable: Boolean(info?.extraChair) && seat !== null,
                         extraChair: seat !== null && pick.extraChairs.includes(seat),
                     };

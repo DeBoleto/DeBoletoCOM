@@ -69,7 +69,10 @@ class CheckoutController extends Controller
         $state = $this->store->get($evento);
 
         return Inertia::render('BoxOffice/Tickets/Checkout/Selection', [
-            'event' => $this->presentEvent($event) + ['mode' => $byQuantity ? 'quantities' : 'map'],
+            'event' => $this->presentEvent($event) + [
+                'mode' => $byQuantity ? 'quantities' : 'map',
+                'promotion' => in_array($event->pk_evento, config('boxoffice.rules.promotion_disabled_events'), true) ? 0 : (int) $event->promocion,
+            ],
             'functions' => $this->catalog->functions($evento)->map(fn (EventoFuncionVista $function) => [
                 'id' => $function->pk_evento_funcion,
                 'date' => $function->fecha_natural,
@@ -80,6 +83,7 @@ class CheckoutController extends Controller
                 'name' => $locality->evento_localidad,
                 'price' => $locality->precio,
                 'capacity' => $locality->capacidad,
+                'promotion' => (int) $locality->promocion,
                 'specials' => $locality->especiales->map(fn (EventosLocalidadesEspeciales $special) => [
                     'id' => $special->pk_evento_localidad_especiales,
                     'name' => $special->evento_localidad,

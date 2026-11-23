@@ -38,7 +38,10 @@
                                 <span class="text-bo-slate"> — {{ line.locality }}</span>
                                 <span v-if="line.type && line.type !== 'Regular'" class="ml-2 rounded bg-bo-paper px-1.5 py-0.5 text-xs text-bo-slate">{{ line.type }}</span>
                             </span>
-                            <span v-if="line.courtesy" class="shrink-0 rounded bg-bo-green-soft px-2 py-0.5 text-xs font-semibold text-bo-green-dark">Cortesía</span>
+                            <span v-if="line.courtesy" class="flex shrink-0 items-center gap-2">
+                                <span class="rounded-full bg-fuchsia-100 px-2 py-0.5 text-xs font-bold text-fuchsia-700">{{ payment.promotionText || "Promoción" }}</span>
+                                <span class="tabular font-semibold text-fuchsia-700">{{ money(0) }}</span>
+                            </span>
                             <span v-else class="tabular shrink-0">{{ money(line.price) }}</span>
                         </li>
                     </ul>

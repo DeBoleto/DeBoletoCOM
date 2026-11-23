@@ -181,16 +181,18 @@
                                     </button>
                                 </div>
                                 <ul class="space-y-1">
-                                    <li v-for="line in group.lines" :key="line.key" class="flex justify-between gap-3">
+                                    <li v-for="line in group.lines" :key="line.key" class="flex items-center justify-between gap-3">
                                         <span class="truncate">{{ line.label }}</span>
-                                        <span class="tabular shrink-0">{{ money(line.price) }}</span>
+                                        <span v-if="line.promotion" class="flex shrink-0 items-center gap-2">
+                                            <span class="rounded-full bg-fuchsia-100 px-1.5 text-xs font-bold text-fuchsia-700">{{ line.promotion }}</span>
+                                            <span class="tabular font-semibold text-fuchsia-700">{{ money(0) }}</span>
+                                        </span>
+                                        <span v-else class="tabular shrink-0">{{ money(line.price) }}</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <p v-else class="mt-4 text-sm text-bo-muted">Aún no hay boletos.</p>
-
-                        <p v-if="promotion" class="mt-3 text-xs text-bo-slate">El 2x1 y las promociones del evento se aplican al calcular el cobro.</p>
                     </div>
 
                     <div class="bo-perforation" />
@@ -239,6 +241,7 @@ import QuantityStepper from "@/components/BoxOffice/QuantityStepper.vue";
 import PaymentDialog from "@/components/BoxOffice/PaymentDialog.vue";
 import SeatPicker from "@/components/BoxOffice/SeatPicker.vue";
 import { money } from "@/components/BoxOffice/format.js";
+import { freeTickets, promotionLabel, promotionSequence } from "@/components/seat-map/ticketPromotion.js";
 
 const props = defineProps({
     event: { type: Object, required: true },
@@ -336,31 +339,50 @@ function discounted(price) {
     return discount.value ? price - price * (discount.value / 100) : price;
 }
 
+function promotionOf(locality) {
+    if (locality?.promotion > 0) return locality.promotion;
+    return promotion.value ? 1 : props.event.promotion ?? 0;
+}
+
 const previewGroups = computed(() => {
     if (props.event.mode === "quantities") {
+        const next = promotionSequence({ fourForTwo: false });
+
         return props.localities
             .filter((locality) => quantities[locality.id] > 0)
-            .map((locality) => ({
-                key: locality.id,
-                name: locality.name,
-                lines: Array.from({ length: quantities[locality.id] }, (_, index) => ({
-                    key: `${locality.id}-${index}`,
-                    label: `Boleto ${index + 1}`,
-                    price: discounted(locality.price),
-                })),
-            }));
+            .map((locality) => {
+                const count = promotionOf(locality);
+
+                return {
+                    key: locality.id,
+                    name: locality.name,
+                    lines: Array.from({ length: quantities[locality.id] }, (_, index) => {
+                        const free = next(count);
+
+                        return {
+                            key: `${locality.id}-${index}`,
+                            label: `Boleto ${index + 1}`,
+                            price: free ? 0 : discounted(locality.price),
+                            promotion: free ? promotionLabel(count) : null,
+                        };
+                    }),
+                };
+            });
     }
 
     return zones.value
         .filter((zone) => zone.locality)
         .map((zone) => {
-            const lines = zone.tickets.map((ticket) => {
+            const count = discount.value ? 0 : promotionOf(zone.locality);
+            const free = freeTickets(zone.tickets.length, count);
+            const lines = zone.tickets.map((ticket, index) => {
                 const special = zone.locality.specials.find((item) => item.id === specials[ticket.key]);
 
                 return {
                     key: ticket.key,
                     label: special ? `${ticket.label} (${special.name})` : ticket.label,
-                    price: special ? special.price : discounted(zone.locality.price),
+                    price: free[index] ? 0 : special ? special.price : discounted(zone.locality.price),
+                    promotion: free[index] ? promotionLabel(count) : null,
                 };
             });
 

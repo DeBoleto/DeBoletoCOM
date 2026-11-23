@@ -28,7 +28,8 @@
                                 <div class="ticket-row">
                                     <span class="ticket-seat">{{ ticket.label }}</span>
                                     <span v-if="ticket.sub" class="ticket-sub">{{ ticket.sub }}</span>
-                                    <span class="ticket-price">{{ money(ticket.price) }}</span>
+                                    <span v-if="ticket.promotion" class="ticket-promo">{{ ticket.promotion }}</span>
+                                    <span class="ticket-price" :class="{ 'ticket-price--free': ticket.promotion }">{{ money(ticket.price) }}</span>
                                     <button
                                         type="button"
                                         class="ticket-remove"
@@ -295,6 +296,21 @@ onUnmounted(() => cancelAnimationFrame(frame));
     font-size: var(--text-sm);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+}
+
+.ticket-price--free {
+    color: #e879f9;
+}
+
+.ticket-promo {
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    background: #c026d3;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .ticket-remove {

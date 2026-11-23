@@ -17,7 +17,10 @@
                             <span class="line-seat">{{ line.label }}</span>
                             <span class="line-zone">{{ line.locality }}<template v-if="line.type && line.type !== 'Regular'"> · {{ line.type }}</template></span>
                         </span>
-                        <span class="line-price">{{ line.courtesy ? "Cortesía" : money(line.price) }}</span>
+                        <span class="line-price" :class="{ 'line-price--free': line.courtesy }">
+                            <span v-if="line.courtesy" class="line-promo">Promoción</span>
+                            {{ money(line.courtesy ? 0 : line.price) }}
+                        </span>
                     </li>
                 </ul>
             </div>
@@ -173,6 +176,25 @@ const zones = computed(() => {
 .line-price {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+}
+
+.line-price--free {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #e879f9;
+    font-weight: 700;
+}
+
+.line-promo {
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #c026d3;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .stub-breakdown {

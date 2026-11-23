@@ -350,6 +350,7 @@ import CartPanel from "@/components/checkout/process/CartPanel.vue";
 import RaceParticipants from "@/components/checkout/process/RaceParticipants.vue";
 import { getJson, money, postJson } from "@/components/checkout/api.js";
 import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
+import { freeTickets, promotionSequence } from "@/components/seat-map/ticketPromotion.js";
 import { realtimeEnabled, useSeatUpdates } from "@/composables/useSeatUpdates.js";
 
 const props = defineProps({
@@ -568,6 +569,7 @@ function mapGroups() {
             const specials = info?.specials ?? [];
             const specialPrices = Object.fromEntries(specials.map((special) => [special.id, special.price]));
             const seats = general ? Array.from({ length: pick.quantity }, () => null) : pick.seats;
+            const free = freeTickets(seats.length, info?.promotion?.count ?? 0);
             const rows = Object.fromEntries(section.rows.flatMap((row) => row.seats.map((seat) => [seat.id, row.fila])));
 
             return {
@@ -591,7 +593,8 @@ function mapGroups() {
                         specialKey,
                         specialsAllowed,
                         special,
-                        price: special ? specialPrices[special] ?? unitPrice : unitPrice,
+                        price: free[index] ? 0 : special ? specialPrices[special] ?? unitPrice : unitPrice,
+                        promotion: free[index] ? info.promotion.label : null,
                         extraChairAvailable: Boolean(info?.extraChair) && seat !== null,
                         extraChair: seat !== null && pick.extraChairs.includes(seat),
                     };
@@ -601,6 +604,8 @@ function mapGroups() {
 }
 
 function quantityGroups() {
+    const next = promotionSequence({ fourForTwo: false });
+
     return props.localities
         .map((locality, index) => ({ locality, index }))
         .filter(({ locality }) => (quantities[locality.id] ?? 0) > 0)
@@ -611,17 +616,22 @@ function quantityGroups() {
             unitPrice: locality.price,
             specials: [],
             extraChairPrice: 0,
-            tickets: Array.from({ length: quantities[locality.id] }, (_, ticket) => ({
-                id: `${locality.id}-${ticket}`,
-                seat: null,
-                index: ticket,
-                label: props.race ? participantLabel(locality.id, ticket) : `Boleto ${ticket + 1}`,
-                sub: "",
-                specialsAllowed: false,
-                price: locality.price,
-                extraChairAvailable: false,
-                extraChair: false,
-            })),
+            tickets: Array.from({ length: quantities[locality.id] }, (_, ticket) => {
+                const free = next(locality.promotion?.count ?? 0);
+
+                return {
+                    id: `${locality.id}-${ticket}`,
+                    seat: null,
+                    index: ticket,
+                    label: props.race ? participantLabel(locality.id, ticket) : `Boleto ${ticket + 1}`,
+                    sub: "",
+                    specialsAllowed: false,
+                    price: free ? 0 : locality.price,
+                    promotion: free ? locality.promotion.label : null,
+                    extraChairAvailable: false,
+                    extraChair: false,
+                };
+            }),
         }));
 }
 
