@@ -39,11 +39,15 @@ Route::get('/', function () use ($getData, $imageUrl) {
     $searchData = Redis::get('eventos_activos_app');
     $events = $searchData ? json_decode($searchData, true) : [];
 
-    // Etiqueta de promoción de cada evento activo para las tarjetas.
+    // Etiqueta de promoción de cada evento: el texto que trae Redis
+    // (promocion_text) y, si no viene, la que se arma con lo capturado en el admin.
     $promotions = rescue(
-        fn () => app(EventPromotions::class)->badges(collect($events)->pluck('id')->map(fn ($id) => (int) $id)->filter()->values()->all()),
+        fn () => app(EventPromotions::class)->badges(collect($events)
+            ->filter(fn ($e) => trim((string) ($e['promocion_text'] ?? '')) === '')
+            ->pluck('id')->map(fn ($id) => (int) $id)->filter()->values()->all()),
         [],
     );
+    $promotionOf = fn ($e) => trim((string) ($e['promocion_text'] ?? '')) ?: ($promotions[(int) ($e['id'] ?? 0)] ?? null);
 
     // "Próximos Eventos": últimos 6 por id (orden descendente).
     $nextEvents = collect($events)
@@ -64,15 +68,14 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'category' => null,
             'categoryColor' => null,
             'availability' => 'available',
-            'promotion' => $promotions[(int) ($e['id'] ?? 0)] ?? null,
+            'promotion' => $promotionOf($e),
         ])
         ->all();
 
-    // "Eventos en tu Zona": eventos del estado por defecto (Tabasco).
-    $zoneEvents = collect($events)
-        ->filter(fn ($e) => ($e['estado'] ?? '') === 'Tabasco')
-        ->sortByDesc(fn ($e) => $e['id'] ?? '')
-        ->take(6)
+    // "Promociones": todos los eventos con promoción general o por zona.
+    $promotionEvents = collect($events)
+        ->filter(fn ($e) => $promotionOf($e) !== null)
+        ->sortByDesc(fn ($e) => $e['id'] ?? 0)
         ->map(fn ($e) => [
             'id' => $e['id'] ?? 0,
             'slug' => $e['url'] ?? '',
@@ -87,7 +90,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'category' => null,
             'categoryColor' => null,
             'availability' => 'available',
-            'promotion' => $promotions[(int) ($e['id'] ?? 0)] ?? null,
+            'promotion' => $promotionOf($e),
         ])
         ->values()
         ->all();
@@ -112,7 +115,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'category' => null,
             'categoryColor' => null,
             'availability' => 'available',
-            'promotion' => $promotions[(int) ($e['id'] ?? 0)] ?? null,
+            'promotion' => $promotionOf($e),
         ])
         ->all();
 
@@ -136,7 +139,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'category' => $e['categoria'] ?? '',
             'categoryName' => $e['categoria_nombre'] ?? '',
             'promociones' => $e['promociones'] ?? [],
-            'promotion' => $promotions[(int) ($e['id'] ?? 0)] ?? null,
+            'promotion' => $promotionOf($e),
         ])
         ->all();
 
@@ -152,7 +155,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
 
     // Normaliza un evento para la sección "Cerca de ti" (sidebar + activos).
     // $useSlide=true usa las imágenes de slide (portadas de las tarjetas).
-    $mapNearbyEvent = function ($e, $useSlide = false) use ($imageUrl, $promotions) {
+    $mapNearbyEvent = function ($e, $useSlide = false) use ($imageUrl, $promotionOf) {
         $price = ($e['desde'] ?? 0) > 0 ? '$'.number_format((float) $e['desde'], 0) : '';
 
         return [
@@ -165,7 +168,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
             'city' => $e['ciudad'] ?? '',
             'estado' => trim((string) ($e['estado'] ?? '')),
             'location' => $e['escenario'] ?? '',
-            'promotion' => $promotions[(int) ($e['id'] ?? 0)] ?? null,
+            'promotion' => $promotionOf($e),
         ];
     };
 
@@ -178,7 +181,7 @@ Route::get('/', function () use ($getData, $imageUrl) {
 
     return Inertia::render('Home', [
         'nextEvents' => $nextEvents,
-        'zoneEvents' => $zoneEvents,
+        'promotionEvents' => $promotionEvents,
         'popularEvents' => $popularEvents,
         'banners' => $banners,
         'sidebarEvents' => $sidebarEvents,
@@ -304,7 +307,10 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             'venueName' => $event['lugar'] ?? '',
             'latitude' => $event['latitud'] ?? null,
             'longitude' => $event['longitud'] ?? null,
-            'promotions' => $event['promociones'] ?? [],
+            'promotions' => array_values(array_unique(array_filter([
+                trim((string) ($event['promocion_text'] ?? '')),
+                ...(array) ($event['promociones'] ?? []),
+            ]))),
             'functions' => array_map(fn ($f) => [
                 'id' => $f['id'],
                 'date' => $f['fecha'],

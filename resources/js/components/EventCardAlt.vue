@@ -107,6 +107,19 @@ const locationLine = computed(() =>
     transform: scale(1.05);
 }
 
+.event-card-alt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 70%,
+        rgba(0, 0, 0, 0.75) 84%,
+        rgba(0, 0, 0, 0.95) 100%
+    );
+    pointer-events: none;
+}
+
 .promo-pill {
     position: absolute;
     top: var(--space-3);
@@ -135,13 +148,8 @@ const locationLine = computed(() =>
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    padding: var(--space-5);
-    background: linear-gradient(
-        to top,
-        rgba(0, 0, 0, 0.9) 0%,
-        rgba(0, 0, 0, 0.45) 60%,
-        rgba(0, 0, 0, 0) 100%
-    );
+    padding: var(--space-4);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 .meta-title {

@@ -103,17 +103,6 @@
             </section>
 
             <EventSection
-                title="Eventos en tu Zona"
-                subtitle="Eventos cerca de ti"
-                section-id="featured"
-                icon="📍"
-                accent-color="conference"
-                view-all-link="/eventos?filtro=destacados"
-                :events="resolvedZoneEvents"
-                layout="featured"
-            />
-
-            <EventSection
                 title="Eventos Populares"
                 subtitle="Los más buscados en este momento"
                 section-id="popular"
@@ -130,6 +119,18 @@
             />
 
             <NextEventsGrid :events="resolvedUpcomingEvents" />
+
+            <EventSection
+                v-if="promotionEvents.length"
+                title="Promociones"
+                subtitle="Eventos con 2x1, 3x2 y descuentos"
+                section-id="promotions"
+                icon="🏷️"
+                accent-color="conference"
+                view-all-link="/eventos?filtro=promociones"
+                :events="promotionEvents"
+                layout="featured"
+            />
 
             <section class="promoter-banner" aria-labelledby="promoter-heading">
                 <div class="container">
@@ -241,7 +242,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    zoneEvents: {
+    promotionEvents: {
         type: Array,
         default: () => [],
     },
@@ -350,9 +351,6 @@ const {
 } = useEvents();
 const resolvedNextEvents = computed(() =>
     props.nextEvents.length > 0 ? props.nextEvents : mockNextEvents,
-);
-const resolvedZoneEvents = computed(() =>
-    props.zoneEvents.length > 0 ? props.zoneEvents : featuredEvents,
 );
 const resolvedPopularEvents = computed(() =>
     props.popularEvents.length > 0 ? props.popularEvents : mockPopularEvents,
