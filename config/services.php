@@ -60,6 +60,11 @@ return [
         'webhook_password' => env('OPENPAY_WEBHOOK_PASSWORD'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
     'facebook' => [
         'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v21.0'),
     ],
