@@ -16,6 +16,7 @@ MAINTENANCE_ENABLED=0
 # (por ejemplo `php artisan reverb:install` o un vendor:publish --force).
 PROTECTED_FILES=(
     "config/broadcasting.php"
+    "config/reverb.php"
 )
 
 echo "=========================================="
@@ -221,6 +222,9 @@ systemctl reload nginx
 
 # Reiniciar workers de Laravel Queue, si existen.
 run_app php artisan queue:restart
+
+# Reiniciar Reverb para que tome el código y el .env nuevos (supervisor lo levanta).
+run_app php artisan reverb:restart || echo "AVISO: Reverb no está corriendo."
 
 # ==========================================
 # SALIR DE MANTENIMIENTO

@@ -290,6 +290,20 @@ nano .env   # Editar con valores de producción
 | `TWILIO_FROM`          | `+52***`                |                                     |
 | `TWILIO_WHATSAPP_FROM` | `+14155238886`          | Número de Twilio para WhatsApp      |
 | `VITE_APP_NAME`        | `"${APP_NAME}"`         |                                     |
+| `BROADCAST_CONNECTION` | `reverb`                | Avisos de asientos en tiempo real   |
+| `REVERB_APP_ID`        | (generado)              | Lo llena `php artisan reverb:install` |
+| `REVERB_APP_KEY`       | (generado)              |                                     |
+| `REVERB_APP_SECRET`    | (generado)              |                                     |
+| `REVERB_HOST`          | `127.0.0.1`             | Laravel publica directo a Reverb    |
+| `REVERB_PORT`          | `8080`                  |                                     |
+| `REVERB_SCHEME`        | `http`                  |                                     |
+| `REVERB_SERVER_HOST`   | `127.0.0.1`             | Solo Nginx llega al puerto 8080     |
+| `REVERB_SERVER_PORT`   | `8080`                  |                                     |
+| `REVERB_ALLOWED_ORIGINS` | `deboleto.mx,www.deboleto.mx` | Dominios que pueden conectarse |
+| `VITE_REVERB_APP_KEY`  | igual a `REVERB_APP_KEY` | Se fija en el JS al compilar       |
+| `VITE_REVERB_HOST`     | `deboleto.mx`           | El navegador entra por Nginx        |
+| `VITE_REVERB_PORT`     | `443`                   |                                     |
+| `VITE_REVERB_SCHEME`   | `https`                 | `wss://`                            |
 
 ```bash
 php artisan key:generate
@@ -396,6 +410,19 @@ server {
     location = /robots.txt { access_log off; log_not_found off; }
     location = /favicon.ico { access_log off; log_not_found off; }
 
+    # Reverb — WebSocket de disponibilidad de asientos (ver sección 11)
+    location ~ ^/(app|apps)/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
     # Horizon dashboard — protegido con autenticación básica
     location /horizon {
         auth_basic "Acceso restringido";
@@ -495,6 +522,62 @@ supervisorctl reread
 supervisorctl update
 supervisorctl start horizon
 ```
+
+### Reverb (asientos en tiempo real)
+
+Los mapas de web, taquilla y dashboard escuchan el canal `funcion.{id}` y
+vuelven a consultar la disponibilidad cuando alguien aparta, libera o compra
+asientos. Sin Reverb siguen funcionando, pero solo se actualizan por consulta
+periódica.
+
+Primera vez (genera `REVERB_APP_*` en `.env`; `config/broadcasting.php` y
+`config/reverb.php` ya están versionados, si pregunta por sobrescribirlos
+responde que no):
+
+```bash
+php artisan reverb:install
+```
+
+Después ajusta las variables de la tabla de la sección 6 y recompila
+(`npm run build`): las `VITE_REVERB_*` quedan dentro del JS.
+
+Crear `/etc/supervisor/conf.d/reverb.conf`:
+
+```ini
+[program:reverb]
+process_name=%(program_name)s
+command=php /var/www/deboleto/artisan reverb:start
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/deboleto/storage/logs/reverb.log
+stopwaitsecs=10
+minfds=10000
+```
+
+```bash
+supervisorctl reread
+supervisorctl update
+supervisorctl start reverb
+```
+
+`update.sh` ejecuta `php artisan reverb:restart` en cada despliegue y
+supervisor lo vuelve a levantar.
+
+Verificación:
+
+```bash
+supervisorctl status reverb                          # RUNNING
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/   # cualquier código = escuchando
+php artisan tinker --execute="event(new App\Modules\Checkout\Events\SeatsChanged(1));"
+```
+
+El último comando no debe mostrar error. En el navegador, en DevTools →
+Network → WS, el mapa debe tener una conexión `wss://deboleto.mx/app/<key>`
+con estado 101 y recibir `seats.changed` cuando otra sesión aparta un
+asiento. Si falla el envío, `storage/logs/laravel.log` muestra
+"No se pudo avisar el cambio de asientos.".
 
 ### Fast Termination (Recomendado)
 
