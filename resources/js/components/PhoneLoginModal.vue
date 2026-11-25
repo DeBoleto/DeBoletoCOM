@@ -318,6 +318,7 @@ const handleSubmit = () => {
                         <label class="login-label">Número de teléfono</label>
                         <input
                             v-model="codeForm.telefono"
+                            v-digits
                             type="tel"
                             inputmode="numeric"
                             autocomplete="tel-national"

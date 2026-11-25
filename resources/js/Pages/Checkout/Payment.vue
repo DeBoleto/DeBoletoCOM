@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="field">
                                     <label for="card-cvv">Código de seguridad</label>
-                                    <input id="card-cvv" v-model="card.cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV" required />
+                                    <input id="card-cvv" v-model="card.cvv" v-digits inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV" required />
                                 </div>
                                 <label class="check field--full">
                                     <input v-model="saveCard" type="checkbox" />
@@ -103,7 +103,7 @@
                             <div v-else class="card-fields">
                                 <div class="field">
                                     <label for="saved-cvv">Código de seguridad de la tarjeta</label>
-                                    <input id="saved-cvv" v-model="card.cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV" required />
+                                    <input id="saved-cvv" v-model="card.cvv" v-digits inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV" required />
                                 </div>
                             </div>
 
@@ -131,7 +131,7 @@
                             </label>
                             <div v-if="sendWhatsapp" class="field whatsapp-field">
                                 <label for="whatsapp">Número de WhatsApp (10 dígitos)</label>
-                                <input id="whatsapp" v-model="whatsappPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" />
+                                <input id="whatsapp" v-model="whatsappPhone" v-digits type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" />
                                 <p v-if="form.errors.whatsapp" class="field-error">{{ form.errors.whatsapp }}</p>
                             </div>
                         </fieldset>

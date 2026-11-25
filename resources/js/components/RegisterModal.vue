@@ -237,7 +237,9 @@ const submit = () => {
                     <label class="login-label">Teléfono</label>
                     <input
                         v-model="form.phone"
-                        type="text"
+                        v-digits
+                        type="tel"
+                        inputmode="numeric"
                         maxlength="10"
                         class="login-input"
                         placeholder="Ingresa tu teléfono"

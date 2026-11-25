@@ -59,10 +59,11 @@
                     <input
                         id="phone"
                         v-model="phone"
+                        v-digits
                         type="tel"
                         inputmode="numeric"
                         autocomplete="off"
-                        maxlength="14"
+                        maxlength="10"
                         placeholder="10 dígitos"
                         class="tabular rounded-lg border-bo-line py-2 text-sm focus:border-bo-green focus:ring-bo-green"
                         :aria-invalid="!!whatsapp.error"
@@ -149,6 +150,7 @@
                         {{ field.label }}
                         <input
                             v-model="customerForm.data[field.key]"
+                            v-digits="field.key === 'telefono'"
                             :type="field.type"
                             :inputmode="field.inputmode"
                             :autocomplete="field.autocomplete"
@@ -207,7 +209,7 @@ let customerAsked = false;
 const customerFields = [
     { key: "nombre", label: "Nombre", type: "text", autocomplete: "off", maxlength: 100 },
     { key: "apellido", label: "Apellido", type: "text", autocomplete: "off", maxlength: 100 },
-    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", autocomplete: "off", maxlength: 14, placeholder: "10 dígitos" },
+    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", autocomplete: "off", maxlength: 10, placeholder: "10 dígitos" },
     { key: "correo", label: "Correo", type: "email", autocomplete: "off", maxlength: 150, wide: true },
 ];
 

@@ -64,6 +64,7 @@ const submit = () => {
                     id="code"
                     ref="codeInput"
                     v-model="form.code"
+                    v-digits
                     type="text"
                     inputmode="numeric"
                     class="mt-1 block w-full"

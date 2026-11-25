@@ -11,6 +11,7 @@
                     <input
                         id="folio"
                         v-model="form.folio"
+                        v-digits
                         type="text"
                         inputmode="numeric"
                         autocomplete="off"

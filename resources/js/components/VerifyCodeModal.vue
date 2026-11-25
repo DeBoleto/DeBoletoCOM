@@ -333,6 +333,7 @@ const submitProfile = () => {
                     </div>
                     <input
                         v-model="verifyForm.codigo"
+                        v-digits
                         type="text"
                         inputmode="numeric"
                         maxlength="6"

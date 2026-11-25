@@ -15,7 +15,7 @@
                     <input id="correo" v-model="form.correo" type="email" autocomplete="off" required :class="input" />
                 </Field>
                 <Field id="telefono" label="Teléfono (opcional)" :error="form.errors.telefono">
-                    <input id="telefono" v-model="form.telefono" type="tel" inputmode="numeric" maxlength="10" :class="input" />
+                    <input id="telefono" v-model="form.telefono" v-digits type="tel" inputmode="numeric" maxlength="10" :class="input" />
                 </Field>
                 <Field id="nacimiento_fecha" label="Fecha de nacimiento (opcional)" :error="form.errors.nacimiento_fecha">
                     <input id="nacimiento_fecha" v-model="form.nacimiento_fecha" type="date" :class="input" />

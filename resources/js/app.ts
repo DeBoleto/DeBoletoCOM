@@ -5,6 +5,7 @@ import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createPinia } from "pinia";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
+import { digits } from "./directives/digits.js";
 import type { DefineComponent } from "vue";
 
 const appName = (import.meta.env.VITE_APP_NAME as string) || "DeBoletoMX";
@@ -23,6 +24,7 @@ createInertiaApp({
             .use(plugin)
             .use(pinia)
             .use(ZiggyVue)
+            .directive("digits", digits)
             .mount(el);
     },
     progress: {

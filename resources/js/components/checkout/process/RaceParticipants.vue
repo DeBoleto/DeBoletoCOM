@@ -85,6 +85,7 @@
                                     <input
                                         v-else
                                         v-model.trim="participant.respuestas[question.id]"
+                                        v-digits="numeric(question)"
                                         :type="inputType(question)"
                                         :inputmode="inputMode(question)"
                                         :autocomplete="autocomplete(question, index)"
@@ -237,6 +238,10 @@ function inputType(question) {
     if (question.field === "correo") return "email";
     if (question.field === "telefono" || question.field === "telefono_emergencia") return "tel";
     return "text";
+}
+
+function numeric(question) {
+    return question.type === "numero" || question.field === "telefono" || question.field === "telefono_emergencia";
 }
 
 function inputMode(question) {

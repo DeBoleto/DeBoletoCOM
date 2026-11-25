@@ -146,6 +146,7 @@
                             <input
                                 :ref="index === 0 ? 'firstCustomerInput' : undefined"
                                 v-model="form[field.key]"
+                                v-digits="field.key === 'telefono'"
                                 :type="field.type"
                                 :inputmode="field.inputmode"
                                 autocomplete="off"
@@ -204,7 +205,7 @@ const form = useForm({ acepto: false, token: "", nombre: "", apellido: "", telef
 const customerFields = [
     { key: "nombre", label: "Nombre", type: "text", maxlength: 100 },
     { key: "apellido", label: "Apellido", type: "text", maxlength: 100 },
-    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", maxlength: 14, placeholder: "10 dígitos" },
+    { key: "telefono", label: "Teléfono", type: "tel", inputmode: "numeric", maxlength: 10, placeholder: "10 dígitos" },
     { key: "correo", label: "Correo", type: "email", maxlength: 150, wide: true },
 ];
 

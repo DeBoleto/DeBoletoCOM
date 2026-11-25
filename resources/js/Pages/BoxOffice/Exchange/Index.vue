@@ -8,6 +8,7 @@
                     <span class="sr-only">Folio de compra</span>
                     <input
                         v-model.trim="value"
+                        v-digits
                         type="text"
                         inputmode="numeric"
                         autocomplete="off"

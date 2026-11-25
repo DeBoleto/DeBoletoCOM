@@ -9,6 +9,7 @@
                 <input
                     id="folio"
                     v-model.trim="form.folio"
+                    v-digits
                     type="text"
                     inputmode="numeric"
                     autocomplete="off"
