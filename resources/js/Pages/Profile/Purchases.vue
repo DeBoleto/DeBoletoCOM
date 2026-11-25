@@ -56,10 +56,11 @@
 
                     <footer class="purchase-foot">
                         <span class="purchase-bought">Comprado el {{ longDate(purchase.purchasedAt) }}</span>
-                        <Link v-if="purchase.action.type === 'ticket'" :href="purchase.action.url" class="purchase-cta">
+                        <a v-if="purchase.action.type === 'ticket'" :href="purchase.action.url" class="purchase-cta" target="_blank" rel="noopener">
                             {{ purchase.action.label }}
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
-                        </Link>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+                            <span class="visually-hidden">(se abre en otra pestaña)</span>
+                        </a>
                         <a v-else-if="purchase.action.url" :href="purchase.action.url" class="purchase-cta" :target="purchase.action.type === 'bond' ? '_blank' : undefined" rel="noopener">
                             {{ purchase.action.label }}
                         </a>

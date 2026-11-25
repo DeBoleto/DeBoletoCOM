@@ -2,7 +2,7 @@
     <Head :title="`Boletos · ${event.name}`" />
 
     <div class="page-layout">
-        <SiteHeader />
+        <SiteHeader hide-search />
 
         <main id="main-content" class="container pass-page">
             <div class="pass-top">
@@ -126,16 +126,7 @@
                     @click="goTo(index)"
                 />
             </div>
-
-            <div class="pass-actions">
-                <button type="button" class="btn btn--ghost" @click="share">
-                    {{ shared ? "Enlace copiado" : "Compartir boletos" }}
-                </button>
-                <a v-if="owner" :href="route('profile.purchase.pdf', purchase.code)" class="btn btn--ghost">Descargar PDF</a>
-            </div>
         </main>
-
-        <SiteFooter />
     </div>
 </template>
 
@@ -143,7 +134,6 @@
 import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { Head, Link } from "@inertiajs/vue3";
 import SiteHeader from "@/components/SiteHeader.vue";
-import SiteFooter from "@/components/SiteFooter.vue";
 import { getJson } from "@/components/checkout/api.js";
 
 const props = defineProps({
@@ -159,7 +149,6 @@ const props = defineProps({
 const track = ref(null);
 const current = ref(0);
 const now = ref(Date.now());
-const shared = ref(false);
 const scanned = ref(new Set(props.tickets.filter((ticket) => ticket.scanned && ticket.kind === "ticket").map((ticket) => ticket.id)));
 const qr = reactive({});
 
@@ -214,28 +203,6 @@ function goTo(index) {
 function onKey(event) {
     if (event.key === "ArrowRight") goTo(Math.min(current.value + 1, props.tickets.length - 1));
     if (event.key === "ArrowLeft") goTo(Math.max(current.value - 1, 0));
-}
-
-async function share() {
-    const url = route("ticket.shared", props.purchase.code);
-    const text = `Boletos para ${props.event.name}. No compartas este enlace con desconocidos ni en redes sociales.`;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: props.event.name, text, url });
-            return;
-        } catch {
-            return;
-        }
-    }
-
-    try {
-        await navigator.clipboard.writeText(url);
-        shared.value = true;
-        window.setTimeout(() => (shared.value = false), 2500);
-    } catch {
-        window.prompt("Copia el enlace de tus boletos", url);
-    }
 }
 
 function onVisible() {
@@ -625,35 +592,9 @@ onUnmounted(() => {
     background: var(--color-brand);
 }
 
-.pass-dot:focus-visible,
-.btn:focus-visible {
+.pass-dot:focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 2px;
-}
-
-.pass-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: var(--space-6);
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    min-height: 48px;
-    padding: 0 20px;
-    border-radius: var(--radius-md);
-    background: transparent;
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.btn--ghost {
-    border: 1px solid var(--color-border-strong);
-    color: var(--color-text-primary);
 }
 
 @keyframes pass-pulse {
