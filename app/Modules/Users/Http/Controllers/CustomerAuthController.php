@@ -4,6 +4,7 @@ namespace App\Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Users\Exceptions\OtpException;
+use App\Modules\Users\Http\Middleware\EnsureCustomer;
 use App\Modules\Users\Http\Requests\CompleteRegistrationRequest;
 use App\Modules\Users\Http\Requests\CustomerLoginRequest;
 use App\Modules\Users\Http\Requests\CustomerRegisterRequest;
@@ -88,7 +89,7 @@ class CustomerAuthController extends Controller
 
         $this->signIn($request, $customer, loginType: 2);
 
-        return back()->with('success', '¡Hola de nuevo, '.$customer->nombre.'!');
+        return $this->afterSignIn($request)->with('success', '¡Hola de nuevo, '.$customer->nombre.'!');
     }
 
     /**
@@ -130,7 +131,7 @@ class CustomerAuthController extends Controller
         $request->session()->forget(self::VERIFIED_PHONE_SESSION);
         $this->signIn($request, $customer, loginType: 2);
 
-        return back()->with('success', 'Tu cuenta quedó lista.');
+        return $this->afterSignIn($request)->with('success', 'Tu cuenta quedó lista.');
     }
 
     public function login(CustomerLoginRequest $request): RedirectResponse
@@ -152,7 +153,7 @@ class CustomerAuthController extends Controller
         $customer = Usuarios::query()->activos()->where('correo', $request->validated('email'))->firstOrFail();
         $this->signIn($request, $customer, loginType: 1);
 
-        return back()->with('success', '¡Hola de nuevo, '.$customer->nombre.'!');
+        return $this->afterSignIn($request)->with('success', '¡Hola de nuevo, '.$customer->nombre.'!');
     }
 
     public function register(CustomerRegisterRequest $request): RedirectResponse
@@ -176,7 +177,7 @@ class CustomerAuthController extends Controller
 
         $this->signIn($request, $customer, loginType: 1);
 
-        return back()->with('success', 'Tu cuenta quedó lista.');
+        return $this->afterSignIn($request)->with('success', 'Tu cuenta quedó lista.');
     }
 
     public function logout(Request $request): RedirectResponse
@@ -192,6 +193,19 @@ class CustomerAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    /**
+     * Si el cliente llegó al inicio porque una página del perfil pidió sesión,
+     * al entrar vuelve a esa página.
+     */
+    private function afterSignIn(Request $request): RedirectResponse
+    {
+        $intended = $request->session()->pull(EnsureCustomer::INTENDED);
+
+        return is_string($intended) && url()->previous() === route('home')
+            ? redirect()->to($intended)
+            : back();
     }
 
     private function signIn(Request $request, Usuarios $customer, int $loginType): void

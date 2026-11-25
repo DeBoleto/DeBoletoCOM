@@ -33,6 +33,13 @@ interface PaymentGateway
     public function saveCard(string $customerId, string $tokenId, string $deviceSessionId): CardDetails;
 
     /**
+     * Borra una tarjeta guardada del cliente.
+     *
+     * @throws PaymentException
+     */
+    public function deleteCard(string $customerId, string $cardId): void;
+
+    /**
      * Registra el CVV antes de cobrar una tarjeta guardada.
      *
      * @throws PaymentException

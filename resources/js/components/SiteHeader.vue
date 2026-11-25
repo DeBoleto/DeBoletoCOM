@@ -32,8 +32,10 @@
 
                 <div class="header-actions">
                     <template v-if="user">
-                        <a :href="route('dashboard')" class="btn-ghost"
-                            >DASHBOARD</a
+                        <a
+                            :href="customer ? route('profile.purchases') : route('dashboard')"
+                            class="btn-ghost"
+                            >{{ customer ? "MI PERFIL" : "DASHBOARD" }}</a
                         >
                         <span class="user-name">{{ user.name }}</span>
                         <a
@@ -77,8 +79,10 @@
                 <li><a href="#" class="mobile-nav-link">ORGANIZADORES</a></li>
                 <li class="mobile-actions">
                     <template v-if="user">
-                        <a :href="route('dashboard')" class="btn-ghost w-full"
-                            >Dashboard</a
+                        <a
+                            :href="customer ? route('profile.purchases') : route('dashboard')"
+                            class="btn-ghost w-full"
+                            >{{ customer ? "Mi perfil" : "Dashboard" }}</a
                         >
                         <a
                             href="/logout"

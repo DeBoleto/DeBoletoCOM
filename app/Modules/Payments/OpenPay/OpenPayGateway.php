@@ -107,6 +107,12 @@ class OpenPayGateway implements PaymentGateway
         return CardDetails::fromOpenPay((array) $response->json());
     }
 
+    public function deleteCard(string $customerId, string $cardId): void
+    {
+        $response = $this->send(fn (PendingRequest $http) => $http->delete("customers/{$customerId}/cards/".rawurlencode($cardId)));
+        $this->ensureSuccess($response);
+    }
+
     public function refreshCvv(string $customerId, string $cardId, string $cvv): void
     {
         $response = $this->send(fn (PendingRequest $http) => $http->put("customers/{$customerId}/cards/{$cardId}", ['cvv2' => $cvv]));

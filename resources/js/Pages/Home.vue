@@ -221,8 +221,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { Head } from "@inertiajs/vue3";
+import { computed, onMounted, ref } from "vue";
+import { Head, usePage } from "@inertiajs/vue3";
 import SiteHeader from "@/components/SiteHeader.vue";
 import HeroSlider from "@/components/HeroSlider.vue";
 import EventSection from "@/components/EventSection.vue";
@@ -341,6 +341,12 @@ function switchRegisterToLogin() {
     showRegisterModal.value = false;
     showLoginModal.value = true;
 }
+
+const page = usePage();
+
+onMounted(() => {
+    if (page.props.flash?.auth_required) openLogin();
+});
 
 const { organizationSchema, webSiteSchema } = useStructuredData();
 

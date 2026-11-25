@@ -42,6 +42,8 @@ class FakePaymentGateway implements PaymentGateway
         return new CardDetails('card_new', '411111XXXXXX1111', 'ANA LOPEZ', '12', '30', 'BANCO', 'visa');
     }
 
+    public function deleteCard(string $customerId, string $cardId): void {}
+
     public function refreshCvv(string $customerId, string $cardId, string $cvv): void {}
 
     public function chargeCard(string $customerId, CardChargeRequest $request): Charge

@@ -62,7 +62,7 @@ class OrderController extends Controller
                     ])->values(),
                 'transfer' => $status === PurchaseStatus::AwaitingTransfer ? $this->transferInstructions($gateway, $purchase) : null,
                 'downloadUrl' => $status === PurchaseStatus::Paid ? route('checkout.tickets', $purchase->codigo) : null,
-                'digitalUrl' => $status === PurchaseStatus::Paid ? config('boxoffice.digital_ticket_url').$purchase->codigo : null,
+                'digitalUrl' => $status === PurchaseStatus::Paid ? route('profile.ticket', $purchase->codigo) : null,
                 'bondUrl' => $status === PurchaseStatus::Paid && (int) $event->bono === 1 ? config('boxoffice.bond_registration_url').$purchase->codigo : null,
                 'email' => $purchase->usuario?->correo,
             ],
