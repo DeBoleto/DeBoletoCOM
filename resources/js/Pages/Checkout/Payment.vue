@@ -721,11 +721,12 @@ main {
     }
 
     .pay-grid {
-        grid-template-columns: minmax(0, 1fr) 400px;
+        grid-template-columns: 400px minmax(0, 1fr);
         align-items: start;
     }
 
     .pay-summary {
+        order: -1;
         position: sticky;
         top: calc(var(--header-height) + 88px);
     }
