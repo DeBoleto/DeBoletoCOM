@@ -417,7 +417,7 @@ const activeIsGeneral = computed(() => isGeneral(activeKey.value));
 const seatGaps = computed(() =>
     props.mode === "map"
         ? sections.value
-              .filter((section) => !isGeneral(section.key) && readPick(section.key).seats.length > 1)
+              .filter((section) => !isGeneral(section.key))
               .flatMap((section) => {
                   const statuses = infos[section.key]?.statuses ?? {};
                   return findSeatGaps(section, readPick(section.key).seats, (seatId) => Boolean(statuses[seatId]) && statuses[seatId] !== "mio");
@@ -871,8 +871,8 @@ function setExtraChair(group, ticket, checked) {
 }
 
 function clearAll() {
-    for (const [key, pick] of Object.entries(picks)) {
-        if (!isGeneral(key)) pick.seats.forEach((seat) => hold(key, seat, "liberar"));
+    postJson(route("checkout.clear", props.event.id), { funcion: props.function.id });
+    for (const key of Object.keys(picks)) {
         picks[key] = { seats: [], quantity: 0, specials: {}, extraChairs: [] };
     }
     Object.keys(quantities).forEach((key) => delete quantities[key]);
@@ -1027,7 +1027,7 @@ onMounted(async () => {
         await loadSection(section.key);
         const statuses = infos[section.key]?.statuses ?? {};
         const pick = pickFor(section.key);
-        pick.seats = saved.seats.filter((seat) => statuses[seat] === "mio" || !statuses[seat]);
+        pick.seats = saved.seats.filter((seat) => statuses[seat] === "mio");
         pick.quantity = Math.min(saved.quantity ?? 0, infos[section.key]?.remaining ?? saved.quantity ?? 0);
     }
 

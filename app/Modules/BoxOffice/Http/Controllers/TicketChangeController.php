@@ -157,7 +157,8 @@ class TicketChangeController extends Controller
         }
 
         $resolved = $resolver->resolve($event, $functionId, $request->validated());
-        $gaps->ensure($evento, $functionId, $resolved);
+        $gaps->ensure($evento, $functionId, $resolved,
+            $this->holds->heldByOthers($evento, $functionId, $resolved['locality']->evento_localidad));
         $this->holds->claim($evento, $functionId, [$resolved]);
         ['locality' => $locality, 'section' => $section, 'seats' => $seats] = $resolved;
 

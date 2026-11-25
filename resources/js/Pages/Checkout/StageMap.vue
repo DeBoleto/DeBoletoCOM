@@ -728,8 +728,8 @@ function setExtraChair(group, ticket, checked) {
 }
 
 function clearAll() {
-    for (const [key, pick] of Object.entries(picks)) {
-        if (!isGeneral(key)) pick.seats.forEach((seat) => hold(key, seat, "liberar"));
+    postJson(route("checkout.clear", props.event.id), { funcion: props.function.id });
+    for (const key of Object.keys(picks)) {
         picks[key] = { seats: [], quantity: 0, specials: {}, extraChairs: [] };
     }
 }
@@ -849,7 +849,7 @@ onMounted(async () => {
     for (const { saved, section } of restored) {
         const statuses = venue[section.key]?.statuses ?? {};
         const pick = pickFor(section.key);
-        pick.seats = saved.seats.filter((seat) => statuses[seat] === "mio" || !statuses[seat]);
+        pick.seats = saved.seats.filter((seat) => statuses[seat] === "mio");
         pick.quantity = Math.min(saved.quantity ?? 0, venue[section.key]?.remaining ?? saved.quantity ?? 0);
         loadSection(section.key);
     }

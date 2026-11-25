@@ -278,7 +278,8 @@ class CheckoutController extends Controller
         }
 
         foreach ($resolved as $section) {
-            $gaps->ensure($event->pk_evento, $functionId, $section);
+            $gaps->ensure($event->pk_evento, $functionId, $section,
+                $this->holds->heldByOthers($event->pk_evento, $functionId, $section['locality']->evento_localidad));
         }
 
         $this->holds->claim($event->pk_evento, $functionId, $resolved);

@@ -70,19 +70,23 @@ function isActive(href) {
 <style scoped>
 .mobile-bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    left: var(--space-3);
+    right: var(--space-3);
     height: var(--bottom-nav-height);
-    background: rgba(10, 10, 15, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--color-border);
+    background: rgba(18, 18, 26, 0.88);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    box-shadow:
+        0 12px 32px -8px rgba(0, 0, 0, 0.7),
+        0 2px 8px rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
     justify-content: space-around;
+    padding-inline: var(--space-2);
     z-index: 100;
-    padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 @media (min-width: 768px) {

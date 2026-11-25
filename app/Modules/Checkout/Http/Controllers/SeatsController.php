@@ -222,6 +222,21 @@ class SeatsController extends Controller
         return redirect()->route('checkout.payment', $evento);
     }
 
+    /**
+     * Vacía el carrito de la función: suelta los asientos apartados y olvida
+     * la selección guardada para que no se vuelva a cargar al refrescar.
+     */
+    public function clear(Request $request, int $evento): JsonResponse
+    {
+        $functionId = (int) $request->validate(['funcion' => ['required', 'integer']])['funcion'];
+        $this->catalog->openFunction($evento, $functionId);
+
+        $this->holds->releaseExcept($evento, $functionId, $this->carts->owner(), []);
+        $this->carts->forget($evento);
+
+        return response()->json(['status' => 'cleared']);
+    }
+
     public function cancel(int $evento): RedirectResponse
     {
         $event = EventoVista::query()->findOrFail($evento);

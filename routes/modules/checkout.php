@@ -27,6 +27,7 @@ Route::middleware('web')->group(function () {
                 ->name('venue');
             Route::post('{evento}/asientos', [SeatsController::class, 'hold'])->middleware('throttle:90,1')->name('hold');
             Route::post('{evento}/seleccion', [SeatsController::class, 'store'])->middleware('throttle:30,1')->name('selection');
+            Route::post('{evento}/vaciar', [SeatsController::class, 'clear'])->middleware('throttle:30,1')->name('clear');
             Route::post('{evento}/cancelar', [SeatsController::class, 'cancel'])->name('cancel');
 
             Route::get('{evento}/pago', [PaymentController::class, 'show'])->name('payment');

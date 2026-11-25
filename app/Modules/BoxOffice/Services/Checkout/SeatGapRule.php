@@ -6,8 +6,9 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * No se puede dejar un solo asiento libre entre dos asientos elegidos de la
- * misma fila ni a la orilla de la fila junto a uno elegido: se piden asientos
- * pegados. Aplica a la web y a la taquilla.
+ * misma fila, entre uno elegido y uno apartado o vendido, ni a la orilla de la
+ * fila junto a uno elegido: se piden asientos pegados. Aplica a la web y a la
+ * taquilla.
  */
 class SeatGapRule
 {
@@ -27,37 +28,50 @@ class SeatGapRule
 
         $chosen = array_flip(array_map('strval', $resolved['seats']));
 
-        if (count($chosen) < 2) {
+        if ($chosen === []) {
             return;
         }
 
         $taken = $this->catalog->seatStatuses($eventId, $functionId, $resolved['locality']->pk_evento_localidad)
-            + array_flip($alsoTaken);
+            + array_flip(array_map('strval', $alsoTaken));
 
         foreach ($resolved['section']['rows'] as $row) {
             $byX = collect($row['seats'])->keyBy('x');
+            $state = fn (?array $seat) => match (true) {
+                $seat === null || ! ($seat['selectable'] ?? true) => 'edge',
+                isset($chosen[(string) $seat['id']]) => 'chosen',
+                isset($taken[(string) $seat['id']]) => 'taken',
+                default => 'open',
+            };
 
             foreach ($row['seats'] as $seat) {
-                $id = (string) $seat['id'];
-
-                if (isset($chosen[$id]) || ! ($seat['selectable'] ?? true) || isset($taken[$id])) {
+                if ($state($seat) !== 'open') {
                     continue;
                 }
 
-                $left = $byX->get($seat['x'] - 1);
-                $right = $byX->get($seat['x'] + 1);
-                $isChosen = fn (?array $neighbor) => $neighbor !== null && isset($chosen[(string) $neighbor['id']]);
-                $isEdge = fn (?array $neighbor) => $neighbor === null || ! ($neighbor['selectable'] ?? true);
+                $sides = [$state($byX->get($seat['x'] - 1)), $state($byX->get($seat['x'] + 1))];
 
-                if ($isChosen($left) && $isChosen($right)) {
+                if (! in_array('chosen', $sides, true) || in_array('open', $sides, true)) {
+                    continue;
+                }
+
+                $where = "el asiento {$seat['id']} de la fila {$row['fila']}";
+
+                if ($sides === ['chosen', 'chosen']) {
                     throw ValidationException::withMessages([
-                        'asientos' => "Selecciona asientos pegados: quedó libre el asiento {$id} de la fila {$row['fila']} entre dos de los asientos elegidos.",
+                        'asientos' => "Selecciona asientos pegados: quedó libre {$where} entre dos de los asientos elegidos.",
                     ]);
                 }
 
-                if (($isEdge($left) && $isChosen($right)) || ($isEdge($right) && $isChosen($left))) {
+                if (in_array('taken', $sides, true)) {
                     throw ValidationException::withMessages([
-                        'asientos' => "Selecciona asientos pegados: quedó libre el asiento {$id} de la fila {$row['fila']} a la orilla, junto a los asientos elegidos.",
+                        'asientos' => "Selecciona asientos pegados: quedó libre {$where} entre los asientos elegidos y uno ocupado.",
+                    ]);
+                }
+
+                if (count($chosen) > 1) {
+                    throw ValidationException::withMessages([
+                        'asientos' => "Selecciona asientos pegados: quedó libre {$where} a la orilla, junto a los asientos elegidos.",
                     ]);
                 }
             }
