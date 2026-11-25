@@ -37,6 +37,8 @@ const DIRECT_ON = 3;
 const DIRECT_OFF = 2;
 const DOUBLE_ZOOM = 3.5;
 const DOUBLE_TAP_MS = 300;
+const RING_UNTIL = 3;
+const RING_PX = 34;
 
 const STATUS_LABEL = {
     disponible: "Disponible",
@@ -66,7 +68,9 @@ let stage = null;
 let layer = null;
 let observer = null;
 let entrance = null;
+let rings = null;
 let fitScale = 1;
+let zoomRatio = 1;
 let lastTap = { id: null, at: 0 };
 let pinch = null;
 let lastMapTap = { at: 0, x: 0, y: 0 };
@@ -220,7 +224,8 @@ function build() {
         nodes.set(`${seat.key}:${seat.id}`, { circle, mark, seat });
     }
 
-    layer.add(areas, dots);
+    rings = new Konva.Group({ listening: false });
+    layer.add(areas, dots, rings);
     fit();
     animateEntrance();
 }
@@ -326,7 +331,52 @@ function paint() {
         mark.setAttrs(markStyle(current));
     }
 
+    drawRings();
     layer?.batchDraw();
+}
+
+function zoomed(ratio) {
+    zoomRatio = ratio;
+    emit("scale", ratio);
+    updateDirect(ratio);
+    drawRings();
+    layer?.batchDraw();
+}
+
+// Con el mapa completo poco acercado los asientos elegidos se pierden entre
+// los demás: se marcan con un círculo del color de la zona, uno por grupo de
+// asientos cercanos.
+function drawRings() {
+    if (!rings || !stage) return;
+
+    rings.destroyChildren();
+    if (props.activeKey !== null || zoomRatio >= RING_UNTIL) return;
+
+    const scale = stage.scaleX();
+    const reach = RING_PX / scale;
+    const groups = [];
+
+    for (const { circle, seat } of nodes.values()) {
+        if (!isSelected(seat)) continue;
+
+        const point = { x: circle.x(), y: circle.y() };
+        const group = groups.find((candidate) => candidate.key === seat.key && Math.hypot(candidate.x - point.x, candidate.y - point.y) < reach);
+
+        if (group) {
+            group.count++;
+            group.x += (point.x - group.x) / group.count;
+            group.y += (point.y - group.y) / group.count;
+        } else {
+            groups.push({ key: seat.key, x: point.x, y: point.y, count: 1, color: colorsFor(seat).selected });
+        }
+    }
+
+    for (const group of groups) {
+        rings.add(
+            new Konva.Circle({ x: group.x, y: group.y, radius: reach, fill: group.color, opacity: 0.12, perfectDrawEnabled: false }),
+            new Konva.Circle({ x: group.x, y: group.y, radius: reach, stroke: group.color, strokeWidth: 4 / scale, opacity: 0.55, perfectDrawEnabled: false }),
+        );
+    }
 }
 
 function contentBox() {
@@ -336,6 +386,7 @@ function contentBox() {
 function fit() {
     if (!stage) return;
 
+    rings?.destroyChildren();
     const box = contentBox();
     if (!box.width || !box.height) return;
 
@@ -349,8 +400,7 @@ function fit() {
         y: (stage.height() - box.height * fitScale) / 2 - box.y * fitScale,
     });
     stage.batchDraw();
-    emit("scale", 1);
-    updateDirect(1);
+    zoomed(1);
 }
 
 function zoomAt(next, point) {
@@ -365,8 +415,7 @@ function zoomAt(next, point) {
     stage.scale({ x: scale, y: scale });
     stage.position({ x: point.x - anchor.x * scale, y: point.y - anchor.y * scale });
     stage.batchDraw();
-    emit("scale", scale / fitScale);
-    updateDirect(scale / fitScale);
+    zoomed(scale / fitScale);
 }
 
 function center() {
@@ -378,10 +427,7 @@ function zoomToPoint(pointer) {
     const scale = fitScale * DOUBLE_ZOOM;
     const world = { x: (pointer.x - stage.x()) / old, y: (pointer.y - stage.y()) / old };
     const target = { x: stage.width() / 2 - world.x * scale, y: stage.height() / 2 - world.y * scale };
-    const done = () => {
-        emit("scale", DOUBLE_ZOOM);
-        updateDirect(DOUBLE_ZOOM);
-    };
+    const done = () => zoomed(DOUBLE_ZOOM);
 
     if (reduceMotion) {
         stage.scale({ x: scale, y: scale });
