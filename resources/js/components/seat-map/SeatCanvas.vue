@@ -45,6 +45,11 @@
                         :config="seatTextConfig(seat)"
                     />
                 </template>
+                <v-text
+                    v-for="seat in gapSeats"
+                    :key="`${seat.id}-gap`"
+                    :config="gapMarkConfig(seat)"
+                />
             </v-layer>
         </v-stage>
         <div class="visually-hidden">
@@ -289,6 +294,29 @@ function isGap(seat) {
     return props.gapIds.includes(seat.id);
 }
 
+const gapSeats = computed(() => props.seats.filter(isGap));
+
+function gapMarkConfig(seat) {
+    const width = dots.value ? dotRadius.value * 2 : SEAT_W * props.zoom;
+    const height = dots.value ? dotRadius.value * 2 : SEAT_H * props.zoom;
+    const fontSize = Math.max(9, Math.min(width, height) * 0.82);
+
+    return {
+        x: toX(seat.x) - width / 2,
+        y: toY(seat.y) - fontSize / 2 + fontSize * 0.06,
+        width,
+        text: "!",
+        align: "center",
+        fontSize,
+        fontStyle: "bold",
+        fill: SEAT_GAP.mark,
+        shadowColor: "#7f1d1d",
+        shadowBlur: 2,
+        shadowOpacity: 0.8,
+        listening: false,
+    };
+}
+
 function seatFill(seat) {
     if (isSelected(seat)) return palette.value.selected;
     if (isGap(seat)) return SEAT_GAP.fill;
@@ -369,6 +397,8 @@ function dotConfig(seat) {
 }
 
 function seatTextConfig(seat) {
+    if (isGap(seat)) return { visible: false, listening: false };
+
     if (!dots.value) {
         const fontSize = 9 * props.zoom;
         return {

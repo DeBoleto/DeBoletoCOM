@@ -118,6 +118,11 @@ function isGap(seat) {
     return gaps.value.has(`${seat.key}:${seat.id}`);
 }
 
+function markStyle(seat) {
+    if (isGap(seat)) return { text: "!", fill: SEAT_GAP.mark, shadowOpacity: 0.8, visible: true };
+    return { text: "✓", fill: "#ffffff", shadowOpacity: 0, visible: seatMode() && isSelected(seat) };
+}
+
 function stroke(seat) {
     if (isGap(seat)) return SEAT_GAP.stroke;
     return seat.status === "en_proceso" ? SEAT_STATUS.en_proceso.stroke : "#ffffff";
@@ -199,12 +204,12 @@ function build() {
             y: y - radius * 0.62,
             width: radius * 2,
             align: "center",
-            text: "✓",
             fontSize: radius * 1.3,
             fontStyle: "bold",
-            fill: "#ffffff",
+            shadowColor: "#7f1d1d",
+            shadowBlur: 2,
             listening: false,
-            visible: seatMode() && isSelected(seat),
+            ...markStyle(seat),
         });
 
         circle.on("click tap", (event) => onSeat(event, seat));
@@ -313,14 +318,12 @@ function latest(seat) {
 }
 
 function paint() {
-    const marks = seatMode();
-
     for (const { circle, mark, seat } of nodes.values()) {
         const current = latest(seat);
         circle.fill(fill(current));
         circle.stroke(stroke(current));
         circle.dash(current.status === "en_proceso" ? [3, 2] : []);
-        mark.visible(marks && isSelected(current));
+        mark.setAttrs(markStyle(current));
     }
 
     layer?.batchDraw();
