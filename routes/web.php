@@ -273,8 +273,8 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
     }
 
     // Carreras: el kit (elementos con su ícono de Lucide, fecha y lugar de
-    // entrega) y la convocatoria vienen en el detalle de Redis, que escriben el
-    // organizador y deboletoadmin. Si el detalle aún no los trae (cargado antes
+    // entrega) y la convocatoria del evento (eventos.convocatoria) vienen en el
+    // detalle de Redis, que escriben el organizador y deboletoadmin. Si el detalle aún no los trae (cargado antes
     // de que existieran) se leen de MySQL (categoría con carrera = 1); si la
     // consulta falla se registra y el detalle se muestra sin ellos.
     $kit = null;
@@ -308,7 +308,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             'deliveryDate' => $race->kit->entrega_fecha?->format('Y-m-d\TH:i:s'),
             'deliveryPlace' => trim((string) $race->kit->entrega_lugar),
         ] : null;
-        $convocatoria = (string) ($race?->kit?->convocatoria ?? '');
+        $convocatoria = (string) ($race?->convocatoria ?? '');
     }
 
     $imagesUrl = config('app.deboleto_url').'/images/eventos/';

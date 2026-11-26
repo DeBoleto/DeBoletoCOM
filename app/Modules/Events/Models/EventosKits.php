@@ -9,14 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Entrega del kit de una carrera: cuándo y dónde (una fila por evento), y su convocatoria:
- * archivo PDF en la carpeta de imágenes de los eventos, en /convocatorias ('' = sin ella).
+ * Entrega del kit de una carrera: cuándo y dónde (una fila por evento).
  *
  * @property int $pk_evento_kit
  * @property int $pk_evento
  * @property Carbon|null $entrega_fecha
  * @property string $entrega_lugar
- * @property string $convocatoria
  * @property bool $eliminado
  */
 class EventosKits extends LegacyModel

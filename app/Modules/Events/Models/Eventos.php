@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int|null $pk_boleto_formato_tipo
  * @property string $evento
  * @property string|null $imagen
+ * @property string $convocatoria Archivo PDF en /images/eventos/convocatorias ('' = sin ella)
  * @property int $promocion
  * @property float $promocion_porcentaje
  * @property bool $sin_estructura
