@@ -128,23 +128,14 @@
                                 <ul v-if="kit.items.length" class="kit-items">
                                     <li
                                         v-for="item in kit.items"
-                                        :key="item"
+                                        :key="item.name"
                                         class="kit-item"
                                     >
-                                        <svg
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="3"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            aria-hidden="true"
-                                        >
-                                            <path d="M20 6 9 17l-5-5" />
-                                        </svg>
-                                        <span>{{ item }}</span>
+                                        <KitIcon
+                                            :name="item.icon"
+                                            :size="item.icon ? 20 : 16"
+                                        />
+                                        <span>{{ item.name }}</span>
                                     </li>
                                 </ul>
                                 <dl
@@ -168,6 +159,60 @@
                                         <dd>{{ kit.deliveryPlace }}</dd>
                                     </div>
                                 </dl>
+                            </div>
+                            <div v-if="convocatoria" class="detail-block">
+                                <h2 class="block-title">
+                                    <svg
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+                                        />
+                                        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                                        <path d="M10 9H8" />
+                                        <path d="M16 13H8" />
+                                        <path d="M16 17H8" />
+                                    </svg>
+                                    Convocatoria
+                                </h2>
+                                <p class="convocatoria-text">
+                                    Consulta las bases, rutas, categorías y
+                                    premiación de la carrera.
+                                </p>
+                                <a
+                                    :href="convocatoria"
+                                    class="convocatoria-link"
+                                    target="_blank"
+                                    rel="noopener"
+                                    download
+                                >
+                                    <svg
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="M12 15V3" />
+                                        <path
+                                            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                        />
+                                        <path d="m7 10 5 5 5-5" />
+                                    </svg>
+                                    Descargar convocatoria (PDF)
+                                </a>
                             </div>
                             <div
                                 v-if="event.functions.length"
@@ -293,7 +338,10 @@
                                 </template>
                             </div>
 
-                            <section class="sponsors-section">
+                            <section
+                                v-if="sponsors.length"
+                                class="sponsors-section"
+                            >
                                 <h2 class="sponsors-title block-title">
                                     Patrocinadores
                                 </h2>
@@ -327,16 +375,20 @@
                                         @mousemove="onSponsorMouseMove"
                                         @mouseup="onSponsorMouseUp"
                                         @mouseleave="onSponsorMouseUp"
-                                        @click.prevent="onSponsorClick"
+                                        @click.capture="onSponsorClick"
                                     >
                                         <ul class="sponsor-track">
                                             <li
                                                 v-for="s in sponsors"
-                                                :key="s.name"
+                                                :key="s.image"
                                             >
-                                                <a
-                                                    :href="s.url"
+                                                <component
+                                                    :is="s.url ? 'a' : 'div'"
+                                                    :href="s.url || undefined"
+                                                    :target="s.url ? '_blank' : undefined"
+                                                    :rel="s.url ? 'noopener sponsored' : undefined"
                                                     :title="s.name"
+                                                    class="sponsor-card"
                                                     draggable="false"
                                                 >
                                                     <img
@@ -345,7 +397,7 @@
                                                         draggable="false"
                                                     />
                                                     <h3>{{ s.name }}</h3>
-                                                </a>
+                                                </component>
                                             </li>
                                         </ul>
                                     </div>
@@ -555,10 +607,14 @@ import LoginModal from "@/components/LoginModal.vue";
 import RegisterModal from "@/components/RegisterModal.vue";
 import EventMap from "@/components/EventMap.vue";
 import NearbyEventsStrip from "@/components/NearbyEventsStrip.vue";
+import KitIcon from "@/components/KitIcon.vue";
 
 const props = defineProps({
     event: { type: Object, required: true },
     kit: { type: Object, default: null },
+    // URL del PDF de la convocatoria (carreras) o null.
+    convocatoria: { type: String, default: null },
+    sponsors: { type: Array, default: () => [] },
     nearbyEvents: { type: Array, default: () => [] },
 });
 
@@ -779,44 +835,7 @@ const formattedMainDate = computed(() => {
     return formatDate(selectedFunction.value.date);
 });
 
-const sponsors = [
-    {
-        name: "Coca Cola",
-        image: "https://picsum.photos/seed/cocacola/440/280",
-        url: "#",
-    },
-    {
-        name: "Canon",
-        image: "https://picsum.photos/seed/canon/440/280",
-        url: "#",
-    },
-    {
-        name: "Spotify",
-        image: "https://picsum.photos/seed/spotify/440/280",
-        url: "#",
-    },
-    {
-        name: "FedEx",
-        image: "https://picsum.photos/seed/fedex/440/280",
-        url: "#",
-    },
-    { name: "UPS", image: "https://picsum.photos/seed/ups/440/280", url: "#" },
-    {
-        name: "Citi",
-        image: "https://picsum.photos/seed/citi/440/280",
-        url: "#",
-    },
-    {
-        name: "BBVA",
-        image: "https://picsum.photos/seed/bbva/440/280",
-        url: "#",
-    },
-    {
-        name: "Cerveza Sol",
-        image: "https://picsum.photos/seed/cervezasol/440/280",
-        url: "#",
-    },
-];
+const sponsors = computed(() => props.sponsors);
 
 const sponsorScrollRef = ref(null);
 
@@ -1073,6 +1092,34 @@ main {
 .kit-item span {
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.convocatoria-text {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-secondary);
+}
+
+.convocatoria-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-md);
+    color: var(--color-brand);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.convocatoria-link:hover {
+    background: var(--color-brand);
+    color: #fff;
+}
+
+.convocatoria-link:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
 }
 
 .kit-delivery {
@@ -1385,7 +1432,7 @@ main {
     position: relative;
 }
 
-.sponsor-track li a {
+.sponsor-track li .sponsor-card {
     position: relative;
     display: block;
     transition:
@@ -1396,12 +1443,12 @@ main {
     -webkit-tap-highlight-color: transparent;
 }
 
-.sponsor-track li a:focus,
-.sponsor-track li a:active {
+.sponsor-track li .sponsor-card:focus,
+.sponsor-track li .sponsor-card:active {
     outline: none;
 }
 
-.sponsor-track li a::after {
+.sponsor-track li .sponsor-card::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -1410,19 +1457,23 @@ main {
     pointer-events: none;
 }
 
-.sponsor-track li a img {
+.sponsor-track li .sponsor-card img {
     border-radius: 12px;
     display: block;
     width: 100%;
+    aspect-ratio: 11 / 7;
+    object-fit: contain;
+    padding: 12px 12px 32px;
+    background: #fff;
     pointer-events: none;
 }
 
-.sponsor-track li a:hover {
+.sponsor-track li .sponsor-card:hover {
     transform: perspective(700px) rotateY(7deg) scale(1.06) translateZ(10px);
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
 }
 
-.sponsor-track li a h3 {
+.sponsor-track li .sponsor-card h3 {
     position: absolute;
     left: 0;
     right: 0;

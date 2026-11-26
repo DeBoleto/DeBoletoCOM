@@ -272,28 +272,67 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             ->all();
     }
 
-    // Carreras (categoría con carrera = 1): el kit que se entrega (elementos,
-    // fecha y lugar de entrega) vive en MySQL; si la consulta falla se
-    // registra y el detalle se muestra sin él.
-    $race = rescue(fn () => Eventos::query()
-        ->where('pk_evento', $currentEventId)
-        ->carreras()
-        ->with('kit.kitsElementos')
-        ->first());
+    // Carreras: el kit (elementos con su ícono de Lucide, fecha y lugar de
+    // entrega) y la convocatoria vienen en el detalle de Redis, que escriben el
+    // organizador y deboletoadmin. Si el detalle aún no los trae (cargado antes
+    // de que existieran) se leen de MySQL (categoría con carrera = 1); si la
+    // consulta falla se registra y el detalle se muestra sin ellos.
+    $kit = null;
+    $convocatoria = (string) ($event['convocatoria'] ?? '');
 
-    $kit = $race?->kit ? [
-        'items' => $race->kit->kitsElementos
-            ->reject(fn ($item) => $item->eliminado)
-            ->pluck('kit_elemento')
-            ->values()
-            ->all(),
-        'deliveryDate' => $race->kit->entrega_fecha?->format('Y-m-d\TH:i:s'),
-        'deliveryPlace' => trim((string) $race->kit->entrega_lugar),
-    ] : null;
+    if (array_key_exists('kit', $event)) {
+        $kit = is_array($event['kit']) ? [
+            'items' => array_values(array_map(fn ($item) => [
+                'name' => (string) ($item['nombre'] ?? ''),
+                'icon' => (string) ($item['icono'] ?? ''),
+            ], array_filter((array) ($event['kit']['elementos'] ?? []), 'is_array'))),
+            'deliveryDate' => $event['kit']['entrega_fecha'] ?? null,
+            'deliveryPlace' => trim((string) ($event['kit']['entrega_lugar'] ?? '')),
+        ] : null;
+    } else {
+        $race = rescue(fn () => Eventos::query()
+            ->where('pk_evento', $currentEventId)
+            ->carreras()
+            ->with('kit.kitsElementos')
+            ->first());
+
+        $kit = $race?->kit ? [
+            'items' => $race->kit->kitsElementos
+                ->reject(fn ($item) => $item->eliminado)
+                ->map(fn ($item) => [
+                    'name' => (string) $item->kit_elemento,
+                    'icon' => (string) ($item->icono ?? ''),
+                ])
+                ->values()
+                ->all(),
+            'deliveryDate' => $race->kit->entrega_fecha?->format('Y-m-d\TH:i:s'),
+            'deliveryPlace' => trim((string) $race->kit->entrega_lugar),
+        ] : null;
+        $convocatoria = (string) ($race?->kit?->convocatoria ?? '');
+    }
+
+    $imagesUrl = config('app.deboleto_url').'/images/eventos/';
+
+    // Patrocinadores del evento (los registra el organizador): logo en
+    // /images/eventos/patrocinadores, en su orden.
+    $sponsors = collect((array) ($event['patrocinadores'] ?? []))
+        ->filter(fn ($s) => is_array($s) && ! empty($s['logo']))
+        ->sortBy(fn ($s) => (int) ($s['orden'] ?? 0))
+        ->values()
+        ->map(fn ($s) => [
+            'name' => (string) ($s['nombre'] ?? ''),
+            'image' => $imagesUrl.'patrocinadores/'.rawurlencode($s['logo']),
+            'url' => trim((string) ($s['url'] ?? '')),
+        ])
+        ->all();
 
     return Inertia::render('EventDetail', [
         'slug' => $slug,
         'kit' => $kit && ($kit['items'] !== [] || $kit['deliveryPlace'] !== '') ? $kit : null,
+        'convocatoria' => $convocatoria !== ''
+            ? $imagesUrl.'convocatorias/'.rawurlencode($convocatoria)
+            : null,
+        'sponsors' => $sponsors,
         'nearbyEvents' => $nearbyEvents,
         'event' => [
             'id' => $event['id'],

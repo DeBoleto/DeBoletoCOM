@@ -27,6 +27,7 @@
         "vue-tsc": "^3.3.6"
     },
     "dependencies": {
+        "@lucide/vue": "1.69.0",
         "@vueuse/core": "^14.3.0",
         "konva": "^10.7.1",
         "laravel-echo": "^2.2.0",

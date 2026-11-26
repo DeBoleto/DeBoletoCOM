@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Catálogo de lo que puede incluir el kit de una carrera (playera, número, medalla...).
+ * icono es el nombre de un ícono de Lucide ('' = sin ícono; components/KitIcon.vue).
  *
  * @property int $pk_kit_elemento
  * @property string $kit_elemento
+ * @property string $icono
  * @property int $orden
  * @property bool $eliminado
  */
