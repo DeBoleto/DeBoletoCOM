@@ -151,7 +151,6 @@ class DigitalTickets
 
         return [
             'event' => $this->event($event, $function) + [
-                'ticketImage' => EventImage::url($event->imagen_boleto) ?? EventImage::url($event->imagen),
                 'isRace' => $race,
             ],
             'purchase' => [

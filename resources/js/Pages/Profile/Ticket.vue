@@ -26,7 +26,7 @@
                     :aria-label="`Boleto ${index + 1} de ${tickets.length}`"
                 >
                     <header class="pass-hero">
-                        <img v-if="event.ticketImage" :src="event.ticketImage" alt="" />
+                        <img v-if="event.image" :src="event.image" alt="" />
                         <div class="pass-hero-text">
                             <span v-if="ticket.courtesy" class="pass-chip">Cortesía</span>
                             <h1 class="pass-event">{{ event.name }}</h1>
