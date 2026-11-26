@@ -330,7 +330,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         'slug' => $slug,
         'kit' => $kit && ($kit['items'] !== [] || $kit['deliveryPlace'] !== '') ? $kit : null,
         'convocatoria' => $convocatoria !== ''
-            ? $imagesUrl.'convocatorias/'.rawurlencode($convocatoria)
+            ? config('app.convocatorias_url').'/'.rawurlencode($convocatoria)
             : null,
         'sponsors' => $sponsors,
         'nearbyEvents' => $nearbyEvents,

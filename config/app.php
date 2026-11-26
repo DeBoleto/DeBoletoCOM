@@ -56,6 +56,14 @@ return [
 
     'deboleto_url' => rtrim(env('DEBOLETO_URL', 'https://deboleto.com'), '/'),
 
+    // URL pública de la carpeta de convocatorias (PDF) de los eventos: la misma carpeta que
+    // CONVOCATORIAS_DIR de deboletoadmin y DEBOLETO_CONVOCATORIAS_DIR del organizador.
+    'convocatorias_url' => rtrim(
+        env('DEBOLETO_CONVOCATORIAS_URL')
+            ?: rtrim(env('DEBOLETO_URL', 'https://deboleto.com'), '/').'/images/eventos/convocatorias',
+        '/'
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
