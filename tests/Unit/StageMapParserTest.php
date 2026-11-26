@@ -131,6 +131,26 @@ class StageMapParserTest extends TestCase
         $this->assertSame(['x' => 5, 'y' => 10], $stage['sections'][0]['offset']);
     }
 
+    public function test_reads_venue_objects(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><objects hasManyChildren="1">'
+            .'<object kind="barra" shape="rect" x="40" y="60" width="200" height="60" rotation="15" label="BARRA" color="#8d5a2b" />'
+            .'<object kind="columna" shape="ellipse" x="10" y="10" width="40" height="40" />'
+            .'<object kind="otro" x="0" y="0" width="0" height="10" />'
+            .'</objects><sections /></stage>'
+        );
+
+        $this->assertCount(2, $stage['objects']);
+        $this->assertSame(
+            ['kind' => 'barra', 'shape' => 'rect', 'x' => 40, 'y' => 60, 'width' => 200, 'height' => 60,
+                'rotation' => 15.0, 'label' => 'BARRA', 'color' => '#8d5a2b'],
+            $stage['objects'][0],
+        );
+        $this->assertSame('ellipse', $stage['objects'][1]['shape']);
+        $this->assertSame([], StageMapParser::parseXml('<stage><sections /></stage>')['objects']);
+    }
+
     public function test_reads_web_visibility(): void
     {
         $stage = StageMapParser::parseXml(

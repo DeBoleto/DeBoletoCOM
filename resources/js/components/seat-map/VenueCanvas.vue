@@ -54,6 +54,7 @@ const props = defineProps({
     selectedKeys: { type: Array, default: () => [] },
     gapKeys: { type: Array, default: () => [] },
     mainStage: { type: Object, default: null },
+    objects: { type: Array, default: () => [] },
     areas: { type: Array, default: () => [] },
     readonly: { type: Boolean, default: false },
 });
@@ -155,6 +156,7 @@ function build() {
 
     if (!zoneMode) {
         for (const area of props.areas) addArea(areas, area);
+        for (const object of props.objects) addObject(areas, object);
         if (props.mainStage) addMainStage(areas, props.mainStage);
     }
 
@@ -316,6 +318,45 @@ function addMainStage(group, bar) {
             listening: false,
         }),
     );
+}
+
+// Objeto del recinto en px del mapa general; gira alrededor de su centro como en el editor.
+function addObject(group, object) {
+    const text = object.kind === "texto";
+    const box = new Konva.Group({
+        x: object.x + object.width / 2,
+        y: object.y + object.height / 2,
+        rotation: object.rotation ?? 0,
+        listening: false,
+    });
+
+    if (!text) {
+        const common = { fill: object.color, opacity: 0.85, perfectDrawEnabled: false, listening: false };
+        box.add(
+            object.shape === "ellipse"
+                ? new Konva.Ellipse({ radiusX: object.width / 2, radiusY: object.height / 2, ...common })
+                : new Konva.Rect({ x: -object.width / 2, y: -object.height / 2, width: object.width, height: object.height, cornerRadius: 4, ...common }),
+        );
+    }
+
+    if (object.label) {
+        const fontSize = Math.max(8, Math.min(object.height * 0.5, (object.width / Math.max(object.label.length, 3)) * 1.5, 48));
+        box.add(
+            new Konva.Text({
+                x: -object.width / 2,
+                y: -fontSize / 2,
+                width: object.width,
+                text: object.label,
+                align: "center",
+                fontSize,
+                fontStyle: "bold",
+                fill: text ? object.color : "#ffffff",
+                listening: false,
+            }),
+        );
+    }
+
+    group.add(box);
 }
 
 function latest(seat) {
@@ -614,7 +655,7 @@ function resize() {
 }
 
 watch(() => props.activeKey, build);
-watch(() => [props.mainStage, props.areas], build);
+watch(() => [props.mainStage, props.objects, props.areas], build);
 watch(() => props.seats.map((seat) => seat.key + seat.id).join("|"), build);
 watch([() => props.seats, () => props.selectedKeys, () => props.gapKeys], paint);
 

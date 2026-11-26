@@ -16,6 +16,11 @@ export function venueMainStage(stage) {
     return hasPlacement(stage?.sections) ? (stage?.mainStage ?? null) : null;
 }
 
+// Objetos del recinto (barras, baños, entradas…); igual que el escenario, solo con desplazamientos.
+export function venueObjects(stage) {
+    return hasPlacement(stage?.sections) ? (stage?.objects ?? []) : [];
+}
+
 export function venueOffsets(sections) {
     const seated = seatedSections(sections);
 

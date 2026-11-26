@@ -142,6 +142,7 @@ class StageMapParser
         return [
             'canvas' => (int) ($xml->image['size'] ?? 2000),
             'mainStage' => self::mainStage($xml),
+            'objects' => self::objects($xml),
             'sections' => $sections,
         ];
     }
@@ -170,6 +171,42 @@ class StageMapParser
             'height' => $height,
             'label' => trim((string) $xml->main_stage['label']) ?: 'ESCENARIO',
         ];
+    }
+
+    /**
+     * Objetos del recinto (<objects>: barras, baños, entradas, textos…) en px
+     * del mapa general. Solo se dibujan; no se venden.
+     */
+    private static function objects(SimpleXMLElement $xml): array
+    {
+        if (! isset($xml->objects)) {
+            return [];
+        }
+
+        $objects = [];
+
+        foreach ($xml->objects->object as $object) {
+            $width = (int) $object['width'];
+            $height = (int) $object['height'];
+
+            if ($width <= 0 || $height <= 0) {
+                continue;
+            }
+
+            $objects[] = [
+                'kind' => (string) ($object['kind'] ?? 'otro'),
+                'shape' => (string) $object['shape'] === 'ellipse' ? 'ellipse' : 'rect',
+                'x' => (int) $object['x'],
+                'y' => (int) $object['y'],
+                'width' => $width,
+                'height' => $height,
+                'rotation' => (float) ($object['rotation'] ?? 0),
+                'label' => trim((string) $object['label']),
+                'color' => (string) ($object['color'] ?? '') ?: '#7048e8',
+            ];
+        }
+
+        return $objects;
     }
 
     private static function matchPrice(string $localityId, array $zones): ?array
