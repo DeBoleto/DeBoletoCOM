@@ -6,7 +6,6 @@
             :zones="zones"
             :active-key="activeKey"
             :selected-keys="selectedKeys"
-            :gap-keys="gapKeys"
             :main-stage="mainStage"
             :areas="areas"
             :readonly="readonly"
@@ -71,7 +70,6 @@ const props = defineProps({
     stage: { type: Object, default: null },
     statuses: { type: Object, default: () => ({}) },
     selectedKeys: { type: Array, default: () => [] },
-    gapKeys: { type: Array, default: () => [] },
     activeKey: { type: String, default: null },
     readonly: { type: Boolean, default: false },
     heightClass: { type: String, default: "h-[60vh] min-h-80" },

@@ -14,7 +14,6 @@ use App\Modules\BoxOffice\Services\Checkout\CheckoutStore;
 use App\Modules\BoxOffice\Services\Checkout\ConfirmationGuard;
 use App\Modules\BoxOffice\Services\Checkout\PurchaseService;
 use App\Modules\BoxOffice\Services\Checkout\SaleCatalog;
-use App\Modules\BoxOffice\Services\Checkout\SeatGapRule;
 use App\Modules\BoxOffice\Services\Checkout\SeatSelectionResolver;
 use App\Modules\BoxOffice\Services\Checkout\SectionsStateBuilder;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
@@ -108,7 +107,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function storeSelection(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $seats, SeatGapRule $gaps, int $evento): RedirectResponse
+    public function storeSelection(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $seats, int $evento): RedirectResponse
     {
         $event = $this->sellableEvent($evento);
         $functionId = (int) $request->validated('funcion');
@@ -123,7 +122,7 @@ class CheckoutController extends Controller
 
         $state = $request->sellsByQuantity()
             ? $this->quantitiesState($request, $pricing, $event, $functionId)
-            : $this->seatMapState($request, $pricing, $seats, $gaps, $event, $functionId);
+            : $this->seatMapState($request, $pricing, $seats, $event, $functionId);
 
         $this->store->put($state);
 
@@ -265,7 +264,7 @@ class CheckoutController extends Controller
         ];
     }
 
-    private function seatMapState(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $resolver, SeatGapRule $gaps, EventoVista $event, int $functionId): CheckoutState
+    private function seatMapState(SelectTicketsRequest $request, TicketPricing $pricing, SeatSelectionResolver $resolver, EventoVista $event, int $functionId): CheckoutState
     {
         $max = (int) config('boxoffice.max_tickets_per_sale');
         $resolved = array_map(
@@ -275,11 +274,6 @@ class CheckoutController extends Controller
 
         if (array_sum(array_map(fn (array $section) => count($section['seats']), $resolved)) > $max) {
             throw ValidationException::withMessages(['asientos' => "No puedes vender más de {$max} boletos por venta."]);
-        }
-
-        foreach ($resolved as $section) {
-            $gaps->ensure($event->pk_evento, $functionId, $section,
-                $this->holds->heldByOthers($event->pk_evento, $functionId, $section['locality']->evento_localidad));
         }
 
         $this->holds->claim($event->pk_evento, $functionId, $resolved);

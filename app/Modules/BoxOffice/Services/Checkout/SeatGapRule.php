@@ -7,8 +7,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * No se puede dejar un solo asiento libre entre dos asientos elegidos de la
  * misma fila, entre uno elegido y uno apartado o vendido, ni a la orilla de la
- * fila junto a uno elegido: se piden asientos pegados. Aplica a la web y a la
- * taquilla.
+ * fila junto a uno elegido: se piden asientos pegados. Solo aplica a la venta
+ * en línea; la taquilla y el dashboard no la validan.
  */
 class SeatGapRule
 {

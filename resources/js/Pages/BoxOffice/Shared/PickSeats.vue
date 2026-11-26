@@ -76,7 +76,7 @@
                     <button
                         type="button"
                         class="mt-5 w-full rounded-lg bg-bo-green px-4 py-3 font-semibold text-white hover:bg-bo-green-dark disabled:cursor-not-allowed disabled:opacity-50"
-                        :disabled="!functionId || !count || Boolean(picker?.seatGap) || form.processing"
+                        :disabled="!functionId || !count || form.processing"
                         @click="submit"
                     >
                         {{ form.processing ? "Validando…" : submitLabel }}
