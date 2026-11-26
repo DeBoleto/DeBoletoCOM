@@ -46,6 +46,7 @@
             <span
                 v-else-if="event.promotion"
                 class="card-badge card-badge--promo"
+                :style="promotionStyle(event.promotion)"
                 :title="`Promoción ${event.promotion}`"
                 >{{ event.promotion }}</span
             >
@@ -120,6 +121,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { promotionStyle } from "./promotionTone.js";
 
 const props = defineProps({
     event: {

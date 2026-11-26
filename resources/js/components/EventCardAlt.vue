@@ -16,9 +16,15 @@
             />
         </picture>
 
+        <div v-if="dateBadge" class="date-badge" aria-hidden="true">
+            <span class="d">{{ dateBadge.day }}</span>
+            <span class="m">{{ dateBadge.month }}</span>
+        </div>
+
         <span
             v-if="promoLabel"
             class="promo-pill"
+            :style="promotionStyle(promoLabel)"
             :title="`Promoción ${promoLabel}`"
             >{{ promoLabel }}</span
         >
@@ -35,6 +41,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { promotionStyle } from "./promotionTone.js";
 
 const props = defineProps({
     event: {
@@ -55,6 +62,12 @@ const promoLabel = computed(() => {
     const p = props.event.promociones;
     const value = Array.isArray(p) ? p[0] : p;
     return value ? String(value) : "";
+});
+
+const dateBadge = computed(() => {
+    const parts = String(props.event.date ?? "").trim().split(/\s+/);
+    const day = (parts[0] ?? "").split(/[–-]/)[0];
+    return day ? { day, month: (parts[1] ?? "").toUpperCase() } : null;
 });
 
 const locationLine = computed(() =>
@@ -120,12 +133,40 @@ const locationLine = computed(() =>
     pointer-events: none;
 }
 
+.date-badge {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-lg);
+    background: rgba(10, 10, 15, 0.85);
+    line-height: 1;
+}
+
+.date-badge .d {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.date-badge .m {
+    margin-top: 2px;
+    color: var(--color-brand);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
 .promo-pill {
     position: absolute;
     top: var(--space-3);
     right: var(--space-3);
     z-index: 1;
-    max-width: calc(100% - 2 * var(--space-3));
+    max-width: calc(100% - 88px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -57,6 +57,7 @@
                         <span
                             v-if="event.promotion"
                             class="nearby-promo"
+                            :style="promotionStyle(event.promotion)"
                             :title="`Promoción ${event.promotion}`"
                             >{{ event.promotion }}</span
                         >
@@ -121,6 +122,7 @@
                             <span
                                 v-if="event.promotion"
                                 class="ticket-promo"
+                                :style="promotionStyle(event.promotion)"
                                 :title="`Promoción ${event.promotion}`"
                                 >{{ event.promotion }}</span
                             >
@@ -201,6 +203,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { promotionStyle } from "./promotionTone.js";
 
 const props = defineProps({
     sidebarEvents: {
