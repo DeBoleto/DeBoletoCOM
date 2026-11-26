@@ -112,8 +112,8 @@ class CheckRealtimeSeats extends Command
         $this->line('<options=bold>Servidor Reverb (API)</>');
 
         try {
-            $result = Broadcast::connection('reverb')->getPusher()->getChannels(['filter_by_prefix' => 'funcion.']);
-            $channels = array_keys((array) ($result->channels ?? []));
+            $result = Broadcast::connection('reverb')->getPusher()->get('/channels', ['filter_by_prefix' => 'funcion.'], true);
+            $channels = array_keys((array) ($result['channels'] ?? []));
         } catch (Throwable $exception) {
             $this->bad('API', 'Laravel no pudo hablar con Reverb: '.$exception->getMessage().'. ¿Está corriendo reverb:start / supervisor?');
 
