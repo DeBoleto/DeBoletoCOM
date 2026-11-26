@@ -126,9 +126,10 @@ const locationLine = computed(() =>
     inset: 0;
     background: linear-gradient(
         to bottom,
-        rgba(0, 0, 0, 0) 70%,
-        rgba(0, 0, 0, 0.75) 84%,
-        rgba(0, 0, 0, 0.95) 100%
+        rgba(0, 0, 0, 0) 50%,
+        rgba(0, 0, 0, 0.55) 66%,
+        rgba(0, 0, 0, 0.88) 82%,
+        rgba(0, 0, 0, 0.96) 100%
     );
     pointer-events: none;
 }
