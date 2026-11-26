@@ -301,9 +301,9 @@ nano .env   # Editar con valores de producción
 | `REVERB_SERVER_PORT`   | `8080`                  |                                     |
 | `REVERB_ALLOWED_ORIGINS` | `deboleto.mx,www.deboleto.mx` | Dominios que pueden conectarse |
 | `VITE_REVERB_APP_KEY`  | igual a `REVERB_APP_KEY` | Se fija en el JS al compilar       |
-| `VITE_REVERB_HOST`     | `deboleto.mx`           | El navegador entra por Nginx        |
-| `VITE_REVERB_PORT`     | `443`                   |                                     |
-| `VITE_REVERB_SCHEME`   | `https`                 | `wss://`                            |
+| `VITE_REVERB_HOST`     | (vacío)                 | Vacío o `localhost`: el navegador usa el dominio de la página (Nginx pasa `/app` a Reverb) |
+| `VITE_REVERB_PORT`     | (vacío)                 | Vacío: el puerto de la página       |
+| `VITE_REVERB_SCHEME`   | (vacío)                 | Vacío: `wss://` si la página es https |
 
 ```bash
 php artisan key:generate
