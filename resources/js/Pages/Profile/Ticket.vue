@@ -2,21 +2,7 @@
     <Head :title="`Boletos · ${event.name}`" />
 
     <div class="page-layout">
-        <SiteHeader hide-search />
-
         <main id="main-content" class="container pass-page">
-            <div class="pass-top">
-                <Link v-if="owner" :href="route('profile.purchases')" class="back">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
-                    Mis compras
-                </Link>
-                <p class="pass-count" aria-live="polite">Boleto {{ current + 1 }} de {{ tickets.length }}</p>
-            </div>
-
-            <p class="pass-warning">
-                Muestra este boleto desde tu celular en la entrada. El código se renueva cada pocos minutos: no sirven capturas ni impresiones.
-            </p>
-
             <div ref="track" class="pass-track" tabindex="0" aria-label="Boletos de la compra" @scroll.passive="onScroll" @keydown="onKey">
                 <article
                     v-for="(ticket, index) in tickets"
@@ -132,8 +118,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, reactive, ref } from "vue";
-import { Head, Link } from "@inertiajs/vue3";
-import SiteHeader from "@/components/SiteHeader.vue";
+import { Head } from "@inertiajs/vue3";
 import { getJson } from "@/components/checkout/api.js";
 
 const props = defineProps({
@@ -236,43 +221,7 @@ onUnmounted(() => {
 .pass-page {
     flex: 1;
     width: 100%;
-    padding-block: var(--space-6) var(--space-16);
-}
-
-.pass-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.back {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    font-weight: 700;
-}
-
-.back:hover {
-    color: var(--color-text-primary);
-}
-
-.pass-count {
-    margin-left: auto;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-
-.pass-warning {
-    max-width: 520px;
-    margin: var(--space-3) auto var(--space-5);
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    text-align: center;
+    padding-block: var(--space-6);
 }
 
 .pass-track {
