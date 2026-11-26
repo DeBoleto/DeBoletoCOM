@@ -215,19 +215,24 @@ onUnmounted(() => {
 .page-layout {
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
+    height: 100dvh;
 }
 
 .pass-page {
+    display: flex;
     flex: 1;
+    flex-direction: column;
     width: 100%;
-    padding-block: var(--space-6);
+    min-height: 0;
+    padding-block: 12px;
 }
 
 .pass-track {
     display: flex;
+    flex: 1;
+    min-height: 0;
     gap: 16px;
-    padding: 8px max(0px, calc(50% - 190px)) 16px;
+    padding: 4px max(0px, calc(50% - 200px)) 12px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -246,8 +251,14 @@ onUnmounted(() => {
 .pass {
     --cut: 14px;
     position: relative;
-    flex: 0 0 min(380px, calc(100vw - 48px));
-    overflow: hidden;
+    display: flex;
+    flex: 0 0 min(400px, 100%);
+    flex-direction: column;
+    align-self: center;
+    height: 100%;
+    max-height: 900px;
+    overflow: hidden auto;
+    scrollbar-width: none;
     border-radius: var(--radius-xl);
     background: #ffffff;
     box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.7);
@@ -255,9 +266,17 @@ onUnmounted(() => {
     scroll-snap-align: center;
 }
 
+.pass::-webkit-scrollbar {
+    display: none;
+}
+
+.pass > * {
+    flex: none;
+}
+
 .pass-hero {
     position: relative;
-    aspect-ratio: 16 / 9;
+    height: clamp(96px, 22dvh, 225px);
     background: linear-gradient(135deg, #0e4d4a, #12121a);
 }
 
@@ -405,11 +424,19 @@ onUnmounted(() => {
         radial-gradient(circle at right center, var(--color-bg) var(--cut), transparent calc(var(--cut) + 0.5px));
 }
 
+.pass .pass-code {
+    flex: 1 1 0;
+}
+
 .pass-code {
-    display: grid;
-    justify-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
+    min-height: 190px;
     padding: 6px 18px 14px;
+    container-type: size;
 }
 
 .pass-qr {
@@ -420,9 +447,8 @@ onUnmounted(() => {
 
 .pass-qr img {
     display: block;
-    /* Más chico en pantallas bajas para que el boleto completo quepa sin scroll. */
-    width: clamp(140px, 24dvh, 180px);
-    height: clamp(140px, 24dvh, 180px);
+    width: max(110px, min(100cqw - 64px, 100cqh - 96px, 320px));
+    height: max(110px, min(100cqw - 64px, 100cqh - 96px, 320px));
     image-rendering: pixelated;
 }
 
@@ -496,7 +522,7 @@ onUnmounted(() => {
     display: block;
     width: auto;
     max-width: 140px;
-    height: 40px;
+    height: clamp(26px, 5dvh, 40px);
     object-fit: contain;
 }
 
@@ -561,7 +587,15 @@ onUnmounted(() => {
 
 @media (max-width: 767px) {
     .pass-page {
-        padding-bottom: var(--space-10);
+        padding-inline: 12px;
+    }
+
+    .pass-track {
+        padding-inline: 0;
+    }
+
+    .pass {
+        flex-basis: 100%;
     }
 }
 </style>
