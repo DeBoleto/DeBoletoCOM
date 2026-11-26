@@ -52,7 +52,8 @@ class ReportsController extends Controller
             ->when($search !== '', fn ($query) => $query->where('evento', 'like', '%'.addcslashes($search, '%_\\').'%'))
             ->orderByDesc('inicio_fecha')
             ->limit(200)
-            ->get(['pk_evento', 'evento', 'inicio_fecha_natural', 'escenario', 'ciudad', 'estado', 'estacionamiento']);
+            ->get(['pk_evento', 'evento', 'inicio_fecha_natural', 'escenario', 'ciudad', 'estado', 'estacionamiento', 'pk_evento_categoria']);
+        $races = EventosCategorias::query()->carreras()->pluck('pk_evento_categoria')->map(fn ($id) => (int) $id)->all();
 
         return Inertia::render('BoxOffice/Reports/Index', [
             'search' => $search,
@@ -64,9 +65,28 @@ class ReportsController extends Controller
                 'city' => $event->ciudad,
                 'state' => $event->estado,
                 'parking' => (int) ($event->estacionamiento ?? 0) > 0,
+                'race' => in_array((int) $event->getAttribute('pk_evento_categoria'), $races, true),
             ])->values(),
             'allowed' => collect(self::REPORTS)->filter(fn ($privilege) => $this->can($request, $privilege))->keys()->values(),
         ]);
+    }
+
+    public function dashboard(int $evento): Response
+    {
+        $event = $this->event($evento);
+        $days = 10;
+
+        return Inertia::render('BoxOffice/Reports/Dashboard', [
+            'event' => [
+                'id' => $event->pk_evento,
+                'name' => $event->evento,
+                'venue' => $event->escenario,
+                'city' => $event->ciudad,
+                'date' => $event->getAttribute('inicio_fecha') ? Carbon::parse($event->getAttribute('inicio_fecha'))->format('d/m/Y') : null,
+            ],
+            'period' => $days,
+            'generatedAt' => now(config('boxoffice.timezone'))->format('d/m/Y H:i'),
+        ] + $this->reports->salesDashboard($event, $days, now(config('boxoffice.timezone'))));
     }
 
     public function show(Request $request, string $tipo, int $evento): HttpResponse
@@ -146,14 +166,6 @@ class ReportsController extends Controller
         $entries = $query->entries($evento, $funcion)->map(fn ($row) => ['locality' => $row->locality, 'total' => (int) $row->total]);
 
         return response()->json(['localities' => $entries->values(), 'total' => $entries->sum('total')]);
-    }
-
-    public function participants(Request $request): Response
-    {
-        return Inertia::render('BoxOffice/Reports/Participants', [
-            'events' => $this->eventOptions($request, fn ($query) => $query->whereIn('pk_evento_categoria', EventosCategorias::query()->carreras()->select('pk_evento_categoria'))),
-            'today' => now(config('boxoffice.timezone'))->toDateString(),
-        ]);
     }
 
     public function participantsExport(Request $request, EventReportQuery $query): BinaryFileResponse

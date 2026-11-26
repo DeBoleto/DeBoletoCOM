@@ -181,6 +181,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                 ->controller(ReportsController::class)
                 ->group(function () {
                     Route::get('reportes', 'index')->name('reports.index');
+                    Route::get('reportes/{evento}/dashboard', 'dashboard')->whereNumber('evento')->name('reports.dashboard');
                     Route::get('reportes/{tipo}/{evento}', 'show')
                         ->whereIn('tipo', ['general', 'pagos', 'whatsapp', 'detallado', 'ventas', 'estacionamiento', 'general-td', 'detallado-td'])
                         ->whereNumber('evento')
@@ -211,7 +212,7 @@ Route::middleware(['web', ShareBoxOfficeData::class])
                 ->name('reports.participants')
                 ->controller(ReportsController::class)
                 ->group(function () {
-                    Route::get('/', 'participants');
+                    Route::redirect('/', '/boxoffice/reportes');
                     Route::get('participantes', 'participantsExport')->name('.export');
                 });
 

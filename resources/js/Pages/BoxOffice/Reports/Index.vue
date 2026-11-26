@@ -18,6 +18,13 @@
                     <p class="text-sm text-bo-slate">{{ event.venue }}, {{ event.city }} — <span class="tabular">{{ event.date }}</span></p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <Link
+                        :href="route('boxoffice.reports.dashboard', event.id)"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-bo-ink bg-bo-ink px-3 py-1.5 text-sm font-medium text-white hover:bg-bo-ink-2"
+                    >
+                        <BoIcon name="chart" :size="16" />
+                        Dashboard
+                    </Link>
                     <a
                         v-for="report in reportsFor(event)"
                         :key="report.type"
@@ -29,6 +36,14 @@
                     >
                         {{ report.label }}
                     </a>
+                    <a
+                        v-if="event.race"
+                        :href="route('boxoffice.reports.participants.export', { evento: event.id })"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-bo-line px-3 py-1.5 text-sm font-medium hover:border-bo-slate"
+                    >
+                        <BoIcon name="file" :size="16" />
+                        Participantes (Excel)
+                    </a>
                 </div>
             </li>
         </ul>
@@ -37,7 +52,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { Link, router } from "@inertiajs/vue3";
 import BackOfficeLayout from "@/layouts/BackOfficeLayout.vue";
 import BoIcon from "@/components/BoxOffice/BoIcon.vue";
 import EmptyState from "@/components/BoxOffice/EmptyState.vue";

@@ -3,6 +3,7 @@
 namespace App\Modules\BoxOffice\Queries;
 
 use App\Modules\Orders\Enums\PaymentType;
+use App\Modules\Tickets\Enums\TicketStatus;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -132,6 +133,46 @@ class EventReportQuery
             ->selectRaw('b.precio * COUNT(l.pk_evento_localidad) as amount')
             ->selectRaw("{$commission} as commission")
             ->get();
+    }
+
+    /**
+     * Boletos vendidos (pagados, sin cortesías) por zona, de toda la venta.
+     */
+    public function salesByLocality(int $eventId): Collection
+    {
+        return $this->soldTickets($eventId)
+            ->groupBy('l.evento_localidad')
+            ->select('l.evento_localidad as locality')
+            ->selectRaw('COUNT(*) as tickets')
+            ->selectRaw('SUM(b.precio) as amount')
+            ->orderByDesc('tickets')
+            ->get();
+    }
+
+    /**
+     * Boletos vendidos por día de compra y zona desde `$from`.
+     */
+    public function dailySalesByLocality(int $eventId, Carbon $from): Collection
+    {
+        return $this->soldTickets($eventId)
+            ->join('eventos_compras as c', 'c.pk_evento_compra', '=', 'b.pk_evento_compra')
+            ->where('c.creacion_fecha', '>=', $from->toDateTimeString())
+            ->groupByRaw('DATE(c.creacion_fecha), l.evento_localidad')
+            ->selectRaw('DATE(c.creacion_fecha) as day')
+            ->addSelect('l.evento_localidad as locality')
+            ->selectRaw('COUNT(*) as tickets')
+            ->selectRaw('SUM(b.precio) as amount')
+            ->get();
+    }
+
+    private function soldTickets(int $eventId): Builder
+    {
+        return DB::table('eventos_funciones_boletos as b')
+            ->join('eventos_localidades as l', 'l.pk_evento_localidad', '=', 'b.pk_evento_localidad')
+            ->where('b.pk_evento', $eventId)
+            ->where('b.ocultar', 0)
+            ->where('b.cortesia', 0)
+            ->where('b.pk_evento_funcion_boleto_status', TicketStatus::Issued->value);
     }
 
     /**

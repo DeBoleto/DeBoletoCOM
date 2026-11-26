@@ -235,6 +235,50 @@ class EventReportBuilder
     /**
      * Ventas del día por forma de pago y totales por localidad.
      */
+    /**
+     * Dashboard del evento: zonas con más ventas y los últimos días de venta
+     * por zona, comparados con los días anteriores.
+     */
+    public function salesDashboard(EventoVista $event, int $days, Carbon $today): array
+    {
+        $zones = $this->query->salesByLocality($event->pk_evento)->map(fn ($row) => [
+            'name' => $row->locality,
+            'tickets' => (int) $row->tickets,
+            'amount' => (float) $row->amount,
+        ]);
+
+        $start = $today->copy()->startOfDay()->subDays($days - 1);
+        $previousStart = $start->copy()->subDays($days);
+        $rows = $this->query->dailySalesByLocality($event->pk_evento, $previousStart);
+        $recent = $rows->filter(fn ($row) => $row->day >= $start->toDateString());
+        $previous = $rows->reject(fn ($row) => $row->day >= $start->toDateString());
+
+        $dates = collect(range(0, $days - 1))->map(fn (int $offset) => $start->copy()->addDays($offset)->toDateString());
+        $perDay = fn (Collection $group) => $dates->map(fn (string $date) => (int) $group->where('day', $date)->sum('tickets'))->all();
+
+        $byZone = $recent->groupBy('locality')->map(fn (Collection $group, string $locality) => [
+            'name' => $locality,
+            'days' => $perDay($group),
+            'tickets' => (int) $group->sum('tickets'),
+            'amount' => (float) $group->sum('amount'),
+        ])->sortByDesc('tickets')->values();
+
+        return [
+            'totals' => ['tickets' => (int) $zones->sum('tickets'), 'amount' => (float) $zones->sum('amount')],
+            'zones' => $zones->values()->all(),
+            'recent' => [
+                'dates' => $dates->all(),
+                'days' => $perDay($recent),
+                'amounts' => $dates->map(fn (string $date) => (float) $recent->where('day', $date)->sum('amount'))->all(),
+                'tickets' => (int) $recent->sum('tickets'),
+                'amount' => (float) $recent->sum('amount'),
+                'previousTickets' => (int) $previous->sum('tickets'),
+                'previousAmount' => (float) $previous->sum('amount'),
+                'zones' => $byZone->all(),
+            ],
+        ];
+    }
+
     public function daily(EventoVista $event, Carbon $day): array
     {
         $percentage = (int) $event->pk_evento_comision_tipo === CommissionType::Percentage->value;
