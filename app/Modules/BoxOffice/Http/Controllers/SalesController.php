@@ -13,6 +13,7 @@ use App\Modules\BoxOffice\Services\Sales\SalesReportBuilder;
 use App\Modules\BoxOffice\Support\SpanishDate;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\Views\EventoVista;
+use App\Modules\Orders\Enums\DeliveryMethod;
 use App\Modules\Orders\Models\EventosCompras;
 use App\Modules\Users\Models\Usuarios;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -116,6 +117,7 @@ class SalesController extends Controller
         $pdf = $printing->digitalDocument($purchase)->output();
 
         Mail::to($request->validated('email'))->send(new DigitalTicketsMail($event->evento, $purchase->pk_evento_compra, $pdf));
+        $printing->recordDelivery([$purchase->pk_evento_compra], DeliveryMethod::Email, $request->user());
 
         return back()->with('success', "Boletos de la compra {$purchase->pk_evento_compra} ({$event->evento}) enviados a {$request->validated('email')}.");
     }

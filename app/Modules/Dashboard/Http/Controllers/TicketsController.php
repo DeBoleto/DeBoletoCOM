@@ -10,6 +10,7 @@ use App\Modules\Dashboard\Services\TicketAdministration;
 use App\Modules\Events\Enums\CommissionType;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\Views\EventoVista;
+use App\Modules\Orders\Enums\DeliveryMethod;
 use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Orders\Models\EventosCompras;
 use App\Modules\Tickets\Models\EventosFuncionesBoletos;
@@ -177,9 +178,13 @@ class TicketsController extends Controller
         return back()->with('success', "Se habilitó la reimpresión de {$count} boletos.");
     }
 
-    public function digital(int $compra, TicketPrintService $printing): HttpResponse
+    public function digital(Request $request, int $compra, TicketPrintService $printing): HttpResponse
     {
-        return $printing->digitalDocument(EventosCompras::query()->findOrFail($compra))->stream("compra-{$compra}.pdf");
+        $purchase = EventosCompras::query()->findOrFail($compra);
+        $document = $printing->digitalDocument($purchase);
+        $printing->recordDelivery([$purchase->pk_evento_compra], DeliveryMethod::Digital, $request->user());
+
+        return $document->stream("compra-{$compra}.pdf");
     }
 
     public function olmecas(Request $request, OlmecasBlocking $blocking, int $evento): RedirectResponse

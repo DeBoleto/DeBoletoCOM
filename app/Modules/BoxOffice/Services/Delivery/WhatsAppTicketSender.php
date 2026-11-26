@@ -6,6 +6,7 @@ use App\Modules\BoxOffice\Services\Printing\TicketPrintService;
 use App\Modules\BoxOffice\Support\SpanishDate;
 use App\Modules\Events\Models\Views\EventoFuncionVista;
 use App\Modules\Events\Models\Views\EventoVista;
+use App\Modules\Orders\Enums\DeliveryMethod;
 use App\Modules\Orders\Models\ComprasWhatsapp;
 use App\Modules\Orders\Models\EventosCompras;
 use App\Modules\Shared\Models\LegacyModel;
@@ -33,6 +34,7 @@ class WhatsAppTicketSender
     {
         $this->sendLink($purchase, $phone);
         $this->printing->markDelivered($purchase->boletos(), $seller, printed: true);
+        $this->printing->recordDelivery([$purchase->pk_evento_compra], DeliveryMethod::WhatsApp, $seller);
     }
 
     /**

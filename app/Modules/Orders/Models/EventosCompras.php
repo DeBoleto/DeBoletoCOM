@@ -31,6 +31,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property float|null $total_descuento
  * @property float|null $total_defender
  * @property float|null $total_envio
+ * @property string|null $entrega_medio
+ * @property string|null $entrega_fecha
+ * @property int|null $entrega_pk_usuario
  */
 class EventosCompras extends LegacyModel
 {

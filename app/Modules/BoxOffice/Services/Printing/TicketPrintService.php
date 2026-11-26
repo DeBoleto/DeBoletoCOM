@@ -3,6 +3,7 @@
 namespace App\Modules\BoxOffice\Services\Printing;
 
 use App\Modules\Events\Models\Views\EventoVista;
+use App\Modules\Orders\Enums\DeliveryMethod;
 use App\Modules\Orders\Models\EventosCompras;
 use App\Modules\Shared\Models\LegacyModel;
 use App\Modules\Tickets\Enums\TicketStatus;
@@ -29,6 +30,7 @@ class TicketPrintService
     {
         $data = $this->presenter->forPurchase($purchase, $strategy);
         $this->markDelivered($purchase->boletos(), $user, printed: true);
+        $this->recordDelivery([$purchase->pk_evento_compra], DeliveryMethod::Printed, $user);
 
         return view('boxoffice.print.formats.'.$this->formatFor($data['evento'], $user, false, $formatId), $data);
     }
@@ -42,6 +44,7 @@ class TicketPrintService
     {
         $data = $this->presenter->forTickets($tickets);
         $this->markDelivered(EventosFuncionesBoletos::query()->whereKey($tickets->modelKeys()), $user, printed: true);
+        $this->recordDelivery($tickets->pluck('pk_evento_compra')->unique()->all(), DeliveryMethod::Printed, $user);
 
         return view('boxoffice.print.formats.'.$this->formatFor($data['evento'], $user, true, $formatId), $data);
     }
@@ -53,6 +56,7 @@ class TicketPrintService
     {
         $document = $this->digitalDocument($purchase, $strategy);
         $this->markDelivered($purchase->boletos(), $user, $printed);
+        $this->recordDelivery([$purchase->pk_evento_compra], DeliveryMethod::Digital, $user);
 
         return $document->download('compra-'.$purchase->pk_evento_compra.'.pdf');
     }
@@ -70,6 +74,20 @@ class TicketPrintService
             'pk_evento_funcion_boleto_status' => TicketStatus::Issued->value,
             'modificacion_pk_usuario' => $user->pk_usuario,
             'modificacion_fecha' => Carbon::now(LegacyModel::legacyTimezone()),
+        ]);
+    }
+
+    /**
+     * Guarda en la compra el último medio por el que se entregaron sus boletos.
+     *
+     * @param  list<int>  $purchaseIds
+     */
+    public function recordDelivery(array $purchaseIds, DeliveryMethod $method, Usuarios $user): void
+    {
+        EventosCompras::query()->whereKey($purchaseIds)->update([
+            'entrega_medio' => $method->value,
+            'entrega_fecha' => Carbon::now(LegacyModel::legacyTimezone()),
+            'entrega_pk_usuario' => $user->pk_usuario,
         ]);
     }
 
