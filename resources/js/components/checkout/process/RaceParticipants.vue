@@ -41,31 +41,7 @@
                         <h4 class="section-title">{{ group.title }}</h4>
                         <div class="runner-fields">
                             <template v-for="question in group.questions" :key="question.id">
-                                <fieldset
-                                    v-if="asChips(question)"
-                                    class="field field--wide"
-                                    :class="{ 'has-error': errorFor(index, question.id) }"
-                                >
-                                    <legend class="field-label">
-                                        {{ question.label }}
-                                        <span v-if="!question.required" class="field-optional">Opcional</span>
-                                    </legend>
-                                    <div class="chips">
-                                        <label v-for="option in question.options" :key="option.id" class="chip">
-                                            <input
-                                                v-model="participant.respuestas[question.id]"
-                                                type="radio"
-                                                :name="`p${participant.key}-q${question.id}`"
-                                                :value="String(option.id)"
-                                            />
-                                            <span>{{ option.label }}</span>
-                                        </label>
-                                    </div>
-                                    <span v-if="errorFor(index, question.id)" class="field-error">{{ errorFor(index, question.id) }}</span>
-                                </fieldset>
-
                                 <label
-                                    v-else
                                     class="field"
                                     :class="{ 'field--wide': isWide(question), 'has-error': errorFor(index, question.id) }"
                                 >
@@ -101,34 +77,29 @@
                         </div>
                     </section>
 
-                    <fieldset class="runner-section category" :class="{ 'has-error': errorFor(index, 'localidad') }">
-                        <legend class="section-title">Categoría del participante</legend>
-                        <div class="category-grid">
-                            <label
-                                v-for="(locality, position) in localities"
-                                :key="locality.id"
-                                class="category-option"
-                                :class="{ 'is-full': isFull(locality, participant) }"
-                                :style="{ '--option': palette[position % palette.length] }"
+                    <div class="runner-section category">
+                        <label class="field field--wide" :class="{ 'has-error': errorFor(index, 'localidad') }">
+                            <span class="section-title">Categoría del participante</span>
+                            <select
+                                v-model.number="participant.localidad"
+                                class="category-select"
+                                :style="{ '--option': accentFor(participant.localidad) }"
+                                required
+                                :aria-invalid="Boolean(errorFor(index, 'localidad'))"
                             >
-                                <input
-                                    v-model.number="participant.localidad"
-                                    type="radio"
-                                    :name="`p${participant.key}-categoria`"
+                                <option :value="null" disabled>Elige una categoría</option>
+                                <option
+                                    v-for="locality in localities"
+                                    :key="locality.id"
                                     :value="locality.id"
                                     :disabled="isFull(locality, participant)"
-                                />
-                                <span class="category-dot" aria-hidden="true" />
-                                <span class="category-text">
-                                    <strong>{{ locality.name }}</strong>
-                                    <small v-if="isFull(locality, participant)">Agotado</small>
-                                    <small v-else-if="spotsLeft(locality) <= 20">Quedan {{ spotsLeft(locality) }}</small>
-                                </span>
-                                <span class="category-price">{{ money(locality.price) }}</span>
-                            </label>
-                        </div>
-                        <span v-if="errorFor(index, 'localidad')" class="field-error">{{ errorFor(index, 'localidad') }}</span>
-                    </fieldset>
+                                >
+                                    {{ categoryLabel(locality, participant) }}
+                                </option>
+                            </select>
+                            <span v-if="errorFor(index, 'localidad')" class="field-error">{{ errorFor(index, 'localidad') }}</span>
+                        </label>
+                    </div>
                 </div>
             </li>
         </TransitionGroup>
@@ -224,8 +195,9 @@ function errorFor(index, key) {
     return key === "localidad" ? props.errors[`participantes.${index}.localidad`] : props.errors[`participantes.${index}.respuestas.${key}`];
 }
 
-function asChips(question) {
-    return question.type === "seleccion" && question.options.length > 0 && question.options.length <= 8 && question.options.every((option) => option.label.length <= 16);
+function categoryLabel(locality, participant) {
+    const status = isFull(locality, participant) ? " · Agotado" : spotsLeft(locality) <= 20 ? ` · Quedan ${spotsLeft(locality)}` : "";
+    return `${locality.name} — ${money(locality.price)}${status}`;
 }
 
 function isWide(question) {
@@ -468,144 +440,14 @@ function autocomplete(question, index) {
     font-weight: 600;
 }
 
-.chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.chip {
-    position: relative;
-    cursor: pointer;
-}
-
-.chip input,
-.category-option input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.chip span {
-    display: inline-flex;
-    align-items: center;
-    min-height: 42px;
-    padding: 0 16px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #334155;
-    font-size: var(--text-sm);
-    font-weight: 700;
-    transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
-}
-
-.chip:hover span {
-    border-color: #94a3b8;
-}
-
-.chip input:checked + span {
-    border-color: #10b981;
-    background: #ecfdf5;
-    color: #047857;
-}
-
-.chip input:focus-visible + span,
-.category-option input:focus-visible ~ .category-dot {
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
-}
-
-.has-error .chip span {
-    border-color: #fca5a5;
-}
-
 .category {
     padding-top: 18px;
     border-top: 1px dashed #cbd5e1;
 }
 
-.category-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-
-.category-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 60px;
-    padding: 12px 16px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: var(--radius-lg);
-    background: #ffffff;
-    cursor: pointer;
-    transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
-}
-
-.category-option:hover:not(.is-full) {
-    border-color: #94a3b8;
-}
-
-.category-option:has(input:checked) {
-    border-color: var(--option);
-    background: color-mix(in srgb, var(--option) 8%, #ffffff);
-    box-shadow: inset 0 0 0 1px var(--option);
-}
-
-.category-option.is-full {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.category-dot {
-    position: relative;
-    flex: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid #94a3b8;
-    border-radius: 999px;
-    background: #ffffff;
-    transition: border-color var(--transition-base);
-}
-
-.category-option input:checked ~ .category-dot {
-    border-color: var(--option);
-}
-
-.category-option input:checked ~ .category-dot::after {
-    content: "";
-    position: absolute;
-    inset: 3px;
-    border-radius: 999px;
-    background: var(--option);
-}
-
-.category-text {
-    display: grid;
-    flex: 1;
-    min-width: 0;
-}
-
-.category-text strong {
-    color: #0f172a;
-    font-weight: 800;
-}
-
-.category-text small {
-    color: #c2410c;
-    font-size: var(--text-xs);
+.field .category-select {
+    border-left: 4px solid var(--option);
     font-weight: 700;
-}
-
-.category-price {
-    color: #047857;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-}
-
-.has-error .category-option:not(.is-full) {
-    border-color: #fca5a5;
 }
 
 .runner-add {
@@ -672,10 +514,6 @@ function autocomplete(question, index) {
 
     .field--wide {
         grid-column: 1 / -1;
-    }
-
-    .category-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .runner-head,
