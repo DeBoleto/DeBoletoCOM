@@ -2,6 +2,7 @@
 
 namespace App\Modules\Checkout;
 
+use App\Modules\Checkout\Console\CheckRealtimeSeats;
 use App\Modules\Checkout\Console\ReconcilePendingPurchases;
 use App\Modules\Checkout\Console\SweepSeatHolds;
 use App\Modules\Checkout\Events\WebPurchasePaid;
@@ -22,7 +23,7 @@ class CheckoutServiceProvider extends ServiceProvider
         Event::listen(WebPurchasePaid::class, NotifyLigaMx::class);
 
         if ($this->app->runningInConsole()) {
-            $this->commands([ReconcilePendingPurchases::class, SweepSeatHolds::class]);
+            $this->commands([CheckRealtimeSeats::class, ReconcilePendingPurchases::class, SweepSeatHolds::class]);
         }
 
         $this->loadRoutesFrom(base_path('routes/modules/checkout.php'));
