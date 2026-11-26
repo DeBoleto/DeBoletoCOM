@@ -112,12 +112,27 @@
                     @click="goTo(index)"
                 />
             </div>
+
+            <div v-if="walletLinks.length" class="pass-wallets">
+                <a v-for="link in walletLinks" :key="link.key" :href="link.url" class="pass-wallet" :class="`pass-wallet--${link.key}`">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="2.5" y="5" width="19" height="15" rx="3" fill="currentColor" opacity="0.25" />
+                        <path d="M2.5 9.5h19" stroke="currentColor" stroke-width="2" />
+                        <rect x="2.5" y="5" width="19" height="15" rx="3" stroke="currentColor" stroke-width="2" />
+                        <circle cx="16.5" cy="14.5" r="1.6" fill="currentColor" />
+                    </svg>
+                    <span>
+                        <small>Agregar a</small>
+                        {{ link.label }}
+                    </span>
+                </a>
+            </div>
         </main>
     </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import { Head } from "@inertiajs/vue3";
 import { getJson } from "@/components/checkout/api.js";
 
@@ -129,7 +144,25 @@ const props = defineProps({
     owner: { type: Boolean, default: false },
     qrSeconds: { type: Number, default: 300 },
     scanPollSeconds: { type: Number, default: 35 },
+    wallet: { type: Object, default: () => ({ apple: null, google: null }) },
 });
+
+const platform = mobilePlatform();
+
+const walletLinks = computed(() =>
+    [
+        platform === "ios" && props.wallet.apple && { key: "apple", label: "Apple Wallet", url: props.wallet.apple },
+        platform && props.wallet.google && { key: "google", label: "Google Wallet", url: props.wallet.google },
+    ].filter(Boolean),
+);
+
+function mobilePlatform() {
+    const agent = navigator.userAgent;
+
+    if (/iPhone|iPod|iPad/.test(agent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "ios";
+    if (/Android/i.test(agent)) return "android";
+    return null;
+}
 
 const track = ref(null);
 const current = ref(0);
@@ -566,6 +599,45 @@ onUnmounted(() => {
 .pass-dot.is-active {
     width: 24px;
     background: var(--color-brand);
+}
+
+.pass-wallets {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.pass-wallet {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 6px 18px 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    background: #000000;
+    color: #ffffff;
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.pass-wallet small {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.pass-wallet--google {
+    background: #1f1f1f;
+}
+
+.pass-wallet:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
 }
 
 .pass-dot:focus-visible {

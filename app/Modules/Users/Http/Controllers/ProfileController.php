@@ -12,12 +12,16 @@ use App\Modules\Payments\Exceptions\PaymentException;
 use App\Modules\Users\Http\Requests\UpdateAccountRequest;
 use App\Modules\Users\Models\Usuarios;
 use App\Modules\Users\Services\DigitalTickets;
+use App\Modules\Users\Services\Wallet\AppleWalletPass;
+use App\Modules\Users\Services\Wallet\GoogleWalletPass;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 /**
@@ -26,7 +30,11 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
  */
 class ProfileController extends Controller
 {
-    public function __construct(private readonly DigitalTickets $tickets) {}
+    public function __construct(
+        private readonly DigitalTickets $tickets,
+        private readonly AppleWalletPass $apple,
+        private readonly GoogleWalletPass $google,
+    ) {}
 
     public function purchases(): Response
     {
@@ -78,6 +86,40 @@ class ProfileController extends Controller
         abort_if($purchase === null, 404);
 
         return response()->json(['scanned' => $this->tickets->scanned($purchase)])->header('Cache-Control', 'no-store');
+    }
+
+    public function appleWallet(string $codigo): HttpResponse
+    {
+        abort_unless($this->apple->enabled(), 404);
+        $purchase = $this->walletPurchase($codigo);
+
+        try {
+            $file = $this->apple->make($this->tickets->pass($purchase));
+        } catch (RuntimeException $exception) {
+            Log::error('No se pudo generar el pase de Apple Wallet.', ['compra' => $purchase->pk_evento_compra, 'error' => $exception->getMessage()]);
+            abort(503, 'No pudimos generar el pase de Apple Wallet. Inténtalo más tarde.');
+        }
+
+        return response($file['content'], 200, [
+            'Content-Type' => $file['type'],
+            'Content-Disposition' => 'attachment; filename="'.$file['name'].'"',
+            'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    public function googleWallet(string $codigo): RedirectResponse
+    {
+        abort_unless($this->google->enabled(), 404);
+        $purchase = $this->walletPurchase($codigo);
+
+        try {
+            $url = $this->google->saveUrl($this->tickets->pass($purchase), (int) $purchase->pk_evento_funcion);
+        } catch (RuntimeException $exception) {
+            Log::error('No se pudo generar el pase de Google Wallet.', ['compra' => $purchase->pk_evento_compra, 'error' => $exception->getMessage()]);
+            abort(503, 'No pudimos generar el pase de Google Wallet. Inténtalo más tarde.');
+        }
+
+        return redirect()->away($url);
     }
 
     public function pdf(TicketPrintService $printing, string $codigo): HttpResponse
@@ -149,7 +191,19 @@ class ProfileController extends Controller
             'owner' => $owner,
             'qrSeconds' => (int) config('profile.dynamic_qr_seconds'),
             'scanPollSeconds' => (int) config('profile.scan_poll_seconds'),
+            'wallet' => [
+                'apple' => $this->apple->enabled() ? route('ticket.wallet.apple', $purchase->codigo) : null,
+                'google' => $this->google->enabled() ? route('ticket.wallet.google', $purchase->codigo) : null,
+            ],
         ]);
+    }
+
+    private function walletPurchase(string $codigo): EventosCompras
+    {
+        $purchase = $this->tickets->byCode($codigo);
+        abort_unless($purchase !== null && $this->tickets->unavailable($purchase) === null, 404);
+
+        return $purchase;
     }
 
     private function customer(): Usuarios

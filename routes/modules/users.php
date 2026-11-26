@@ -33,4 +33,6 @@ Route::middleware('web')->prefix('boleto/digital/{codigo}')->controller(ProfileC
     Route::get('/', 'sharedTicket')->name('ticket.shared');
     Route::get('qr/{boleto}', 'qr')->whereNumber('boleto')->middleware('throttle:60,1')->name('ticket.qr');
     Route::get('estado', 'scans')->middleware('throttle:30,1')->name('ticket.scans');
+    Route::get('wallet/apple', 'appleWallet')->middleware('throttle:10,1')->name('ticket.wallet.apple');
+    Route::get('wallet/google', 'googleWallet')->middleware('throttle:10,1')->name('ticket.wallet.google');
 });
