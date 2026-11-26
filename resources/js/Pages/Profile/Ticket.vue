@@ -66,7 +66,7 @@
                         </template>
                         <template v-else-if="ticket.id">
                             <div class="pass-qr">
-                                <img :src="qr[ticket.id]?.src ?? ticket.qr" :alt="`Código de acceso del boleto ${ticket.id}`" width="220" height="220" />
+                                <img :src="qr[ticket.id]?.src ?? ticket.qr" :alt="`Código de acceso del boleto ${ticket.id}`" width="180" height="180" />
                             </div>
                             <p v-if="qr[ticket.id]?.expiresAt" class="pass-timer">
                                 <span class="pass-pulse" aria-hidden="true" />
@@ -420,8 +420,9 @@ onUnmounted(() => {
 
 .pass-qr img {
     display: block;
-    width: 220px;
-    height: 220px;
+    /* Más chico en pantallas bajas para que el boleto completo quepa sin scroll. */
+    width: clamp(140px, 24dvh, 180px);
+    height: clamp(140px, 24dvh, 180px);
     image-rendering: pixelated;
 }
 
