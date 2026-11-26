@@ -27,6 +27,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Konva from "konva";
 import { SEAT_GAP, SEAT_STATUS, zoneSeatColors } from "./seatColors.js";
+import { labelPoint } from "./polygonLabel.js";
 
 const GRID = 20;
 const RADIUS_MAP = 6;
@@ -268,18 +269,18 @@ function addArea(group, area) {
     });
 }
 
-// Nombre centrado en el área; las zonas generales no tienen asientos que la identifiquen.
+// Nombre dentro del área (en un aro, sobre la franja y no en el hueco); las
+// zonas generales no tienen asientos que la identifiquen.
 function addAreaLabel(group, polygon, name) {
     const xs = polygon.map((point) => point.x);
-    const ys = polygon.map((point) => point.y);
     const width = Math.max(...xs) - Math.min(...xs);
-    const height = Math.max(...ys) - Math.min(...ys);
-    const fontSize = Math.max(12, Math.min(28, height * 0.45, (width / Math.max(name.length, 1)) * 1.5));
+    const spot = labelPoint(polygon);
+    const fontSize = Math.max(12, Math.min(28, spot.size * 0.45, (width / Math.max(name.length, 1)) * 1.5));
 
     group.add(
         new Konva.Text({
-            x: Math.min(...xs),
-            y: Math.min(...ys) + height / 2 - fontSize / 2,
+            x: spot.x - width / 2,
+            y: spot.y - fontSize / 2,
             width,
             text: name,
             align: "center",

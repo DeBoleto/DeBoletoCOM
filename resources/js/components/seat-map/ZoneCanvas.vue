@@ -46,6 +46,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { registerKonva } from "./registerKonva.js";
+import { labelPoint } from "./polygonLabel.js";
 
 registerKonva();
 
@@ -294,13 +295,14 @@ function labelConfig(section) {
     const width = Math.max(...xs) - Math.min(...xs);
     const height = Math.max(...ys) - Math.min(...ys);
     const byWidth = (width / Math.max(section.name.length, 1)) * 1.35;
-    const byHeight = height * 0.18;
+    const spot = labelPoint(section.polygon);
+    // En un aro el alto total no sirve: manda el grosor de la franja.
+    const byHeight = Math.min(height * 0.18, spot.size * 0.5);
     const fontSize = Math.max(18, Math.min(64, byWidth, byHeight)) * scale.value;
-    const center = centroid(section.polygon);
 
     return {
-        x: px(Math.min(...xs)),
-        y: py(center.y) - fontSize / 2,
+        x: px(spot.x - width / 2),
+        y: py(spot.y) - fontSize / 2,
         width: width * scale.value,
         text: section.name,
         align: "center",
@@ -308,17 +310,6 @@ function labelConfig(section) {
         fontStyle: "bold",
         fill: fillTextColor(section.areaColor),
         listening: false,
-    };
-}
-
-function centroid(polygon) {
-    const total = polygon.reduce(
-        (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-        { x: 0, y: 0 },
-    );
-    return {
-        x: total.x / polygon.length,
-        y: total.y / polygon.length,
     };
 }
 
