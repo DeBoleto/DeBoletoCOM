@@ -7,6 +7,7 @@ use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
 use App\Modules\BoxOffice\Services\Checkout\TicketIssuer;
 use App\Modules\BoxOffice\Services\Checkout\TicketLine;
 use App\Modules\Checkout\Exceptions\CheckoutException;
+use App\Modules\Checkout\Support\TestCharge;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Models\EventosLocalidades;
@@ -100,6 +101,9 @@ class PendingPurchaseWriter
 
             $this->applyTotals($purchase, $lines, $quote, $event);
 
+            $testCharge = TestCharge::appliesTo($customer, $method);
+            $amount = $testCharge ? TestCharge::amount() : $quote->total();
+
             $log = EventosCompraLog::query()->create([
                 'pk_usuario' => $customer->pk_usuario,
                 'json_compra' => json_encode([
@@ -108,7 +112,8 @@ class PendingPurchaseWriter
                     'purchase_code' => $purchase->codigo,
                     'owner' => $owner,
                     'method' => $method,
-                    'amount' => $quote->total(),
+                    'amount' => $amount,
+                    'test_charge' => $testCharge,
                     'markers' => $markers,
                     'whatsapp' => $whatsapp,
                     'cart' => $cart->toArray(),
@@ -122,7 +127,7 @@ class PendingPurchaseWriter
 
             $this->updates->changed($state->functionId);
 
-            return new PendingPurchase($purchase, $log, $quote->total());
+            return new PendingPurchase($purchase, $log, $amount, $testCharge);
         });
     }
 

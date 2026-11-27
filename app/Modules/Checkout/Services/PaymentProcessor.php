@@ -15,6 +15,7 @@ use App\Modules\Payments\Data\Charge;
 use App\Modules\Payments\Data\TransferChargeRequest;
 use App\Modules\Payments\Exceptions\PaymentException;
 use App\Modules\Users\Models\Usuarios;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -44,6 +45,15 @@ class PaymentProcessor
         $purchase = $pending->purchase;
         $description = Str::limit("Boletos {$event->evento} - deboleto.mx", 250, '');
 
+        if ($pending->testCharge) {
+            Log::warning('Compra web de prueba: se cobra el monto fijo en OpenPay.', [
+                'compra' => $purchase->pk_evento_compra,
+                'usuario' => $customer->pk_usuario,
+                'monto' => $pending->amount,
+                'total_real' => $quote->total(),
+            ]);
+        }
+
         try {
             $customerId = $this->gateway->customerFor($customer);
 
@@ -61,7 +71,7 @@ class PaymentProcessor
                     $description,
                     (string) $payment['device_session_id'],
                     $returnUrl,
-                    $quote->installments,
+                    $pending->testCharge ? null : $quote->installments,
                 ));
         } catch (PaymentException $exception) {
             $this->finalizer->release($purchase);
@@ -76,7 +86,8 @@ class PaymentProcessor
                 'method' => $charge->method,
                 'amount' => $pending->amount,
                 'order_id' => $purchase->codigo,
-                'installments' => $quote->installments,
+                'installments' => $pending->testCharge ? null : $quote->installments,
+                'test_charge' => $pending->testCharge,
                 'status' => $charge->status->value,
             ]),
         ])->save();

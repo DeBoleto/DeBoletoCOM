@@ -47,7 +47,7 @@ class OrderController extends Controller
         $status = $purchase->status() ?? PurchaseStatus::Rejected;
         $snapshot = $finalizer->snapshot($purchase);
 
-        if ($status === PurchaseStatus::Paid) {
+        if ($status === PurchaseStatus::Paid && empty($snapshot['test_charge'])) {
             app(MetaTracker::class)->track(
                 (int) $purchase->pk_evento,
                 'Purchase',

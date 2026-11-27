@@ -11,5 +11,6 @@ final class PendingPurchase
         public readonly EventosCompras $purchase,
         public readonly EventosCompraLog $log,
         public readonly float $amount,
+        public readonly bool $testCharge = false,
     ) {}
 }

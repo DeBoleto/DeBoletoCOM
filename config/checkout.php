@@ -26,6 +26,14 @@ return [
 
     'max_tickets' => 10,
 
+    // Clientes de prueba (pk_usuario separados por coma): sus compras con
+    // tarjeta se cobran en OpenPay por el monto fijo; la compra guarda los
+    // totales reales.
+    'test_charge' => [
+        'users' => env('CHECKOUT_TEST_CHARGE_USERS', ''),
+        'amount' => env('CHECKOUT_TEST_CHARGE_AMOUNT', 1),
+    ],
+
     // Eventos con un máximo propio de boletos por compra.
     'max_tickets_events' => [
         1204 => 3,

@@ -14,6 +14,7 @@ use App\Modules\Checkout\Services\PurchaseFinalizer;
 use App\Modules\Checkout\Services\QuoteCalculator;
 use App\Modules\Checkout\Services\SelectionBuilder;
 use App\Modules\Checkout\Services\WebCatalog;
+use App\Modules\Checkout\Support\TestCharge;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
 use App\Modules\Checkout\Tracking\MetaTracker;
@@ -146,7 +147,7 @@ class PaymentController extends Controller
 
         $request->session()->put($this->attemptKey($evento), $result->purchase->codigo);
 
-        if ($request->validated('metodo') === 'card') {
+        if ($request->validated('metodo') === 'card' && ! TestCharge::appliesTo($customer)) {
             app(MetaTracker::class)->track($evento, 'AddPaymentInfo', [
                 'currency' => 'MXN',
                 'value' => round($quote->total(), 2),

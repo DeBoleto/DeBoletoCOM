@@ -4,15 +4,22 @@ namespace App\Modules\Checkout\Listeners;
 
 use App\Modules\Checkout\Events\WebPurchasePaid;
 use App\Modules\Checkout\Jobs\SendConversionEvent;
+use App\Modules\Checkout\Services\PurchaseFinalizer;
 use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Orders\Models\EventosCompras;
 
 class TrackPurchaseConversion
 {
+    public function __construct(private readonly PurchaseFinalizer $finalizer) {}
+
     public function handle(WebPurchasePaid $event): void
     {
         $purchase = EventosCompras::query()->with('usuario')->findOrFail($event->purchaseId);
         $customer = $purchase->usuario;
+
+        if (! empty($this->finalizer->snapshot($purchase)['test_charge'])) {
+            return;
+        }
 
         SendConversionEvent::dispatch(
             $purchase->pk_evento,

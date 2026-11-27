@@ -319,6 +319,26 @@ class WebCheckoutTest extends TestCase
         Event::assertNotDispatched(WebPurchasePaid::class);
     }
 
+    public function test_test_customers_are_charged_the_fixed_amount_and_keep_real_totals(): void
+    {
+        $customer = $this->createCustomer();
+        config(['checkout.test_charge.users' => '999, '.$customer->pk_usuario, 'checkout.test_charge.amount' => 1]);
+
+        $this->actingAs($customer, 'customer')->post('/compra/10/seleccion', $this->selection());
+        $this->post('/compra/10/pago', $this->cardPayment(), ['X-Inertia' => 'true']);
+
+        $purchase = EventosCompras::query()->sole();
+        $this->assertSame(1.0, $this->gateway->requests[0]->amount);
+        $this->assertNull($this->gateway->requests[0]->installments);
+        $this->assertGreaterThan(1, (float) $purchase->total_compra);
+
+        $this->gateway->settle($purchase->pk_openpay, ChargeStatus::Completed);
+        $this->get('/compra/confirmacion?id='.$purchase->pk_openpay)->assertRedirect('/compra/'.$purchase->codigo);
+
+        $this->assertSame(PurchaseStatus::Paid, $purchase->fresh()->status());
+        Event::assertDispatchedTimes(WebPurchasePaid::class, 1);
+    }
+
     public function test_transfer_shows_spei_instructions_and_keeps_tickets_pending(): void
     {
         $this->actingAs($this->createCustomer(), 'customer')->post('/compra/10/seleccion', $this->selection());
