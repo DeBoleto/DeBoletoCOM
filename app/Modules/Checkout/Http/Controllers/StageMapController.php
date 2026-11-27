@@ -5,11 +5,11 @@ namespace App\Modules\Checkout\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Services\Checkout\SeatAvailability;
 use App\Modules\Checkout\Http\CheckoutPresenter;
-use App\Modules\Checkout\Jobs\SendConversionEvent;
 use App\Modules\Checkout\Services\SeatHolds;
 use App\Modules\Checkout\Services\StageView;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCartStore;
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Support\EventPromotions;
 use Illuminate\Http\JsonResponse;
@@ -76,7 +76,7 @@ class StageMapController extends Controller
         $cart = $this->carts->get($event->pk_evento);
 
         if ($cart === null) {
-            SendConversionEvent::dispatch($event->pk_evento, 'InitiateCheckout', $request->fullUrl());
+            app(MetaTracker::class)->initiateCheckout($event->pk_evento);
         }
 
         return Inertia::render('Checkout/StageMap', [

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Users\Models\Usuarios;
 use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 ->indexable($request->routeIs(...self::INDEXABLE_ROUTES))
                 ->toArray(),
             'customer' => fn () => $this->customer(),
+            'metaPixel' => fn () => app(MetaTracker::class)->pull(),
             'flash' => fn () => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

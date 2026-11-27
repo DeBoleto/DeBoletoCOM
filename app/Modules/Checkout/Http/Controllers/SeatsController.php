@@ -8,7 +8,6 @@ use App\Modules\Checkout\Exceptions\CheckoutException;
 use App\Modules\Checkout\Http\CheckoutPresenter;
 use App\Modules\Checkout\Http\Requests\HoldSeatRequest;
 use App\Modules\Checkout\Http\Requests\StoreSelectionRequest;
-use App\Modules\Checkout\Jobs\SendConversionEvent;
 use App\Modules\Checkout\Services\RaceRegistration;
 use App\Modules\Checkout\Services\SeatHolds;
 use App\Modules\Checkout\Services\SelectionBuilder;
@@ -16,6 +15,7 @@ use App\Modules\Checkout\Services\StageView;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\EventosLocalidades;
 use App\Modules\Events\Support\EventPromotions;
 use App\Modules\Events\Models\Views\EventoVista;
@@ -78,7 +78,7 @@ class SeatsController extends Controller
         $cart = $this->carts->get($event->pk_evento);
 
         if ($cart === null) {
-            SendConversionEvent::dispatch($event->pk_evento, 'InitiateCheckout', $request->fullUrl());
+            app(MetaTracker::class)->initiateCheckout($event->pk_evento);
         }
 
         return Inertia::render('Checkout/Process', [
@@ -217,7 +217,7 @@ class SeatsController extends Controller
         $this->holds->refresh($owner);
         $this->carts->put($cart);
 
-        SendConversionEvent::dispatch($evento, 'AddToCart', $request->headers->get('referer') ?? $request->fullUrl());
+        app(MetaTracker::class)->track($evento, 'AddToCart', sourceUrl: $request->headers->get('referer') ?? $request->fullUrl());
 
         return redirect()->route('checkout.payment', $evento);
     }

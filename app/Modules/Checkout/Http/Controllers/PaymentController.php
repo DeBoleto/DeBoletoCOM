@@ -8,7 +8,6 @@ use App\Modules\Checkout\Exceptions\CheckoutException;
 use App\Modules\Checkout\Http\CheckoutPresenter;
 use App\Modules\Checkout\Http\Requests\PayRequest;
 use App\Modules\Checkout\Http\Requests\QuoteRequest;
-use App\Modules\Checkout\Jobs\SendConversionEvent;
 use App\Modules\Checkout\Services\PaymentProcessor;
 use App\Modules\Checkout\Services\PendingPurchaseWriter;
 use App\Modules\Checkout\Services\PurchaseFinalizer;
@@ -17,6 +16,7 @@ use App\Modules\Checkout\Services\SelectionBuilder;
 use App\Modules\Checkout\Services\WebCatalog;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Checkout\Support\WebCartStore;
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Orders\Enums\PaymentType;
 use App\Modules\Orders\Enums\PurchaseStatus;
@@ -129,6 +129,8 @@ class PaymentController extends Controller
 
             $quote = $this->quotes->quote($cart, $this->catalog->eventRow($evento), $request->options());
 
+            app(MetaTracker::class)->rememberContext($customer->pk_usuario, $evento);
+
             $result = $payments->pay(
                 $cart, $quote, $event, $customer, $request->payment(), $this->carts->owner(), route('checkout.return'),
             );
@@ -145,7 +147,11 @@ class PaymentController extends Controller
         $request->session()->put($this->attemptKey($evento), $result->purchase->codigo);
 
         if ($request->validated('metodo') === 'card') {
-            SendConversionEvent::dispatch($evento, 'AddPaymentInfo', route('checkout.payment', $evento));
+            app(MetaTracker::class)->track($evento, 'AddPaymentInfo', [
+                'currency' => 'MXN',
+                'value' => round($quote->total(), 2),
+                'num_items' => count($quote->lines),
+            ], sourceUrl: route('checkout.payment', $evento));
         }
 
         if ($result->needsRedirect()) {

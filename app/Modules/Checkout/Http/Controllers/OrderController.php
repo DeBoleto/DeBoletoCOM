@@ -5,9 +5,11 @@ namespace App\Modules\Checkout\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\BoxOffice\Services\Printing\TicketPrintService;
 use App\Modules\Checkout\Http\CheckoutPresenter;
+use App\Modules\Checkout\Listeners\TrackPurchaseConversion;
 use App\Modules\Checkout\Services\PaymentProcessor;
 use App\Modules\Checkout\Services\PendingPurchaseWriter;
 use App\Modules\Checkout\Services\PurchaseFinalizer;
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\Views\EventoFuncionVista;
 use App\Modules\Events\Models\Views\EventoVista;
 use App\Modules\Orders\Enums\PaymentType;
@@ -44,6 +46,16 @@ class OrderController extends Controller
         $function = EventoFuncionVista::query()->find($purchase->pk_evento_funcion);
         $status = $purchase->status() ?? PurchaseStatus::Rejected;
         $snapshot = $finalizer->snapshot($purchase);
+
+        if ($status === PurchaseStatus::Paid) {
+            app(MetaTracker::class)->track(
+                (int) $purchase->pk_evento,
+                'Purchase',
+                TrackPurchaseConversion::customData($purchase),
+                TrackPurchaseConversion::eventId($purchase),
+                server: false,
+            );
+        }
 
         return Inertia::render('Checkout/Complete', [
             'event' => CheckoutPresenter::event($event),

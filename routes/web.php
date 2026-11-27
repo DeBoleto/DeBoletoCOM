@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Support\EventPromotions;
 use App\Support\Seo\SchemaOrg;
@@ -377,6 +378,10 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         ->image($eventImage)
         ->schema(...SchemaOrg::events($eventProps, $eventUrl, $eventImage, $eventCity, $eventState))
         ->toArray();
+
+    $tracker = app(MetaTracker::class);
+    $tracker->track($currentEventId, 'PageView', [], server: false);
+    $tracker->track($currentEventId, 'ViewContent', ['content_name' => (string) $eventProps['name']], sourceUrl: $eventUrl);
 
     return Inertia::render('EventDetail', [
         'seo' => $seo,

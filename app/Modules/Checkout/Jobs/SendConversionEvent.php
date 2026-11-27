@@ -21,45 +21,53 @@ class SendConversionEvent implements ShouldQueue
 
     public int $tries = 2;
 
+    public readonly int $occurredAt;
+
     /**
-     * @param  array<string, string>  $userData  Datos del cliente ya normalizados y cifrados con SHA-256.
+     * @param  array<string, string>  $userData  Datos del navegador (IP, user agent, fbp, fbc) y del cliente cifrados con SHA-256.
+     * @param  array<string, mixed>  $customData
+     * @param  string|null  $metaEventId  Mismo event_id que el píxel del navegador para deduplicar.
      */
     public function __construct(
         public readonly int $eventId,
         public readonly string $name,
         public readonly string $sourceUrl,
         public readonly array $userData = [],
-        public readonly ?float $value = null,
-    ) {}
+        public readonly array $customData = [],
+        public readonly ?string $metaEventId = null,
+    ) {
+        $this->occurredAt = now()->timestamp;
+    }
 
     public function handle(): void
     {
-        $pixels = EventosPixel::query()->where('pk_evento', $this->eventId)->get();
+        $pixels = EventosPixel::query()->where('pk_evento', $this->eventId)->get()
+            ->filter(fn (EventosPixel $pixel) => trim((string) $pixel->pixel) !== '' && trim((string) $pixel->api) !== '');
 
         foreach ($pixels as $pixel) {
-            $event = [
+            $event = array_filter([
                 'event_name' => $this->name,
-                'event_time' => now()->timestamp,
+                'event_time' => $this->occurredAt,
+                'event_id' => $this->metaEventId,
                 'event_source_url' => $this->sourceUrl,
                 'action_source' => 'website',
-            ];
-
-            if ($this->userData !== []) {
-                $event['user_data'] = $this->userData;
-            }
-
-            if ($this->value !== null) {
-                $event['custom_data'] = ['currency' => 'MXN', 'value' => round($this->value, 2)];
-            }
+                'user_data' => $this->userData,
+                'custom_data' => $this->customData,
+            ], fn ($value) => $value !== null && $value !== []);
 
             try {
                 $response = Http::timeout(15)->post(
-                    'https://graph.facebook.com/'.config('services.facebook.graph_version')."/{$pixel->pixel}/events",
+                    'https://graph.facebook.com/'.config('services.facebook.graph_version').'/'.trim((string) $pixel->pixel).'/events',
                     ['data' => [$event], 'access_token' => $pixel->api],
                 );
 
                 if ($response->failed()) {
-                    Log::warning('Meta rechazó el evento de conversión', ['evento' => $this->eventId, 'status' => $response->status()]);
+                    Log::warning('Meta rechazó el evento de conversión', [
+                        'evento' => $this->eventId,
+                        'nombre' => $this->name,
+                        'status' => $response->status(),
+                        'error' => $response->json('error.message'),
+                    ]);
                 }
             } catch (ConnectionException $exception) {
                 Log::warning('Meta no respondió', ['evento' => $this->eventId, 'message' => $exception->getMessage()]);
