@@ -1,3 +1,4 @@
+@use('App\Modules\BoxOffice\Support\PdfLogo')
 @use('App\Modules\BoxOffice\Support\SpanishDate')
 <!DOCTYPE html>
 <html lang="es">
@@ -23,7 +24,8 @@
         .info .label { width: 25%; background: #333; color: #fff; font-weight: bold; text-align: right; }
         .info .value { color: #333; text-align: left; }
         .info .spacer { border: 0; }
-        .function { page-break-inside: avoid; }
+        .info, .breakdown tr { page-break-inside: avoid; }
+        .event-title, .section-title, hr { page-break-after: avoid; }
         .section-title { font-size: 9pt; font-weight: bold; color: #b6bcc0; margin: 14px 0 0; padding-bottom: 4px; border-bottom: 2px solid #2ba17c; }
         .breakdown { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
         .breakdown th { background: #333; color: #fff; font-weight: bold; text-transform: uppercase; padding: 6px 4px; border: 1pt solid #333; }
@@ -54,7 +56,7 @@
         <tr>
             <td style="width: 70%"><h1>{{ $title }}</h1></td>
             <td class="right" style="width: 30%">
-                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo_full.png'))) }}" alt="DeBoleto" style="height: 34px">
+                <img src="{{ PdfLogo::dataUri() }}" alt="DeBoleto" style="height: 30px; width: 157px">
             </td>
         </tr>
     </table>
