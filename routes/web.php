@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SitemapController;
 use App\Modules\Checkout\Tracking\MetaTracker;
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Support\EventPromotions;
@@ -395,6 +396,9 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         'event' => $eventProps,
     ]);
 })->name('event.detail');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 // Zona autenticada (Jetstream + verificación de email).
 Route::middleware([

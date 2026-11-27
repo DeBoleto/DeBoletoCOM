@@ -87,6 +87,17 @@ class VenuesController extends Controller
         ]);
     }
 
+    /**
+     * Slugs de los recintos con eventos activos, para el sitemap.
+     *
+     * @return list<string>
+     */
+    public function sitemapSlugs(): array
+    {
+        return collect($this->buildVenues($this->readCatalog(), $this->readEventsMap()))
+            ->pluck('slug')->filter()->unique()->values()->all();
+    }
+
     private function buildVenues(array $catalog, array $eventsMap): array
     {
         $venues = [];

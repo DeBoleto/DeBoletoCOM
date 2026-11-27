@@ -58,6 +58,8 @@ Stack:
 - Design tokens and Tailwind 4 CSS-first config live in `resources/css/app.css` (brand `#4ecba0` / `#22c55e`); `tailwind.config.js` is largely vestigial.
 - SEO is server-rendered: routes/controllers pass an `seo` prop built with `App\Support\Seo\SeoMeta` (+ `SchemaOrg` for JSON-LD); `resources/views/partials/seo.blade.php` prints title/description/canonical/OG/Twitter/JSON-LD into the HTML, and `components/SeoHead.vue` keeps them in sync on client navigation. `HandleInertiaRequests` shares a default `seo` with `noindex` for every route outside `home`, `event.detail`, `venue.detail`, `buscar`.
 - Meta pixel: `App\Modules\Checkout\Tracking\MetaTracker::track()` queues each event twice with one `event_id` — in the session (shared prop `metaPixel`, fired by `resources/js/support/metaPixel.js` on Inertia `navigate` with `fbq('trackSingle')`) and to the Conversions API (`SendConversionEvent`). Pixel IDs come from `eventos.pixel` (browser only) + `eventos_pixel` (browser + API with token). `_fbp`/`_fbc` cookies are excluded from encryption in `bootstrap/app.php`.
+- `/sitemap.xml` and `/robots.txt` are dynamic routes (`SitemapController`, cached 1h) built from Redis: home, active events, categories, venues with events. There is no `public/robots.txt`.
+- Test charges: `pk_usuario`s listed in `CHECKOUT_TEST_CHARGE_USERS` (comma-separated) are charged `CHECKOUT_TEST_CHARGE_AMOUNT` (default 1 MXN) on OpenPay card payments, without installments; the purchase keeps real totals and `json_compra.test_charge = true`. Test purchases skip Meta conversions.
 
 ## Testing
 
@@ -67,7 +69,7 @@ Stack:
 
 ## Known gotchas / dangling references
 
-- `routes/web.php` imports non-existent `App\Http\Controllers\HomeController` (unused import); `SitemapController` exists but is not routed.
+- `routes/web.php` imports non-existent `App\Http\Controllers\HomeController` (unused import).
 - Missing referenced classes: `App\Library\*` (`FormatValidation`, `Errors`, `DateTimeBuilder`, `Encryption`, `XMLConverter`, `DataTable`), `App\Exceptions\ApplicationException`, `App\Notifications\UserResetPasswordNotification`.
 - `AppServiceProvider` gates Horizon with `hasRole('admin')`, but `App\Models\User` does not use the Spatie `HasRoles` trait.
 - `belongTo()` typo (instead of `belongsTo()`) appears in many models — would throw if invoked.

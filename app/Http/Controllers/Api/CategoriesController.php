@@ -72,6 +72,16 @@ class CategoriesController extends Controller
         ]);
     }
 
+    /**
+     * Slugs de las categorías con eventos, para el sitemap.
+     *
+     * @return list<string>
+     */
+    public function sitemapSlugs(): array
+    {
+        return collect($this->groupedCategories())->pluck('slug')->filter()->unique()->values()->all();
+    }
+
     private function groupedCategories(): array
     {
         return collect($this->groupedEvents())
