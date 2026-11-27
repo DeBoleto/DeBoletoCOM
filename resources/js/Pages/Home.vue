@@ -1,32 +1,5 @@
 <template>
-    <Head title="DeBoleto — Tu plataforma de boletos">
-        <meta
-            name="description"
-            content="Compra boletos para conciertos, festivales, teatro, conferencias y más. La plataforma líder de venta de entradas en línea."
-        />
-        <meta
-            property="og:title"
-            content="DeBoleto — Tu plataforma de boletos"
-        />
-        <meta
-            property="og:description"
-            content="Compra boletos para conciertos, festivales, teatro, conferencias y más eventos."
-        />
-        <meta property="og:url" content="{{ route('home') }}" />
-        <meta
-            name="twitter:title"
-            content="DeBoleto — Tu plataforma de boletos"
-        />
-        <meta
-            name="twitter:description"
-            content="Compra boletos para conciertos, festivales, teatro, conferencias y más."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta name="twitter:image" content="/og-image.png" />
-        <link rel="canonical" href="{{ route('home') }}" />
-    </Head>
+    <SeoHead />
 
     <div class="page-layout">
         <SiteHeader @open-login="openLogin" @open-register="openRegister" />
@@ -222,7 +195,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { Head, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
+import SeoHead from "@/components/SeoHead.vue";
 import SiteHeader from "@/components/SiteHeader.vue";
 import HeroSlider from "@/components/HeroSlider.vue";
 import EventSection from "@/components/EventSection.vue";

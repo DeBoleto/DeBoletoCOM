@@ -56,7 +56,7 @@ Stack:
 - All `.vue` files use plain `<script setup>` (no `lang="ts"`). Alias `@` → `resources/js` (tsconfig/jsconfig).
 - Backend access: Ziggy `route()` (heaviest usage), Inertia `useForm`/`router`, and native `fetch()` for `/api/search`, `/api/venues`, `/api/categories`.
 - Design tokens and Tailwind 4 CSS-first config live in `resources/css/app.css` (brand `#4ecba0` / `#22c55e`); `tailwind.config.js` is largely vestigial.
-- SEO is client-side: schema.org JSON-LD + OpenGraph/Twitter meta emitted in page components.
+- SEO is server-rendered: routes/controllers pass an `seo` prop built with `App\Support\Seo\SeoMeta` (+ `SchemaOrg` for JSON-LD); `resources/views/partials/seo.blade.php` prints title/description/canonical/OG/Twitter/JSON-LD into the HTML, and `components/SeoHead.vue` keeps them in sync on client navigation. `HandleInertiaRequests` shares a default `seo` with `noindex` for every route outside `home`, `event.detail`, `venue.detail`, `buscar`.
 
 ## Testing
 

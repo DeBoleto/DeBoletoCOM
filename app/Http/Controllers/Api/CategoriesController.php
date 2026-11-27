@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\Seo\SeoMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
@@ -41,7 +42,21 @@ class CategoriesController extends Controller
 
         $events = collect($events);
 
+        $count = $events->count();
+
+        $seo = ($category
+            ? SeoMeta::make(
+                "Boletos de {$category['name']}",
+                "Eventos de {$category['name']}: {$count} ".($count === 1 ? 'evento' : 'eventos').' próximos. Compra tus boletos en línea.',
+            )
+                ->url(route('buscar', ['categoria' => $category['slug']]))
+                ->image($category['image'] ?: null)
+            : SeoMeta::make('Todos los eventos', 'Explora todos los eventos próximos y filtra por ciudad, estado, mes y precio.')
+                ->url(route('buscar'))
+        )->toArray();
+
         return Inertia::render('CategorySearch', [
+            'seo' => $seo,
             'category' => $category ? [
                 'slug' => $category['slug'],
                 'name' => $category['name'],

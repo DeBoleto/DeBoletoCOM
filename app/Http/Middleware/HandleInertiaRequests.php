@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Modules\Users\Models\Usuarios;
+use App\Support\Seo\SeoMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -17,6 +18,12 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * Páginas que los buscadores pueden indexar; el resto (checkout, perfil,
+     * taquilla, admin, login) sale con noindex.
+     */
+    private const INDEXABLE_ROUTES = ['home', 'event.detail', 'venue.detail', 'buscar'];
 
     /**
      * Determines the current asset version.
@@ -40,6 +47,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'deboletoUrl' => config('app.deboleto_url'),
+            'seo' => fn () => SeoMeta::defaults()
+                ->indexable($request->routeIs(...self::INDEXABLE_ROUTES))
+                ->toArray(),
             'customer' => fn () => $this->customer(),
             'flash' => fn () => [
                 'success' => $request->session()->get('success'),

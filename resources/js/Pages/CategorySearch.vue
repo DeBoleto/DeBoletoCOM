@@ -1,10 +1,5 @@
 <template>
-    <Head :title="pageTitle">
-        <meta name="description" :content="pageDescription" />
-        <meta property="og:title" :content="pageTitle" />
-        <meta property="og:description" :content="pageDescription" />
-        <meta property="og:image" :content="heroImage" />
-    </Head>
+    <SeoHead />
 
     <div class="page-layout">
         <SiteHeader @open-login="openLogin" @open-register="openRegister" />
@@ -299,7 +294,7 @@
 
 <script setup>
 import { computed, reactive, ref } from "vue";
-import { Head } from "@inertiajs/vue3";
+import SeoHead from "@/components/SeoHead.vue";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";
@@ -329,14 +324,6 @@ const heroTitle = computed(() =>
 );
 const heroImage = computed(
     () => props.category?.image ?? "/events/concert-01.png",
-);
-const pageTitle = computed(() =>
-    props.category ? `${props.category.name} — Eventos` : "Todos los eventos",
-);
-const pageDescription = computed(() =>
-    props.category
-        ? `Eventos de ${props.category.name}. ${props.events.length} ${props.events.length === 1 ? "evento" : "eventos"} próximos.`
-        : "Explora todos los eventos próximos y filtra por ciudad, estado, mes y precio.",
 );
 
 const showFilters = ref(false);

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\Seo\SchemaOrg;
+use App\Support\Seo\SeoMeta;
 use App\Support\VenueNameNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
@@ -44,7 +46,28 @@ class VenuesController extends Controller
 
         $events = collect($eventsMap[$venue['name']] ?? []);
 
+        $count = (int) $venue['eventCount'];
+        $place = SchemaOrg::place(
+            (string) $venue['name'],
+            (string) $venue['city'],
+            (string) $venue['state'],
+            $venue['latitude'],
+            $venue['longitude'],
+            (string) ($venue['address'] ?? ''),
+        );
+        $location = implode(', ', array_filter([$venue['city'], $venue['state']]));
+
+        $seo = SeoMeta::make(
+            $venue['name'],
+            "Boletos para los eventos en {$venue['name']}".($location !== '' ? ", {$location}" : '').". {$count} ".($count === 1 ? 'evento' : 'eventos').' próximos.',
+        )
+            ->url(route('venue.detail', $slug))
+            ->image($venue['image'] ?: null)
+            ->schema(...($place ? [$place] : []))
+            ->toArray();
+
         return Inertia::render('VenueDetail', [
+            'seo' => $seo,
             'venue' => [
                 'name' => $venue['name'],
                 'city' => $venue['city'],

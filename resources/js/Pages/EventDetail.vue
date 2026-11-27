@@ -1,17 +1,5 @@
 <template>
-    <Head :title="event.name">
-        <meta
-            name="description"
-            :content="`Compra boletos para ${event.name}. ${formattedMainDate}`"
-        />
-        <meta property="og:title" :content="event.name" />
-        <meta
-            property="og:description"
-            :content="`Compra boletos para ${event.name}. ${formattedMainDate}`"
-        />
-        <meta property="og:image" :content="heroImage" />
-        <link rel="canonical" :href="`/evento/${$page.props.slug}`" />
-    </Head>
+    <SeoHead />
 
     <div class="page-layout">
         <SiteHeader @open-login="openLogin" @open-register="openRegister" />
@@ -597,7 +585,8 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { Head, usePage, router } from "@inertiajs/vue3";
+import { usePage, router } from "@inertiajs/vue3";
+import SeoHead from "@/components/SeoHead.vue";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";

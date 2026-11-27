@@ -11,7 +11,7 @@ import type { DefineComponent } from "vue";
 const appName = (import.meta.env.VITE_APP_NAME as string) || "DeBoletoMX";
 
 createInertiaApp({
-    title: (title) => `${title} — ${appName}`,
+    title: (title) => (title ? `${title} — ${appName}` : appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,

@@ -1,16 +1,5 @@
 <template>
-    <Head :title="venue.name">
-        <meta
-            name="description"
-            :content="`Eventos en ${venue.name}. ${venue.eventCount} ${venue.eventCount === 1 ? 'evento' : 'eventos'} en ${venue.city}, ${venue.state}.`"
-        />
-        <meta property="og:title" :content="venue.name" />
-        <meta
-            property="og:description"
-            :content="`Eventos en ${venue.name}.`"
-        />
-        <meta property="og:image" :content="venue.image" />
-    </Head>
+    <SeoHead />
 
     <div class="page-layout">
         <SiteHeader @open-login="openLogin" @open-register="openRegister" />
@@ -357,7 +346,7 @@
 
 <script setup>
 import { computed, reactive, ref } from "vue";
-import { Head } from "@inertiajs/vue3";
+import SeoHead from "@/components/SeoHead.vue";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 import MobileBottomNav from "@/components/MobileBottomNav.vue";

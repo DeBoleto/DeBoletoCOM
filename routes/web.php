@@ -2,6 +2,8 @@
 
 use App\Modules\Events\Models\Eventos;
 use App\Modules\Events\Support\EventPromotions;
+use App\Support\Seo\SchemaOrg;
+use App\Support\Seo\SeoMeta;
 use App\Support\VenueNameNormalizer;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
@@ -187,6 +189,10 @@ Route::get('/', function () use ($getData, $imageUrl) {
         'sidebarEvents' => $sidebarEvents,
         'activosEvents' => $activosEvents,
         'upcomingEvents' => $upcomingEvents,
+        'seo' => SeoMeta::make('Boletos para conciertos, teatro, deportes y más')
+            ->url(route('home'))
+            ->schema(SchemaOrg::organization(), SchemaOrg::website())
+            ->toArray(),
     ]);
 })->name('home');
 
@@ -326,7 +332,54 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
         ])
         ->all();
 
+    $eventProps = [
+        'id' => $event['id'],
+        'name' => $event['nombre'],
+        'desc' => $event['descripcion'],
+        'comments' => $event['comentarios'],
+        'image' => $imageUrl($event['imagen'] ?? ''),
+        'sliderImage' => $sliderImage,
+        'hasPromotion' => $event['tiene_promocion'],
+        'ventaWeb' => $event['ventaWeb'],
+        'venueName' => $event['lugar'] ?? '',
+        'latitude' => $event['latitud'] ?? null,
+        'longitude' => $event['longitud'] ?? null,
+        'promotions' => array_values(array_unique(array_filter([
+            trim((string) ($event['promocion_text'] ?? '')),
+            ...(array) ($event['promociones'] ?? []),
+        ]))),
+        'functions' => array_map(fn ($f) => [
+            'id' => $f['id'],
+            'date' => $f['fecha'],
+        ], $event['funciones'] ?? []),
+        'zones' => array_map(fn ($z) => [
+            'id' => $z['id'],
+            'name' => $z['nombre'],
+            'originalPrice' => $z['precio_original'],
+            'discountPrice' => $z['precio_descuento'],
+            'hasPromotion' => $z['tiene_promocion'],
+        ], $event['zonas'] ?? []),
+    ];
+
+    $eventUrl = route('event.detail', $slug);
+    $eventImage = $eventProps['sliderImage'] ?: $eventProps['image'];
+    $eventCity = trim((string) ($event['ciudad'] ?? $currentEvent['ciudad'] ?? ''));
+    $eventState = trim((string) ($event['estado'] ?? $currentEvent['estado'] ?? ''));
+    $eventPlace = implode(', ', array_filter([$eventProps['venueName'], $eventCity]));
+
+    $seo = SeoMeta::make(
+        $eventProps['name'],
+        trim((string) $eventProps['desc']) !== ''
+            ? (string) $eventProps['desc']
+            : 'Compra boletos para '.$eventProps['name'].($eventPlace !== '' ? ' en '.$eventPlace : '').'.',
+    )
+        ->url($eventUrl)
+        ->image($eventImage)
+        ->schema(...SchemaOrg::events($eventProps, $eventUrl, $eventImage, $eventCity, $eventState))
+        ->toArray();
+
     return Inertia::render('EventDetail', [
+        'seo' => $seo,
         'slug' => $slug,
         'kit' => $kit && ($kit['items'] !== [] || $kit['deliveryPlace'] !== '') ? $kit : null,
         'convocatoria' => $convocatoria !== ''
@@ -334,34 +387,7 @@ Route::get('/evento/{slug}', function ($slug) use ($getData, $imageUrl) {
             : null,
         'sponsors' => $sponsors,
         'nearbyEvents' => $nearbyEvents,
-        'event' => [
-            'id' => $event['id'],
-            'name' => $event['nombre'],
-            'desc' => $event['descripcion'],
-            'comments' => $event['comentarios'],
-            'image' => $imageUrl($event['imagen'] ?? ''),
-            'sliderImage' => $sliderImage,
-            'hasPromotion' => $event['tiene_promocion'],
-            'ventaWeb' => $event['ventaWeb'],
-            'venueName' => $event['lugar'] ?? '',
-            'latitude' => $event['latitud'] ?? null,
-            'longitude' => $event['longitud'] ?? null,
-            'promotions' => array_values(array_unique(array_filter([
-                trim((string) ($event['promocion_text'] ?? '')),
-                ...(array) ($event['promociones'] ?? []),
-            ]))),
-            'functions' => array_map(fn ($f) => [
-                'id' => $f['id'],
-                'date' => $f['fecha'],
-            ], $event['funciones'] ?? []),
-            'zones' => array_map(fn ($z) => [
-                'id' => $z['id'],
-                'name' => $z['nombre'],
-                'originalPrice' => $z['precio_original'],
-                'discountPrice' => $z['precio_descuento'],
-                'hasPromotion' => $z['tiene_promocion'],
-            ], $event['zonas'] ?? []),
-        ],
+        'event' => $eventProps,
     ]);
 })->name('event.detail');
 
