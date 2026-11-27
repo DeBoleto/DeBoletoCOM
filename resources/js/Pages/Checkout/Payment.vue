@@ -18,6 +18,30 @@
 
             <div class="container pay-page">
                 <div class="pay-grid">
+                    <div class="pay-summary">
+                        <OrderStub :event="event" :func="func" :quote="quote">
+                            <div class="extras">
+                                <p v-if="promotionText" class="promo">Promoción {{ promotionText }} aplicada.</p>
+
+                                <form class="coupon" @submit.prevent="applyCoupon">
+                                    <label for="coupon" class="visually-hidden">Código promocional</label>
+                                    <input id="coupon" v-model.trim="couponInput" placeholder="Código promocional" maxlength="40" autocomplete="off" />
+                                    <button v-if="quote.coupon" type="button" class="coupon-btn" @click="removeCoupon">Quitar</button>
+                                    <button v-else type="submit" class="coupon-btn" :disabled="!couponInput || quoting">Aplicar</button>
+                                </form>
+                                <p v-if="couponError" class="field-error">{{ couponError }}</p>
+                                <p v-else-if="quote.coupon" class="coupon-ok">{{ quote.coupon.description }}</p>
+
+                                <label v-if="options.defender" class="defender">
+                                    <input v-model="defender" type="checkbox" :disabled="quoting" />
+                                    <span>
+                                        <strong>Ticket Defender</strong>
+                                        Protege tu compra si no puedes asistir por una eventualidad cubierta.
+                                    </span>
+                                </label>
+                            </div>
+                        </OrderStub>
+                    </div>
                     <form class="pay-form" novalidate @submit.prevent="pay">
                         <div class="pay-heading">
                             <h1>Pago</h1>
@@ -153,30 +177,6 @@
                         </button>
                     </form>
 
-                    <div class="pay-summary">
-                        <OrderStub :event="event" :func="func" :quote="quote">
-                            <div class="extras">
-                                <p v-if="promotionText" class="promo">Promoción {{ promotionText }} aplicada.</p>
-
-                                <form class="coupon" @submit.prevent="applyCoupon">
-                                    <label for="coupon" class="visually-hidden">Código promocional</label>
-                                    <input id="coupon" v-model.trim="couponInput" placeholder="Código promocional" maxlength="40" autocomplete="off" />
-                                    <button v-if="quote.coupon" type="button" class="coupon-btn" @click="removeCoupon">Quitar</button>
-                                    <button v-else type="submit" class="coupon-btn" :disabled="!couponInput || quoting">Aplicar</button>
-                                </form>
-                                <p v-if="couponError" class="field-error">{{ couponError }}</p>
-                                <p v-else-if="quote.coupon" class="coupon-ok">{{ quote.coupon.description }}</p>
-
-                                <label v-if="options.defender" class="defender">
-                                    <input v-model="defender" type="checkbox" :disabled="quoting" />
-                                    <span>
-                                        <strong>Ticket Defender</strong>
-                                        Protege tu compra si no puedes asistir por una eventualidad cubierta.
-                                    </span>
-                                </label>
-                            </div>
-                        </OrderStub>
-                    </div>
                 </div>
             </div>
         </main>
@@ -726,7 +726,6 @@ main {
     }
 
     .pay-summary {
-        order: -1;
         position: sticky;
         top: calc(var(--header-height) + 88px);
     }
