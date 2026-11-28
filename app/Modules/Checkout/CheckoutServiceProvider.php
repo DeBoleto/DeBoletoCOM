@@ -6,8 +6,10 @@ use App\Modules\Checkout\Console\CheckRealtimeSeats;
 use App\Modules\Checkout\Console\ReconcilePendingPurchases;
 use App\Modules\Checkout\Console\SweepSeatHolds;
 use App\Modules\Checkout\Events\WebPurchasePaid;
+use App\Modules\Checkout\Events\WebTransferRequested;
 use App\Modules\Checkout\Listeners\DeliverPurchaseTickets;
 use App\Modules\Checkout\Listeners\NotifyLigaMx;
+use App\Modules\Checkout\Listeners\SendTransferInstructions;
 use App\Modules\Checkout\Listeners\TrackPurchaseConversion;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +23,7 @@ class CheckoutServiceProvider extends ServiceProvider
         Event::listen(WebPurchasePaid::class, DeliverPurchaseTickets::class);
         Event::listen(WebPurchasePaid::class, TrackPurchaseConversion::class);
         Event::listen(WebPurchasePaid::class, NotifyLigaMx::class);
+        Event::listen(WebTransferRequested::class, SendTransferInstructions::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([CheckRealtimeSeats::class, ReconcilePendingPurchases::class, SweepSeatHolds::class]);

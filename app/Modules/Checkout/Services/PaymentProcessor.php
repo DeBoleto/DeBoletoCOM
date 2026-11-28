@@ -3,6 +3,7 @@
 namespace App\Modules\Checkout\Services;
 
 use App\Modules\BoxOffice\Exceptions\SeatsUnavailableException;
+use App\Modules\Checkout\Events\WebTransferRequested;
 use App\Modules\Checkout\Exceptions\CheckoutException;
 use App\Modules\Checkout\Support\WebCart;
 use App\Modules\Events\Models\Views\EventoVista;
@@ -92,7 +93,13 @@ class PaymentProcessor
             ]),
         ])->save();
 
-        return $this->resultFor($purchase, $charge);
+        $result = $this->resultFor($purchase, $charge);
+
+        if ($charge->transfer !== null && ! $charge->isPaid()) {
+            WebTransferRequested::dispatch($purchase->pk_evento_compra, $charge->transfer, $charge->amount, $charge->dueDate);
+        }
+
+        return $result;
     }
 
     /**

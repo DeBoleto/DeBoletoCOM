@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Modules\BoxOffice\Mail\DigitalTicketsMail;
-use App\Modules\BoxOffice\Services\Printing\TicketPrintService;
+use App\Modules\Checkout\Mail\PurchaseTicketsMail;
 use App\Modules\Orders\Models\EventosCompras;
 use Illuminate\Console\Command;
 use Illuminate\Mail\Message;
@@ -16,12 +15,12 @@ class SendPurchaseTestMail extends Command
     protected $signature = 'mail:test-purchase
         {folio : Folio de la compra (pk_evento_compra)}
         {email : Correo que recibirá la prueba}
-        {--plain : Solo manda un correo de texto, sin PDF, para probar la conexión}
+        {--plain : Solo manda un correo de texto sencillo, para probar la conexión}
         {--queue : Lo manda por la cola, como la compra web}';
 
-    protected $description = 'Envía el correo de boletos de una compra a un correo de prueba';
+    protected $description = 'Envía el correo de boletos (enlace a los boletos digitales) de una compra a un correo de prueba';
 
-    public function handle(TicketPrintService $printing): int
+    public function handle(): int
     {
         $email = (string) $this->argument('email');
 
@@ -61,35 +60,18 @@ class SendPurchaseTestMail extends Command
 
         $this->info("Compra {$purchase->pk_evento_compra}: {$purchase->evento?->evento}.");
 
+        $mail = new PurchaseTicketsMail((string) $purchase->evento?->evento, $purchase->codigo, route('ticket.shared', $purchase->codigo));
+
+        $this->line("Enlace de los boletos: {$mail->ticketsUrl}");
+
         if ($this->option('queue')) {
-            $folio = $purchase->pk_evento_compra;
-
             return $this->attempt(
-                fn () => dispatch(function () use ($folio, $email) {
-                    $purchase = EventosCompras::query()->with('evento')->findOrFail($folio);
-                    $pdf = app(TicketPrintService::class)->digitalDocument($purchase)->output();
-
-                    Mail::to($email)->send(new DigitalTicketsMail((string) $purchase->evento?->evento, $folio, $pdf));
-                }),
-                "Envío en la cola para {$email}. El worker (Horizon o queue:work) genera el PDF y lo manda; si no llega, revisa su log y failed_jobs.",
+                fn () => Mail::to($email)->queue($mail),
+                "Envío en la cola para {$email}. El worker (Horizon o queue:work) lo manda; si no llega, revisa su log y failed_jobs.",
             );
         }
 
-        $this->line('Generando el PDF de boletos…');
-
-        try {
-            $pdf = $printing->digitalDocument($purchase)->output();
-        } catch (Throwable $exception) {
-            $this->error('No se pudo generar el PDF: '.$exception->getMessage());
-
-            return self::FAILURE;
-        }
-
-        $this->line('PDF generado ('.number_format(strlen($pdf) / 1024, 1).' KB).');
-
-        $mail = new DigitalTicketsMail((string) $purchase->evento?->evento, $purchase->pk_evento_compra, $pdf);
-
-        return $this->attempt(fn () => Mail::to($email)->send($mail), "Boletos de la compra {$purchase->pk_evento_compra} enviados a {$email}.");
+        return $this->attempt(fn () => Mail::to($email)->send($mail), "Correo de la compra {$purchase->pk_evento_compra} enviado a {$email}.");
     }
 
     private function attempt(callable $send, string $success): int
