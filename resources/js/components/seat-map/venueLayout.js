@@ -170,8 +170,15 @@ function areaFit(section, offset) {
  * Coloca celdas de una sección en el mapa completo. `place(x, y, exact)`
  * recibe la celda local (x, y) y, si la hay, la posición exacta en px.
  */
+function savedFit(section) {
+    const fit = section.fit;
+
+    return fit && Number.isFinite(fit.scale) && fit.scale > 0 && Number.isFinite(fit.x) && Number.isFinite(fit.y) ? fit : null;
+}
+
 function sectionPlacer(section, offset, placed) {
-    const fit = placed ? areaFit(section, offset) : null;
+    const saved = placed ? savedFit(section) : null;
+    const fit = placed && !saved ? areaFit(section, offset) : null;
     const radians = placed ? radiansOf(section) : 0;
     const inArea = polygonOf(section) !== null;
     // Sin área se gira alrededor del centro de los asientos, igual que el editor.
@@ -181,6 +188,22 @@ function sectionPlacer(section, offset, placed) {
     const center = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
 
     return (cellX, cellY, exact) => {
+        // Asientos ajustados al área en el editor: escala y traslado guardados en el XML.
+        if (saved) {
+            const natural = exact
+                ? { x: exact.px / GRID, y: exact.py / GRID }
+                : rotate({ x: cellX + offset.x, y: cellY + offset.y }, center, radians);
+
+            return {
+                x: natural.x * saved.scale + saved.x / GRID,
+                y: natural.y * saved.scale + saved.y / GRID,
+                size: saved.scale,
+                angle: exact ? 0 : (radians * 180) / Math.PI,
+                inArea,
+                exact: Boolean(exact),
+            };
+        }
+
         if (placed && exact) {
             return { x: exact.px / GRID, y: exact.py / GRID, size: 1, angle: 0, inArea, exact: true };
         }

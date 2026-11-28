@@ -136,6 +136,7 @@ class StageMapParser
                 ],
                 // Grados que se giran los asientos en el mapa completo (editor v2).
                 'rotation' => (float) ($section['rotation'] ?? 0),
+                'fit' => self::seatFit($section),
                 'price' => self::matchPrice($localityId, $zones),
             ];
             $sectionIndex++;
@@ -227,6 +228,26 @@ class StageMapParser
         }
 
         return ['px' => round((float) $px, 1), 'py' => round((float) $py, 1)];
+    }
+
+    /**
+     * Ajuste de los asientos al área (editor v2: seat_scale, fit_x, fit_y):
+     * cada asiento sin ajustar p (px del mapa) se dibuja en scale·p + (x, y)
+     * con su tamaño multiplicado por scale.
+     *
+     * @return array{scale: float, x: float, y: float}|null
+     */
+    private static function seatFit(SimpleXMLElement $section): ?array
+    {
+        $scale = trim((string) ($section['seat_scale'] ?? ''));
+        $x = trim((string) ($section['fit_x'] ?? ''));
+        $y = trim((string) ($section['fit_y'] ?? ''));
+
+        if (! is_numeric($scale) || ! is_numeric($x) || ! is_numeric($y) || (float) $scale <= 0) {
+            return null;
+        }
+
+        return ['scale' => (float) $scale, 'x' => (float) $x, 'y' => (float) $y];
     }
 
     private static function matchPrice(string $localityId, array $zones): ?array

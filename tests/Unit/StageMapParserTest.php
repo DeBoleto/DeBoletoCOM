@@ -205,4 +205,19 @@ class StageMapParserTest extends TestCase
         $this->assertSame([180.4, 300.6], [$exactLabel['px'], $exactLabel['py']]);
         $this->assertArrayNotHasKey('px', $gridLabel);
     }
+
+    public function test_reads_the_seat_fit_of_a_section(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><sections>'
+            .'<section name="VIP" section_id="VIP" locality_id="1" seat_scale="1.25" fit_x="-40.5" fit_y="12">'
+            .'<rows><row y="3" fila="A" orientation="horizontal"><seat seat_id="A1" x="3" /></row></rows></section>'
+            .'<section name="ORO" section_id="ORO" locality_id="2" seat_scale="abc" fit_x="1" fit_y="2">'
+            .'<rows><row y="3" fila="A" orientation="horizontal"><seat seat_id="A1" x="3" /></row></rows></section>'
+            .'</sections></stage>',
+        );
+
+        $this->assertSame(['scale' => 1.25, 'x' => -40.5, 'y' => 12.0], $stage['sections'][0]['fit']);
+        $this->assertNull($stage['sections'][1]['fit']);
+    }
 }
