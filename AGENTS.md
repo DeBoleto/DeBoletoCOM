@@ -83,7 +83,7 @@ Stack:
 - `belongTo()` typo (instead of `belongsTo()`) appears in many models — would throw if invoked.
 - Duplicate `ActivityLog` model: `app/Shared/Models/ActivityLog.php` and `app/Modules/Shared/Models/ActivityLog.php` (same table `activity_logs`).
 - `app/Shared/Cache/CacheStrategy.php` uses `Cache::tags()` (Redis/Memcached only), but `.env` sets `CACHE_STORE=database` — tagged caching will fail under the database store.
-- Module routes are loaded via `loadRoutesFrom()` on a plain `ServiceProvider`, so they get NO middleware group (no Inertia/CSRF middleware).
+- Module routes are loaded via `loadRoutesFrom()` on a plain `ServiceProvider`, so they get no middleware group by default. The ported modules (`boxoffice`, `dashboard`, `checkout`, `users`) wrap their routes in `Route::middleware('web')`; `events.php` and `venues.php` still have none (no session/CSRF/Inertia middleware).
 - Domain tables have no Laravel migrations (legacy MySQL schema pre-exists). Only framework tables (users, cache, jobs, Sanctum, Spatie, activity_log) are migrated.
 - `config/modules.php` is declared but never referenced — `bootstrap/providers.php` is the source of truth.
 - `USE_LOCAL_JSON=true` swaps event image URLs to local placeholders for offline dev; `localdev/*.json` files are offline data fixtures.
