@@ -27,7 +27,7 @@ class RefundsController extends Controller
     {
         $event = EventoVista::query()->findOrFail($evento);
         $purchases = $this->purchases($evento);
-        $sum = fn (?callable $filter = null) => $purchases->when($filter, fn ($items) => $items->filter($filter))->sum(fn ($row) => $row['subtotal'] + $row['commission']);
+        $sum = fn (?callable $filter = null) => ($filter ? $purchases->filter($filter) : $purchases)->sum(fn ($row) => $row['subtotal'] + $row['commission']);
 
         return Inertia::render('Admin/Refunds/Index', [
             'event' => ['id' => $event->pk_evento, 'name' => $event->evento],
