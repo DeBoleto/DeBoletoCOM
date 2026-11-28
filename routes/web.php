@@ -150,6 +150,10 @@ Route::get('/', function () use ($getData, $imageUrl) {
     // Banner del HeroSlider del Home.
     $bannersData = $getData('eventos_sidebar_app');
     $rawBanners = $bannersData ? json_decode($bannersData, true) : [];
+    $rawBanners = array_values(array_filter(
+        is_array($rawBanners) ? $rawBanners : [],
+        fn ($b) => trim((string) ($b['imagen'] ?? '')) !== '',
+    ));
 
     $banners = array_map(fn ($b) => [
         'url' => ! empty($b['url']) ? '/evento/'.$b['url'] : '#',
