@@ -27,8 +27,15 @@ Stack:
 
 - Each domain lives in `app/Modules/<Domain>/` with a `<Name>ServiceProvider.php` and `Models/`.
 - Providers register routes via `loadRoutesFrom(base_path('routes/modules/<name>.php'))` in `boot()` and are listed in `bootstrap/providers.php`.
-- Modules: `Events`, `Tickets`, `Orders`, `Venues`, `Users`, `BoxOffice`, `Payments`, `Notifications`, `Reports`. Only `events.php` and `venues.php` define routes today; the rest are empty stubs.
-- HTTP controllers live centrally in `app/Http/Controllers/Api/` (not inside modules).
+- Modules: `Events`, `Tickets`, `Orders`, `Venues`, `Users`, `BoxOffice`, `Dashboard`, `Payments`, `Checkout`, `Notifications`, `Reports` (+ `Shared`, no provider). Routes live in `events.php`, `venues.php`, `users.php`, `checkout.php`, `boxoffice.php`, `dashboard.php`; `tickets`, `orders`, `payments`, `notifications`, `reports` are empty stubs.
+- Public-site/API controllers live in `app/Http/Controllers/Api/`; the ported modules (`BoxOffice`, `Dashboard`, `Checkout`, `Users`) keep their own `Http/{Controllers,Middleware,Requests}` plus `Services/`, `Queries/`, `Support/`.
+- Areas and guards (`config/auth.php`, provider `usuarios` for all three):
+  - **Taquilla** `/boxoffice/*` (`boxoffice.*`, guard `boxoffice`): seat-map sales, ~30 ticket print formats (Blade/DomPDF, mm layouts calibrated to physical printers — do not change), cash cut, cortesías, canje, reports. Menu access via `EnsureMenuPrivilege`, Gate abilities in `BoxOfficeAbilities`.
+  - **Admin** `/dashboard/*` (`admin.*`, guard `admin`, module `Dashboard`): users/privileges, events, localities, venues, formats, tickets, refunds, monitors. Jetstream's customer account page is at `/admin` (route `dashboard`).
+  - **Checkout web** (guard `customer`, phone OTP via Stytch or email/password in `Users`): `/eventos/mapa/{evento}` (full venue map), `/checkoutprocess/{slug}` (multi-zone flow; `/evento/{slug}/asientos` 301s here), `/compra/{evento}/pago` (card 3DS, MSI 3/6, SPEI, coupons, Ticket Defender), OpenPay webhook + scheduled `checkout:reconcile` (every 5 min).
+- Event-ID-specific legacy business rules are isolated in `config/boxoffice.php` and `config/checkout.php`; keep them there.
+- Checkout writes order + tickets as Pending (status 4) before charging and issues them only on confirmed payment. v2 purchases are tagged `"source":"web-v2"` in `eventos_compras_logs.json_compra`; webhook/reconcile ignore legacy purchases.
+- Seat holds: Redis (atomic) mirrored into `eventos_reserva_boleto` (`pk_seccion` = locality name), and reads merge both. Legacy deboletox still sells against the same DB, so never drop the mirror. Availability is broadcast in realtime over Laravel Reverb; hold TTL is 7 min (web and taquilla).
 
 ### Redis read-model (CQRS-lite)
 
@@ -65,7 +72,8 @@ Stack:
 
 - PHPUnit (Pest is NOT installed). Layout: `tests/Unit` + `tests/Feature` per `phpunit.xml`.
 - Tests use `RefreshDatabase`, SQLite `:memory:`, snake_case methods (`test_*`), classes end in `Test`.
-- Most current tests are stock Jetstream scaffolding; no domain tests exist yet.
+- Besides Jetstream scaffolding, domain tests live in `tests/{Feature,Unit}/{BoxOffice,Checkout}`, `tests/Feature/Admin`, `SeoMetaTagsTest`, `SitemapTest`, `StageMapParserTest`. None run against the real legacy MySQL schema.
+- `ExampleTest` fails without a reachable Redis.
 
 ## Known gotchas / dangling references
 
