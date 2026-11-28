@@ -98,7 +98,7 @@ class TicketsController extends Controller
             ->leftJoin('eventos_localidades_especiales as le', 'le.pk_evento_localidad_especiales', '=', 'b.pk_evento_localidad_especiales')
             ->join('eventos_funciones as f', 'f.pk_evento_funcion', '=', 'b.pk_evento_funcion')
             ->whereNotIn('b.pk_evento_funcion_boleto_status', [6, 7])
-            ->addSelect(['f.fecha as funcion', 'l.comision', 'le.comision as comision_especial', 'b.comision_deboleto', 'b.comision_servicio', 'b.codigo', 'c.pk_evento_compra_tipo', 'c.comentario', 'u.nombre', 'u.apellido_paterno', 'u.apellido_materno', 'u.telefono'])
+            ->addSelect(['f.fecha as funcion', 'l.comision', 'le.comision as comision_especial', 'b.comision_deboleto', 'b.comision_servicio', 'b.codigo', 'c.pk_evento_compra_tipo', 'c.comentario', 'c.entrega_medio', 'u.nombre', 'u.apellido_paterno', 'u.apellido_materno', 'u.telefono'])
             ->orderBy('b.pk_evento_funcion_boleto')
             ->get()
             ->map(function ($row) use ($type, $stored, $whatsappFee) {
@@ -130,6 +130,7 @@ class TicketsController extends Controller
                     'Forma de pago' => $row->evento_compra_tipo,
                     'Tipo de boleto' => $row->cortesia ? 'Cortesía' : 'Venta',
                     'Impreso' => $row->impresion ? 'Sí' : 'No',
+                    'Entrega' => DeliveryMethod::labelFor($row->entrega_medio),
                     'Comentario' => $row->comentario,
                 ];
             })
