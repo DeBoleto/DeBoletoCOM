@@ -52,7 +52,8 @@ class PurchaseEmailsTest extends TestCase
                 && $mail->rawAttachments === []
                 && str_contains($html, e($url))
                 && str_contains($html, 'Boletos digitales')
-                && str_contains($html, 'QR dinámico');
+                && str_contains($html, 'QR dinámico')
+                && str_contains($html, asset('logo_blanco.png'));
         });
     }
 

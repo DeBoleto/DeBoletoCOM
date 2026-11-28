@@ -11,7 +11,9 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:14px;border:1px solid #dce2df;">
                     <tr>
-                        <td style="background:#16202b;border-radius:14px 14px 0 0;padding:20px 28px;color:#4ecba0;font-size:18px;font-weight:bold;">DeBoleto</td>
+                        <td style="background:#16202b;border-radius:14px 14px 0 0;padding:20px 28px;color:#4ecba0;font-size:18px;font-weight:bold;">
+                            <img src="{{ asset('logo_blanco.png') }}" width="150" height="29" alt="DeBoleto" style="display:block;border:0;outline:none;text-decoration:none;height:29px;width:150px;">
+                        </td>
                     </tr>
                     <tr>
                         <td style="padding:28px;">
