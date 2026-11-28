@@ -184,4 +184,25 @@ class StageMapParserTest extends TestCase
 
         $this->assertNull($stage['mainStage']);
     }
+
+    public function test_reads_exact_positions_of_shaped_rows_and_labels(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><sections><section name="FAN" section_id="FAN" locality_id="1">'
+            .'<labels><label name="A" x="1" y="3" px="180.4" py="300.6" /><label name="A" x="7" y="3" /></labels>'
+            .'<rows><row y="3" fila="A" orientation="horizontal" shape="v">'
+            .'<seat seat_id="A1" x="3" px="210.5" py="310.25" /><seat seat_id="A2" x="4" px="abc" py="12" /><seat seat_id="A3" x="5" />'
+            .'</row></rows></section></sections></stage>',
+        );
+
+        [$first, $invalid, $plain] = $stage['sections'][0]['rows'][0]['seats'];
+        $this->assertSame([210.5, 310.3], [$first['px'], $first['py']]);
+        $this->assertArrayNotHasKey('px', $invalid);
+        $this->assertArrayNotHasKey('px', $plain);
+        $this->assertSame(3, $plain['x']);
+
+        [$exactLabel, $gridLabel] = $stage['sections'][0]['labels'];
+        $this->assertSame([180.4, 300.6], [$exactLabel['px'], $exactLabel['py']]);
+        $this->assertArrayNotHasKey('px', $gridLabel);
+    }
 }

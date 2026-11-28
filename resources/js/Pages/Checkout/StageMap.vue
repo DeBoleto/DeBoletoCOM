@@ -122,6 +122,7 @@
                                         :main-stage="mainStage"
                                         :objects="venueObjectList"
                                         :areas="areas"
+                                        :labels="rowLabels"
                                         @zone="focusZone"
                                         @toggle="pickSeat"
                                         @direct="directPick = $event"
@@ -264,7 +265,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
-import { venueAreas, venueMainStage, venueObjects, venueSeats } from "@/components/seat-map/venueLayout.js";
+import { venueAreas, venueLabels, venueMainStage, venueObjects, venueSeats } from "@/components/seat-map/venueLayout.js";
 import { seatGapMessage, seatGaps as findSeatGaps } from "@/components/seat-map/seatGap.js";
 import { freeTickets } from "@/components/seat-map/ticketPromotion.js";
 import { zoneSeatColors } from "@/components/seat-map/seatColors.js";
@@ -345,6 +346,7 @@ const legendColors = computed(() => zoneSeatColors(activeSection.value ? zoneCol
 const mainStage = computed(() => venueMainStage(props.stage));
 const venueObjectList = computed(() => venueObjects(props.stage));
 const areas = computed(() => venueAreas(sections.value));
+const rowLabels = computed(() => venueLabels(sections.value));
 
 const seats = computed(() =>
     venueSeats(sections.value, (section, seat) => {

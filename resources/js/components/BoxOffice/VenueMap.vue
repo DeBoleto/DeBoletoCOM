@@ -9,6 +9,7 @@
             :main-stage="mainStage"
             :objects="objects"
             :areas="areas"
+            :labels="rowLabels"
             :readonly="readonly"
             @zone="emit('zone', $event)"
             @toggle="emit('toggle', $event)"
@@ -60,7 +61,7 @@ import { computed, ref } from "vue";
 import BoIcon from "./BoIcon.vue";
 import VenueCanvas from "@/components/seat-map/VenueCanvas.vue";
 import SeatTooltip from "@/components/seat-map/SeatTooltip.vue";
-import { venueAreas, venueMainStage, venueObjects, venueSeats } from "@/components/seat-map/venueLayout.js";
+import { venueAreas, venueLabels, venueMainStage, venueObjects, venueSeats } from "@/components/seat-map/venueLayout.js";
 
 /**
  * Mapa completo del recinto para taquilla y administración: todas las zonas
@@ -89,6 +90,7 @@ const sections = computed(() => props.stage?.sections ?? []);
 const mainStage = computed(() => venueMainStage(props.stage));
 const objects = computed(() => venueObjects(props.stage));
 const areas = computed(() => venueAreas(sections.value));
+const rowLabels = computed(() => venueLabels(sections.value));
 
 const seats = computed(() =>
     venueSeats(sections.value, (section, seat) =>

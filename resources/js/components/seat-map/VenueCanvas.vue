@@ -57,6 +57,7 @@ const props = defineProps({
     mainStage: { type: Object, default: null },
     objects: { type: Array, default: () => [] },
     areas: { type: Array, default: () => [] },
+    labels: { type: Array, default: () => [] },
     readonly: { type: Boolean, default: false },
 });
 
@@ -82,6 +83,13 @@ const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(pref
 
 const activeSeats = computed(() => props.seats.filter((seat) => seat.key === props.activeKey));
 const visibleSeats = computed(() => (props.activeKey === null ? props.seats : activeSeats.value));
+// Una zona con filas curvas o en V se ve con su forma real, no en cuadrícula.
+const exactZone = computed(() => activeSeats.value.length > 0 && activeSeats.value.every((seat) => seat.exact));
+const visibleLabels = computed(() =>
+    props.activeKey === null
+        ? props.labels
+        : props.labels.filter((label) => label.key === props.activeKey && (exactZone.value ? label.exact : !label.exact)),
+);
 const selected = computed(() => new Set(props.selectedKeys));
 const gaps = computed(() => new Set(props.gapKeys));
 const index = computed(() => new Map(props.seats.map((seat) => [`${seat.key}:${seat.id}`, seat])));
@@ -116,8 +124,8 @@ function colorsFor(seat) {
     return zoneSeatColors(props.zones[seat.key]?.color);
 }
 
-function position(seat) {
-    return props.activeKey === null ? { x: seat.x * GRID, y: seat.y * GRID } : { x: seat.zx * GRID, y: seat.zy * GRID };
+function position(item) {
+    return props.activeKey === null || exactZone.value ? { x: item.x * GRID, y: item.y * GRID } : { x: item.zx * GRID, y: item.zy * GRID };
 }
 
 function isGap(seat) {
@@ -227,10 +235,35 @@ function build() {
         nodes.set(`${seat.key}:${seat.id}`, { circle, mark, seat });
     }
 
+    for (const label of visibleLabels.value) addRowLabel(areas, label, zoneMode);
+
     rings = new Konva.Group({ listening: false });
     layer.add(areas, dots, rings);
     fit();
     animateEntrance();
+}
+
+// Nombre de la fila en sus extremos (<labels> del XML).
+function addRowLabel(group, label, zoneMode) {
+    const { x, y } = position(label);
+    const size = zoneMode && !exactZone.value ? 1 : (label.size ?? 1);
+    const fontSize = (zoneMode ? 11 : 9) * size;
+    const width = GRID * 2 * size;
+
+    group.add(
+        new Konva.Text({
+            x: x - width / 2,
+            y: y - fontSize / 2,
+            width,
+            text: label.name,
+            align: "center",
+            fontSize,
+            fontStyle: "bold",
+            fill: "#475569",
+            listening: false,
+            perfectDrawEnabled: false,
+        }),
+    );
 }
 
 // Las áreas vienen en px del mapa general, igual que el escenario.
@@ -656,7 +689,7 @@ function resize() {
 }
 
 watch(() => props.activeKey, build);
-watch(() => [props.mainStage, props.objects, props.areas], build);
+watch(() => [props.mainStage, props.objects, props.areas, props.labels], build);
 watch(() => props.seats.map((seat) => seat.key + seat.id).join("|"), build);
 watch([() => props.seats, () => props.selectedKeys, () => props.gapKeys], paint);
 

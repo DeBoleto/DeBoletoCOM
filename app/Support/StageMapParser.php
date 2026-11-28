@@ -59,6 +59,7 @@ class StageMapParser
                             'id' => $accessible ? self::ACCESSIBLE_SEAT.'-'.$seatIndex : $seatId,
                             'x' => (int) $seat['x'],
                             'y' => $rowY,
+                            ...self::exactPosition($seat),
                             'status' => $accessible ? 'no_disponible' : $statusFor($seatIndex),
                             'selectable' => ! $accessible,
                         ];
@@ -82,6 +83,7 @@ class StageMapParser
                         'name' => (string) $label['name'],
                         'x' => (int) $label['x'],
                         'y' => (int) $label['y'],
+                        ...self::exactPosition($label),
                     ];
                 }
             }
@@ -207,6 +209,24 @@ class StageMapParser
         }
 
         return $objects;
+    }
+
+    /**
+     * Posición exacta (px del mapa general) de un asiento o etiqueta de una
+     * fila curva o en V (editor v2: px/py). Sin ella el mapa usa la celda.
+     *
+     * @return array{px?: float, py?: float}
+     */
+    private static function exactPosition(SimpleXMLElement $element): array
+    {
+        $px = trim((string) ($element['px'] ?? ''));
+        $py = trim((string) ($element['py'] ?? ''));
+
+        if (! is_numeric($px) || ! is_numeric($py)) {
+            return [];
+        }
+
+        return ['px' => round((float) $px, 1), 'py' => round((float) $py, 1)];
     }
 
     private static function matchPrice(string $localityId, array $zones): ?array

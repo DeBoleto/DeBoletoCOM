@@ -95,6 +95,18 @@ function radiansOf(section) {
     return ((Number(section.rotation) || 0) * Math.PI) / 180;
 }
 
+// Filas curvas o en V del editor: el asiento trae su posición exacta en px del mapa general.
+function hasExact(item) {
+    return Number.isFinite(item?.px) && Number.isFinite(item?.py);
+}
+
+// Asientos que se acomodan por celda (los demás ya traen su posición exacta).
+function gridCells(section, offset) {
+    return section.rows.flatMap((row) =>
+        row.seats.filter((seat) => !hasExact(seat)).map((seat) => ({ x: seat.x + offset.x, y: row.y + offset.y })),
+    );
+}
+
 /**
  * Escala y centra los asientos de la sección dentro de su área (en celdas),
  * para que llenen el área sin importar el tamaño de celda del XML. Con
@@ -105,9 +117,12 @@ function areaFit(section, offset) {
     const polygon = polygonOf(section);
     if (!polygon) return null;
 
+    const cellsInGrid = gridCells(section, offset);
+    if (!cellsInGrid.length) return null;
+
     const radians = radiansOf(section);
-    const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x + offset.x));
-    const ys = section.rows.map((row) => row.y + offset.y);
+    const xs = cellsInGrid.map((cell) => cell.x);
+    const ys = cellsInGrid.map((cell) => cell.y);
     const seatBox = {
         minX: Math.min(...xs) - 0.5,
         minY: Math.min(...ys) - 0.5,
@@ -151,26 +166,45 @@ function areaFit(section, offset) {
  * `angle` los grados que gira su sección; `zx`/`zy` son las celdas dentro de
  * la zona (sin girar).
  */
+/**
+ * Coloca celdas de una sección en el mapa completo. `place(x, y, exact)`
+ * recibe la celda local (x, y) y, si la hay, la posición exacta en px.
+ */
+function sectionPlacer(section, offset, placed) {
+    const fit = placed ? areaFit(section, offset) : null;
+    const radians = placed ? radiansOf(section) : 0;
+    const inArea = polygonOf(section) !== null;
+    // Sin área se gira alrededor del centro de los asientos, igual que el editor.
+    const cells = section.rows.flatMap((row) => row.seats.map((seat) => ({ x: seat.x + offset.x, y: row.y + offset.y })));
+    const xs = cells.map((cell) => cell.x);
+    const ys = cells.map((cell) => cell.y);
+    const center = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+
+    return (cellX, cellY, exact) => {
+        if (placed && exact) {
+            return { x: exact.px / GRID, y: exact.py / GRID, size: 1, angle: 0, inArea, exact: true };
+        }
+
+        const x = cellX + offset.x;
+        const y = cellY + offset.y;
+        const point = fit
+            ? rotate({ x: fit.toX + (x - fit.fromX) * fit.size, y: fit.toY + (y - fit.fromY) * fit.size }, fit.pivot, fit.radians)
+            : rotate({ x, y }, center, radians);
+
+        return { x: point.x, y: point.y, size: fit ? fit.size : 1, angle: (radians * 180) / Math.PI, inArea: fit !== null, exact: false };
+    };
+}
+
 export function venueSeats(sections, statusFor) {
     const offsets = venueOffsets(sections);
     const placed = hasPlacement(sections);
 
     return seatedSections(sections).flatMap((section) => {
-        const offset = offsets[section.key] ?? { x: 0, y: 0 };
-        const fit = placed ? areaFit(section, offset) : null;
-        const radians = placed ? radiansOf(section) : 0;
-        // Sin área se gira alrededor del centro de los asientos, igual que el editor.
-        const xs = section.rows.flatMap((row) => row.seats.map((seat) => seat.x + offset.x));
-        const ys = section.rows.map((row) => row.y + offset.y);
-        const center = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+        const place = sectionPlacer(section, offsets[section.key] ?? { x: 0, y: 0 }, placed);
 
         return section.rows.flatMap((row) =>
             row.seats.map((seat) => {
-                const x = seat.x + offset.x;
-                const y = row.y + offset.y;
-                const point = fit
-                    ? rotate({ x: fit.toX + (x - fit.fromX) * fit.size, y: fit.toY + (y - fit.fromY) * fit.size }, fit.pivot, fit.radians)
-                    : rotate({ x, y }, center, radians);
+                const point = place(seat.x, row.y, hasExact(seat) ? seat : null);
 
                 return {
                     key: section.key,
@@ -178,14 +212,47 @@ export function venueSeats(sections, statusFor) {
                     fila: row.fila,
                     x: point.x,
                     y: point.y,
-                    size: fit ? fit.size : 1,
-                    angle: (radians * 180) / Math.PI,
-                    inArea: fit !== null,
+                    size: point.size,
+                    angle: point.angle,
+                    inArea: point.inArea,
+                    exact: point.exact,
                     zx: seat.x,
                     zy: row.y,
                     status: statusFor(section, seat),
                 };
             }),
         );
+    });
+}
+
+/**
+ * Etiquetas de fila (<labels> del XML) para VenueCanvas, en las mismas
+ * unidades que venueSeats: `x`/`y` en el mapa completo y `zx`/`zy` dentro
+ * de la zona. Las que son solo números no se muestran (igual que SeatCanvas).
+ */
+export function venueLabels(sections) {
+    const offsets = venueOffsets(sections);
+    const placed = hasPlacement(sections);
+
+    return seatedSections(sections).flatMap((section) => {
+        const labels = (section.labels ?? []).filter((label) => label.name && !/^\d+$/.test(String(label.name)));
+        if (!labels.length) return [];
+
+        const place = sectionPlacer(section, offsets[section.key] ?? { x: 0, y: 0 }, placed);
+
+        return labels.map((label) => {
+            const point = place(label.x, label.y, hasExact(label) ? label : null);
+
+            return {
+                key: section.key,
+                name: String(label.name),
+                x: point.x,
+                y: point.y,
+                size: point.size,
+                exact: point.exact,
+                zx: label.x,
+                zy: label.y,
+            };
+        });
     });
 }
