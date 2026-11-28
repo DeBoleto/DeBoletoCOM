@@ -220,4 +220,22 @@ class StageMapParserTest extends TestCase
         $this->assertSame(['scale' => 1.25, 'x' => -40.5, 'y' => 12.0], $stage['sections'][0]['fit']);
         $this->assertNull($stage['sections'][1]['fit']);
     }
+
+    public function test_reads_whether_the_area_color_is_hidden(): void
+    {
+        $stage = StageMapParser::parseXml(
+            '<stage><sections>'
+            .'<section name="VIP" section_id="VIP" locality_id="1"><area name="VIP" color="#ff0000" hide_color="true">'
+            .'<vertex x="0" y="0" /><vertex x="10" y="0" /><vertex x="10" y="10" /></area></section>'
+            .'<section name="ORO" section_id="ORO" locality_id="2"><area name="ORO" color="#00ff00">'
+            .'<vertex x="0" y="0" /><vertex x="10" y="0" /><vertex x="10" y="10" /></area></section>'
+            .'<section name="GENERAL" section_id="GENERAL" locality_id="3" capacity="10" />'
+            .'</sections></stage>',
+        );
+
+        $this->assertTrue($stage['sections'][0]['areaHidden']);
+        $this->assertSame('#ff0000', $stage['sections'][0]['areaColor']);
+        $this->assertFalse($stage['sections'][1]['areaHidden']);
+        $this->assertFalse($stage['sections'][2]['areaHidden']);
+    }
 }

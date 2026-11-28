@@ -271,12 +271,13 @@ function addArea(group, area) {
     const zone = props.zones[area.key];
     const color = zone?.color ?? "#94a3b8";
     const clickable = area.general && zone?.available !== false && !props.readonly;
+    const opacity = area.hidden ? 0 : zone?.available === false ? 0.08 : area.general ? 0.3 : 0.16;
 
     const shape = new Konva.Line({
         points: area.polygon.flatMap((point) => [point.x, point.y]),
         closed: true,
         fill: color,
-        opacity: zone?.available === false ? 0.08 : area.general ? 0.3 : 0.16,
+        opacity,
         stroke: color,
         strokeWidth: 3,
         lineJoin: "round",
@@ -298,7 +299,7 @@ function addArea(group, area) {
     });
     shape.on("mouseleave", () => {
         stage.container().style.cursor = "default";
-        shape.opacity(0.3);
+        shape.opacity(opacity);
     });
 }
 

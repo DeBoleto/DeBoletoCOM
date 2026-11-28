@@ -102,10 +102,12 @@ class StageMapParser
             $polygon = [];
             $areaColor = (string) ($section['color'] ?? '#cccccc');
             $areaName = '';
+            $areaHidden = false;
 
             if (isset($section->area)) {
                 $areaColor = (string) ($section->area['color'] ?: $areaColor);
                 $areaName = (string) ($section->area['name'] ?? '');
+                $areaHidden = strtolower(trim((string) ($section->area['hide_color'] ?? ''))) === 'true';
 
                 foreach ($section->area->vertex as $vertex) {
                     $polygon[] = [
@@ -123,6 +125,7 @@ class StageMapParser
                 'color' => (string) ($section['color'] ?? '#cccccc'),
                 'areaName' => $areaName,
                 'areaColor' => $areaColor,
+                'areaHidden' => $areaHidden,
                 'polygon' => $polygon,
                 'stage' => $stage,
                 'labels' => $labels,

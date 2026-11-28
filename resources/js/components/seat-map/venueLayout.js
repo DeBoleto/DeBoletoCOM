@@ -78,7 +78,12 @@ export function venueAreas(sections) {
 
     return (sections ?? [])
         .filter(polygonOf)
-        .map((section) => ({ key: section.key, polygon: section.polygon, general: section.capacity !== null }));
+        .map((section) => ({
+            key: section.key,
+            polygon: section.polygon,
+            general: section.capacity !== null,
+            hidden: section.areaHidden === true,
+        }));
 }
 
 function rotate(point, center, radians) {
