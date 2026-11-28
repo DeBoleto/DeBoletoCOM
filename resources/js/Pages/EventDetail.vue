@@ -240,23 +240,28 @@
                                 </p>
                                 <ul class="function-list">
                                     <li
-                                        v-for="fn in displayFunctions"
+                                        v-for="fn in event.functions"
                                         :key="fn.id"
                                         class="function-item"
                                         :class="{
                                             'function-item--active':
-                                                selectedFunction?.id === fn.id,
-                                            'function-item--clickable':
-                                                hasMultipleFunctions,
+                                                selectedFunctionId ===
+                                                String(fn.id),
+                                            'function-item--clickable': canBuy,
                                         }"
                                     >
-                                        <a
-                                            :href="`/evento/${page.props.slug}${hasMultipleFunctions ? `?function=${fn.id}` : ''}`"
-                                            class="function-link"
-                                            @click.prevent="
-                                                hasMultipleFunctions &&
-                                                selectFunction(fn)
+                                        <component
+                                            :is="canBuy ? 'a' : 'div'"
+                                            :href="
+                                                canBuy
+                                                    ? route('checkout.map', {
+                                                          evento: event.id,
+                                                          function: fn.id,
+                                                      })
+                                                    : undefined
                                             "
+                                            class="function-link"
+                                            @click="onFunctionClick($event, fn)"
                                         >
                                             <div class="function-date-badge">
                                                 <span class="d">{{
@@ -276,33 +281,28 @@
                                                     Villahermosa, Tabasco</span
                                                 >
                                             </div>
-                                            <svg
-                                                v-if="hasMultipleFunctions"
-                                                class="function-arrow"
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 16 16"
-                                                fill="none"
-                                                aria-hidden="true"
+                                            <span
+                                                v-if="canBuy"
+                                                class="function-cta"
                                             >
-                                                <path
-                                                    v-if="!isFiltered"
-                                                    d="M6 4L10 8L6 12"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                />
-                                                <path
-                                                    v-else
-                                                    d="M10 12L6 8L10 4"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                />
-                                            </svg>
-                                        </a>
+                                                Elegir asientos
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 16 16"
+                                                    fill="none"
+                                                    aria-hidden="true"
+                                                >
+                                                    <path
+                                                        d="M6 4L10 8L6 12"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
+                                            </span>
+                                        </component>
                                     </li>
                                 </ul>
                             </div>
@@ -550,7 +550,19 @@
         <NearbyEventsStrip :events="nearbyEvents" />
 
         <SiteFooter />
-        <MobileBottomNav @open-login="openLogin" />
+        <MobileBottomNav v-if="!canBuy" @open-login="openLogin" />
+        <div v-else class="mobile-buy-bar">
+            <div class="mobile-buy-price">
+                <template v-if="fromPrice !== null">
+                    <span class="mobile-buy-from">Desde</span>
+                    <strong>${{ formatPrice(fromPrice) }}</strong>
+                </template>
+                <strong v-else class="mobile-buy-name">{{ event.name }}</strong>
+            </div>
+            <button type="button" class="mobile-buy-btn" @click="buy()">
+                COMPRAR BOLETO
+            </button>
+        </div>
 
         <PhoneLoginModal
             :show="showPhoneLoginModal"
@@ -637,30 +649,23 @@ const hasMultipleFunctions = computed(() => {
     return props.event.functions.length > 1;
 });
 
-const isFiltered = computed(() => {
-    return (
-        selectedFunctionId.value !== null &&
-        props.event.functions.some(
-            (f) => String(f.id) === selectedFunctionId.value,
-        )
-    );
-});
-
-const displayFunctions = computed(() => {
-    if (!isFiltered.value) return props.event.functions;
-    const fn = props.event.functions.find(
-        (f) => String(f.id) === selectedFunctionId.value,
-    );
-    return fn ? [fn] : props.event.functions;
-});
-
 const canBuy = computed(
     () => Boolean(props.event.ventaWeb) && props.event.functions.length > 0,
 );
 
 const chosenFunction = computed(() => {
-    if (isFiltered.value) return selectedFunction.value;
+    const fromUrl = props.event.functions.find(
+        (f) => String(f.id) === selectedFunctionId.value,
+    );
+    if (fromUrl) return fromUrl;
     return hasMultipleFunctions.value ? null : props.event.functions[0] || null;
+});
+
+const fromPrice = computed(() => {
+    const prices = (props.event.zones ?? [])
+        .map((zone) => Number(zone.discountPrice))
+        .filter((price) => Number.isFinite(price) && price > 0);
+    return prices.length ? Math.min(...prices) : null;
 });
 
 const needsDate = ref(false);
@@ -679,16 +684,11 @@ function buy(fn = chosenFunction.value) {
     });
 }
 
-function selectFunction(fn) {
-    if (selectedFunctionId.value === String(fn.id)) {
-        router.get(`/evento/${page.props.slug}`, {}, { preserveScroll: true });
-    } else {
-        router.get(
-            `/evento/${page.props.slug}`,
-            { function: fn.id },
-            { preserveScroll: true },
-        );
-    }
+function onFunctionClick(e, fn) {
+    if (!canBuy.value) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    buy(fn);
 }
 
 const showPhoneLoginModal = ref(false);
@@ -1191,15 +1191,126 @@ main {
     outline-offset: 2px;
 }
 
-.function-arrow {
+.function-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     margin-left: auto;
     flex-shrink: 0;
-    color: var(--color-text-muted);
-    transition: color var(--transition-fast);
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--color-brand-dim);
+    color: var(--color-brand);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    white-space: nowrap;
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
 }
 
-.function-item--clickable:hover .function-arrow {
-    color: var(--color-brand);
+.function-item--clickable:hover .function-cta {
+    background: var(--color-brand);
+    color: #06291d;
+}
+
+.mobile-buy-bar {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .page-layout:has(.mobile-buy-bar) {
+        padding-bottom: calc(var(--bottom-nav-height) + var(--space-6) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .mobile-buy-bar {
+        position: fixed;
+        bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+        left: var(--space-3);
+        right: var(--space-3);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: var(--bottom-nav-height);
+        padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+        background: rgba(18, 18, 26, 0.9);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-xl);
+        box-shadow:
+            0 12px 32px -8px rgba(0, 0, 0, 0.7),
+            0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .mobile-buy-price {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    .mobile-buy-from {
+        color: var(--color-text-secondary);
+        font-size: var(--text-xs);
+    }
+
+    .mobile-buy-price strong {
+        font-size: var(--text-lg);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .mobile-buy-name {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: var(--text-sm) !important;
+    }
+
+    .mobile-buy-btn {
+        flex: 1;
+        min-height: 48px;
+        margin-left: auto;
+        padding: 0 var(--space-4);
+        border: none;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(
+            135deg,
+            var(--color-brand),
+            var(--color-accent)
+        );
+        color: #fff;
+        font-weight: 800;
+        font-size: var(--text-sm);
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        box-shadow: var(--shadow-brand);
+        transition: transform var(--transition-fast);
+    }
+
+    .mobile-buy-btn:active {
+        transform: scale(0.98);
+    }
+
+    .mobile-buy-btn:focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+
+    .function-cta {
+        padding: 6px;
+        font-size: 0;
+        gap: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .function-cta,
+    .mobile-buy-btn {
+        transition: none;
+    }
 }
 
 .btn-buy:focus-visible {
