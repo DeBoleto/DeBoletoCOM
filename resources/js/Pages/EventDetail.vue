@@ -663,7 +663,11 @@ const chosenFunction = computed(() => {
 
 const fromPrice = computed(() => {
     const prices = (props.event.zones ?? [])
-        .map((zone) => Number(zone.discountPrice))
+        .map((zone) =>
+            Number(zone.discountPrice) > 0
+                ? Number(zone.discountPrice)
+                : Number(zone.originalPrice),
+        )
         .filter((price) => Number.isFinite(price) && price > 0);
     return prices.length ? Math.min(...prices) : null;
 });

@@ -73,7 +73,7 @@
 
                             <div class="methods" role="radiogroup" aria-labelledby="step-method">
                                 <label class="method" :class="{ 'is-active': method === 'card' }">
-                                    <input v-model="method" type="radio" value="card" class="visually-hidden" />
+                                    <input v-model="method" type="radio" name="metodo" value="card" class="visually-hidden" />
                                     <span class="method-icon" aria-hidden="true">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20M6 15h4" /></svg>
                                     </span>
@@ -84,7 +84,7 @@
                                     <span class="method-radio" aria-hidden="true" />
                                 </label>
                                 <label class="method" :class="{ 'is-active': method === 'transfer' }">
-                                    <input v-model="method" type="radio" value="transfer" class="visually-hidden" />
+                                    <input v-model="method" type="radio" name="metodo" value="transfer" class="visually-hidden" />
                                     <span class="method-icon" aria-hidden="true">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-6 9 6" /><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18" /></svg>
                                     </span>
@@ -108,14 +108,14 @@
 
                             <div v-if="savedCards.length" class="saved-cards" role="radiogroup" aria-label="Tarjetas guardadas">
                                 <label v-for="saved in savedCards" :key="saved.id" class="saved-card" :class="{ 'is-active': cardChoice === saved.id }">
-                                    <input v-model="cardChoice" type="radio" :value="saved.id" class="visually-hidden" />
+                                    <input v-model="cardChoice" type="radio" name="tarjeta" :value="saved.id" class="visually-hidden" />
                                     <span class="brand-pill">{{ brandShort(saved.brand) }}</span>
                                     <span class="saved-card-number">•••• {{ saved.last4 }}</span>
                                     <span class="saved-card-exp">{{ saved.expiration }}</span>
                                     <span class="method-radio" aria-hidden="true" />
                                 </label>
                                 <label class="saved-card" :class="{ 'is-active': cardChoice === 'new' }">
-                                    <input v-model="cardChoice" type="radio" value="new" class="visually-hidden" />
+                                    <input v-model="cardChoice" type="radio" name="tarjeta" value="new" class="visually-hidden" />
                                     <span class="brand-pill brand-pill--ghost">+</span>
                                     <span class="saved-card-number">Usar otra tarjeta</span>
                                     <span />
@@ -223,12 +223,12 @@
                                 <p id="plans-label" class="plans-label">¿Cómo quieres pagar?</p>
                                 <div class="plans" role="radiogroup" aria-labelledby="plans-label">
                                     <label class="plan" :class="{ 'is-active': installments === null }">
-                                        <input v-model="installments" type="radio" :value="null" class="visually-hidden" :disabled="quoting" />
+                                        <input v-model="installments" type="radio" name="meses" :value="null" class="visually-hidden" :disabled="quoting" />
                                         <span class="plan-main">Contado</span>
                                         <span class="plan-sub">Un solo pago</span>
                                     </label>
                                     <label v-for="plan in options.installments" :key="plan" class="plan" :class="{ 'is-active': installments === plan }">
-                                        <input v-model="installments" type="radio" :value="plan" class="visually-hidden" :disabled="quoting" />
+                                        <input v-model="installments" type="radio" name="meses" :value="plan" class="visually-hidden" :disabled="quoting" />
                                         <span class="plan-main">{{ plan }} meses</span>
                                         <span class="plan-sub">sin intereses</span>
                                     </label>
@@ -360,7 +360,7 @@
                                         {{ method === "transfer" ? "Generar ficha SPEI" : "Pagar" }} {{ money(quote.total) }}
                                     </template>
                                 </button>
-                                <p v-if="pendingReason" id="pay-reason" class="pay-reason" aria-live="polite">{{ pendingReason }}</p>
+                                <p v-if="pendingReason" id="pay-reason" class="pay-reason">{{ pendingReason }}</p>
                             </div>
                         </div>
                     </form>
@@ -373,7 +373,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/vue3";
 import SiteHeader from "@/components/SiteHeader.vue";
 import SiteFooter from "@/components/SiteFooter.vue";
@@ -422,7 +422,9 @@ const clientError = ref("");
 const deviceSessionId = ref("");
 const summaryOpen = ref(false);
 const extrasOpen = ref(Boolean(props.quote.coupon));
-const typing = ref(false);
+const textFocused = ref(false);
+const keyboardOpen = ref(false);
+const typing = computed(() => textFocused.value && keyboardOpen.value);
 
 const form = useForm({});
 
@@ -527,11 +529,16 @@ function isTextInput(target) {
 }
 
 function onFocusIn(event) {
-    typing.value = isTextInput(event.target);
+    textFocused.value = isTextInput(event.target);
 }
 
 function onFocusOut(event) {
-    if (isTextInput(event.target)) typing.value = false;
+    if (isTextInput(event.target)) textFocused.value = false;
+}
+
+function syncViewport() {
+    const viewport = window.visualViewport;
+    keyboardOpen.value = Boolean(viewport) && viewport.height < window.innerHeight * 0.8;
 }
 
 async function requote() {
@@ -581,7 +588,13 @@ watch(method, (value) => {
 });
 
 async function pay() {
-    if (!canPay.value) return;
+    if (!canPay.value) {
+        if (!paying.value) {
+            Object.keys(touched).forEach((field) => (touched[field] = true));
+            document.activeElement?.blur();
+        }
+        return;
+    }
 
     clientError.value = "";
     paying.value = true;
@@ -635,11 +648,17 @@ function expired() {
 }
 
 onMounted(async () => {
+    window.visualViewport?.addEventListener("resize", syncViewport);
+
     try {
         deviceSessionId.value = await loadOpenPay(props.openpay);
     } catch (error) {
         clientError.value = error.message;
     }
+});
+
+onUnmounted(() => {
+    window.visualViewport?.removeEventListener("resize", syncViewport);
 });
 </script>
 
@@ -745,8 +764,12 @@ main {
     overscroll-behavior: contain;
 }
 
+.page-layout {
+    padding-bottom: calc(200px + env(safe-area-inset-bottom));
+}
+
 .pay-page {
-    padding-block: var(--space-6) calc(var(--space-12) + 170px);
+    padding-block: var(--space-6) var(--space-12);
 }
 
 .pay-grid {
@@ -1494,6 +1517,10 @@ main {
 @media (min-width: 1024px) {
     .timer-steps {
         display: flex;
+    }
+
+    .page-layout {
+        padding-bottom: 0;
     }
 
     .summary-toggle-wrap,
