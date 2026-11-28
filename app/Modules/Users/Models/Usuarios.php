@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Usuario del back-office (taquilla / dashboard). Tabla legacy `usuarios`.
@@ -33,6 +34,9 @@ class Usuarios extends Authenticatable
     public const CREATED_AT = 'creacion_fecha';
 
     public const UPDATED_AT = 'modificacion_fecha';
+
+    /** Autor que usa deboletox cuando nadie inició sesión (registro de clientes). */
+    public const SYSTEM_AUTHOR = 1;
 
     /** Tipos de usuario con permisos de empresario (ven solo sus eventos). */
     public const MAX_PROMOTER_TYPE = 3;
@@ -59,6 +63,19 @@ class Usuarios extends Authenticatable
             'eliminado' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Usuarios $user) {
+            $author = Auth::guard('boxoffice')->id()
+                ?? Auth::guard('admin')->id()
+                ?? Auth::guard('customer')->id()
+                ?? self::SYSTEM_AUTHOR;
+
+            $user->creacion_pk_usuario ??= (int) $author;
+            $user->modificacion_pk_usuario ??= (int) $author;
+        });
     }
 
     public function freshTimestamp(): Carbon

@@ -107,4 +107,18 @@ class CustomerAuthTest extends TestCase
             'email' => 'eva@gmail.com', 'password' => 'clave-larga-1', 'password_confirmation' => 'clave-larga-1',
         ])->assertSessionHasErrors('phone');
     }
+
+    public function test_guests_can_register_and_get_the_legacy_system_author(): void
+    {
+        $this->post('/cliente/registro', [
+            'nombre' => 'Eva', 'apellido_paterno' => 'Ruiz', 'phone' => '9935556666',
+            'email' => 'eva@gmail.com', 'password' => 'clave-larga-1', 'password_confirmation' => 'clave-larga-1',
+        ])->assertSessionHasNoErrors();
+
+        $customer = Usuarios::query()->where('correo', 'eva@gmail.com')->sole();
+
+        $this->assertSame($customer->pk_usuario, Auth::guard('customer')->id());
+        $this->assertSame(1, (int) $customer->creacion_pk_usuario);
+        $this->assertSame(1, (int) $customer->modificacion_pk_usuario);
+    }
 }

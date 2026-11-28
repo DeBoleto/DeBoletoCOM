@@ -28,7 +28,9 @@ trait LegacyCheckoutSchema
             $table->integer('pk_formato_boleto')->nullable();
             $table->integer('tipe_login')->nullable();
             $table->boolean('eliminado')->default(0);
+            $table->unsignedInteger('creacion_pk_usuario');
             $table->dateTime('creacion_fecha')->nullable();
+            $table->unsignedInteger('modificacion_pk_usuario');
             $table->dateTime('modificacion_fecha')->nullable();
         });
 
